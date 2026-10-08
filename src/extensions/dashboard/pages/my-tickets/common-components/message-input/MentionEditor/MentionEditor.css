@@ -1,0 +1,183 @@
+/* ============================================================
+   MENTION EDITOR
+   ============================================================ */
+
+.mention-editor {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 100%;
+}
+
+/* ============================================================
+   POPOVER ANCHOR
+   ============================================================ */
+
+.mention-editor__popover-anchor {
+  display: block;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+/* ============================================================
+   CONTENT EDITABLE
+   ============================================================ */
+
+.mention-editor__input {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+
+  padding: 0;
+  border: none;
+  border-radius: 0;
+
+  background: transparent;
+  outline: none;
+
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+
+  cursor: text;
+  resize: none;
+
+  font-family: var(
+    --wds-font-family-default,
+    var(
+      --wsr-font-family,
+      Madefor,
+      "Helvetica Neue",
+      Helvetica,
+      Arial,
+      "メイリオ",
+      "meiryo",
+      "ヒラギノ角ゴ Pro W3",
+      "hiragino kaku gothic pro",
+      sans-serif
+    )
+  );
+
+  font-size: var(
+    --wds-input-value-font-size-large,
+    16px
+  );
+
+  font-weight: var(
+    --wds-font-weight-regular,
+    var(--wsr-font-weight-regular, 400)
+  );
+
+  line-height: var(
+    --wds-input-value-font-line-height-medium,
+    24px
+  );
+
+  letter-spacing: var(
+    --wds-font-letter-spacing-0,
+    unset
+  );
+
+  min-height: var(
+    --wds-input-size-large,
+    34px
+  );
+}
+
+/* ============================================================
+   PLACEHOLDER
+   ============================================================ */
+
+.mention-editor__input:empty::before {
+  content: attr(data-placeholder);
+
+  color: #8a96a6;
+
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ============================================================
+   FOCUS
+   ============================================================ */
+
+.mention-editor__input:focus {
+  border-color: #116dff;
+}
+
+/* ============================================================
+   DISABLED
+   ============================================================ */
+
+.mention-editor__input--disabled {
+  cursor: default;
+}
+
+.mention-editor__input--disabled:focus {
+  border-color: #c9d4e0;
+}
+
+/* ============================================================
+   MENTION PILL
+   ============================================================ */
+
+.mention-editor__mention {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: middle;
+
+  white-space: nowrap;
+  user-select: none;
+  cursor: default;
+
+  margin: 0 2px;
+  padding: 2px 7px;
+
+  border-radius: 999px;
+
+  background: #e6f0ff;
+  color: #20304a;
+
+  font-family: Madefor, Arial, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 18px;
+}
+
+/* ============================================================
+   MENTION MENU
+   ============================================================ */
+
+.mention-editor__menu {
+  min-width: 100%;
+  padding: 4px;
+}
+
+/* ============================================================
+   MENTION MENU ITEM
+   ============================================================ */
+
+.mention-editor__menu-item {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+  padding: 8px 10px;
+
+  border-radius: 6px;
+
+  cursor: pointer;
+}
+
+.mention-editor__menu-item--active {
+  background: #e9f7f2;
+}
+
+/* ============================================================
+   PERSON DETAILS
+   ============================================================ */
+
+.mention-editor__person {
+  display: block;
+}

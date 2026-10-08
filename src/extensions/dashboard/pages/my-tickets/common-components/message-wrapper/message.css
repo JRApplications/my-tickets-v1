@@ -1,0 +1,73 @@
+.messages-wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    width: 100%;
+}
+
+.message-item {
+    width: 100%;
+}
+
+.message-item,
+.message-item>div,
+.agent-message-wrapper {
+    min-width: 0;
+    max-width: 100%;
+}
+
+.agent-name {
+    font-size: 18px !important;
+}
+
+.agent-message-content-new {
+    background-color: rgba(0, 123, 255, 0.104);
+    border-radius: 10px;
+    border: 1px solid rgb(0, 123, 255);
+    padding: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+.user-name {
+    font-size: 18px !important;
+}
+
+.user-message-content-new {
+    background-color: rgba(101, 201, 118, 0.104);
+    border-radius: 10px;
+    border: 1px solid rgb(101, 201, 118);
+    padding: 12px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
+/* System Messages */
+
+.system-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    gap: 18px;
+}
+
+.system-message .dashed {
+    flex: 1;
+    border: none;
+    border-top: 2px dashed #ccc;
+    margin: 0;
+}
+
+.system-message-message {
+    color: #4a4949;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-weight: 400;
+}
+
+
+.mention-tooltip {
+    display: inline-block !important;
+}

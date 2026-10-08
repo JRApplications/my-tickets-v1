@@ -1,0 +1,46 @@
+.submittedOnDate {
+    font-size: 13px;
+    color: var(--MemberTickets-color-text-secondary);
+    white-space: nowrap;
+}
+
+.ticketNumber {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--MemberTickets-color-text);
+}
+
+.ticketSubject {
+    font-size: 14.5px;
+    font-weight: 400;
+    color: var(--MemberTickets-color-text);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ticketStatus {
+    font-size: 13px;
+    color: var(--MemberTickets-color-text);
+}
+
+.ticketStatus .value {
+    color: var(--MemberTickets-color-primary);
+}
+
+.openButton {
+    width: 30px;
+    height: 30px;
+    border-radius: 4px;
+    background: var(--MemberTickets-color-primary);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+
+.openButton:hover {
+    cursor: pointer;
+}

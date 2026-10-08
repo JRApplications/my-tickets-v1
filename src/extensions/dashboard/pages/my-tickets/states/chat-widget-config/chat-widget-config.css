@@ -1,0 +1,71 @@
+.chat-widget-config-header {
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px;
+}
+
+.chat-widget-config-header-text {
+    font-size: clamp(16px, 4vw, 20px) !important;
+    font-weight: 500 !important;
+}
+
+.chat-widget-config-inner {
+    padding: 20px;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    overflow-y: auto;
+}
+
+.chat-widget-config-empty-state-container {
+    height: 100% !important;
+    width: 100% !important;
+    overflow-y: auto !important;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+.chat-widget-config-ai-team-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 16px;
+    width: 100%;
+}
+
+.chat-widget-config-ai-team-checkbox {
+    margin: 0;
+    min-width: max-content;
+}
+
+[data-hook='chat-widget-config-accordion'] {
+    width: 100%;
+}
+
+/* Mobile: Single column layout */
+@media (max-width: 640px) {
+    .chat-widget-config-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .chat-widget-config-header-text {
+        text-align: center;
+    }
+
+    .chat-widget-config-ai-team-list {
+        gap: 12px;
+    }
+}
+
+[data-hook='card-no-border'] {
+    border-radius: 0px !important;
+}
+
+.chat-widget-config-page {
+    width: 100%
+}

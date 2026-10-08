@@ -1,0 +1,38 @@
+.cw__agent__message {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: 75%;
+  align-self: flex-start;
+  padding: 3px;
+}
+
+.cw__agent__message__content {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.cw__agent__message__name {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cw-system-text, #6b7280);
+  padding-left: 2px;
+}
+
+.cw__agent__message__bubble {
+  background-color: var(--cw-agent-bubble, #f3f4f6);
+  color: var(--cw-agent-text, #111827);
+  padding: 10px 14px;
+  border-radius: 18px 18px 18px 4px;
+  font-size: 14px;
+  line-height: 1.5;
+  word-break: break-word;
+  white-space: pre-wrap;
+}
+
+.cw__agent__message__time {
+  font-size: 11px;
+  color: var(--cw-system-text, #6b7280);
+  padding-left: 2px;
+}

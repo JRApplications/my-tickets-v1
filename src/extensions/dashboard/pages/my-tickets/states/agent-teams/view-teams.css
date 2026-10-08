@@ -1,0 +1,97 @@
+.view-teams-header {
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px;
+}
+
+.view-teams-header-text {
+    font-size: clamp(16px, 4vw, 20px) !important;
+    font-weight: 500 !important;
+}
+
+.view-teams-cell {
+    border-right: 2px solid #e1e4e8;
+    border-left: 2px solid #e1e4e8;
+    border-top: 2px solid #e1e4e8;
+    border-bottom: 2px solid #e1e4e8;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.06);
+    border-radius: 8px;
+    min-width: 0;
+    height: fit-content !important;
+}
+
+.view-teams-layout-main-container {
+    padding: clamp(16px, 4vw, 32px);
+    flex: 1;
+    overflow: hidden !important;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.view-teams-layout-container {
+    width: 100% !important;
+    overflow-y: auto !important;
+    gap: clamp(8px, 2vw, 16px) !important;
+    display: grid !important;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)) !important;
+    align-content: flex-start !important;
+}
+
+.view-teams-empty-state {
+    /* padding: clamp(24px, 5vw, 40px);
+    display: flex;
+    flex-direction: column !important;
+    row-gap: 15px;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    text-align: center;
+    width: 100% !important; */
+    width: 100% !important;
+}
+
+.view-teams-empty-state-container {
+    height: 100% !important;
+}
+
+/* Mobile: Single column layout */
+@media (max-width: 640px) {
+    .view-teams-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .view-teams-header-text {
+        text-align: center;
+    }
+
+    .view-teams-cell {
+        min-width: 100%;
+    }
+
+    .view-teams-layout-main-container {
+        padding: 12px;
+    }
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 641px) and (max-width: 1024px) {
+    .view-teams-cell {
+        min-width: calc(50% - 10px);
+    }
+}
+
+/* Desktop: 3+ columns */
+@media (min-width: 1025px) {
+    .view-teams-cell {
+        min-width: calc(33.333% - 13px);
+    }
+}
+
+.view-teams-page {
+    width: 100%;
+}

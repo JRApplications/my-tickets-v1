@@ -1,0 +1,10 @@
+.file-item-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
+    background-color: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.289);
+    max-width: 200px;
+}

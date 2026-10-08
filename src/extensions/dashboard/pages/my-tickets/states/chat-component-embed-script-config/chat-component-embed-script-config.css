@@ -1,0 +1,8 @@
+.chat-component-embed-script-config-page {
+    width: 100%;
+}
+
+.sticky-live-preview-card {
+    position: sticky !important;
+    top: 1px !important;
+}

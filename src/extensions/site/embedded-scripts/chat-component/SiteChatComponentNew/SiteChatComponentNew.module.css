@@ -1,0 +1,128 @@
+/* ─── Root container ─────────────────────────────────────────────────────────
+ * Fixed to bottom-right by default so it works out-of-the-box.
+ * Override with your own positioning class if embedding differently.
+ * ─────────────────────────────────────────────────────────────────────────── */
+.cw__root {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+  /* Scope CSS vars and stacking context */
+  isolation: isolate;
+
+  background-color: transparent;
+}
+
+/* ─── Widget Panel ──────────────────────────────────────────────────────────── */
+
+.cw__widget {
+  display: flex;
+  flex-direction: column;
+  /* width: var(--cw-width);
+  height: var(--cw-height); */
+  /* Clamp so it never overflows the viewport on small screens */
+  /* max-width: calc(100vw - 48px);
+  max-height: calc(100dvh - 96px); */
+  overflow: hidden;
+  /* Entry animation */
+  animation: cw-panel-in 0.22s ease;
+  transform-origin: bottom right;
+  border-radius: var(--cw-border-radius, 12px);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.12);
+}
+
+@keyframes cw-panel-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.cw__widget__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* ─── Launcher Button ───────────────────────────────────────────────────────── */
+
+.cw_launcher {
+  width: var(--cw-launcher-size, 56px);
+  height: var(--cw-launcher-size, 56px);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  padding: 3px;
+  border-style: solid;
+
+  border-radius: var(--cw-launcher-radius, 50%);
+  background-color: var(--cw-launcher-bg, #4f46e5);
+  color: var(--cw-launcher-icon, #ffffff);
+  border-color: var(--cw-launcher-border, #ffffff);
+  border-width: 2px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.cw_launcher:hover {
+  transform: scale(1.07);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.26);
+}
+
+.cw-launcher:focus-visible {
+  outline: 3px solid var(--cw-primary);
+  outline-offset: 3px;
+}
+
+.cw_launcher:active {
+  transform: scale(0.96);
+}
+
+/* ─── Tablet (481px – 768px): panel floats, slightly narrower margin ────────── */
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .cw__root {
+    bottom: max(16px, env(safe-area-inset-bottom));
+    right: max(16px, env(safe-area-inset-right));
+  }
+
+  .cw__widget {
+    max-width: calc(100vw - 32px);
+    max-height: calc(100dvh - 80px);
+  }
+}
+
+/* ─── Mobile (≤ 480px): full-screen panel, launcher stays fixed ─────────────── */
+
+@media (max-width: 480px) {
+  .cw__root {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    gap: 0;
+    width: 100vw;
+    height: 100dvh;
+  }
+
+  .cw__root > .cw_launcher {
+    position: fixed;
+    bottom: max(20px, env(safe-area-inset-bottom));
+    right: max(20px, env(safe-area-inset-right));
+  }
+
+  .cw__widget {
+    width: 100vw !important;
+    max-width: 100vw;
+    height: 100dvh !important;
+    max-height: 100dvh;
+    border-radius: 0;
+    transform-origin: bottom center;
+  }
+}

@@ -1,0 +1,90 @@
+.message-input-wrapper-container {
+  width: 100%;
+  border-radius: var(--wds-input-area-border-radius-default-medium, 6px);
+  border: 1px solid var(--wds-input-border-color, var(--wsr-color-B40, #D6E6FE));
+  box-sizing: border-box;
+  height: 100%;
+}
+
+.input-area-wrapper {
+  position: relative;
+  height: 100%;
+  max-height: 100%;
+  min-height: 100%;
+}
+
+[data-hook="input-shell"] {
+  height: max-content !important;
+}
+
+.message-input-drop-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 2px dashed var(--wsr-color-B10, #3899ec);
+  border-radius: var(--wds-input-area-border-radius-default-medium, 6px);
+  background-color: rgba(56, 153, 236, 0.12);
+  pointer-events: none;
+}
+
+[data-hook="internal-mail-input-shell"] { 
+  height: 100% !important;
+}
+
+.input-shell-textarea {
+  resize: none;
+  background: transparent;
+  border: none;
+  font-family: var(--wds-font-family-default, var(--wsr-font-family, Madefor, "Helvetica Neue", Helvetica, Arial, "メイリオ", "meiryo", "ヒラギノ角ゴ  pro w3", "hiragino kaku gothic pro", sans-serif));
+  font-size: var(--wds-font-size-body-medium, var(--wsr-text-font-size-medium, 16px));
+  font-weight: var(--wds-font-weight-regular, var(--wsr-font-weight-regular, 400));
+  line-height: var(--wds-font-line-height-body-medium, var(--wsr-text-line-height-medium, 24px));
+  letter-spacing: var(--wds-font-letter-spacing-0, unset);
+  font-size: var(--wds-input-value-font-size-large, 16px);
+  line-height: var(--wds-input-value-font-line-height-medium, 24px);
+  min-height: var(--wds-input-size-large, 34px);
+}
+
+.input-shell-textarea.internal-mail {
+  height: 100%;
+}
+
+.text-area-shell {
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-width: 20px;
+  padding: var(--wds-input-area-padding-vertical-small, 6px) 0 var(--wds-input-area-padding-vertical-small, 6px) var(--wds-input-area-padding-left-medium, 12px);
+  margin: 0;
+  border: 0;
+  outline: 0;
+  background: 0 0;
+  cursor: auto;
+  resize: none;
+  overflow-y: scroll;
+  color: var(--wds-color-text-standard-primary, var(--wsr-color-D10, #000624));
+}
+
+.input-shell-textarea:focus {
+  outline: none;
+}
+
+.input-shell-textarea::-webkit-scrollbar {
+  width: 4px;
+}
+
+.input-shell-textarea::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.input-shell-textarea::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 2px;
+}
+
+.input-shell-textarea::-webkit-scrollbar-thumb:hover {
+  background: #666;
+}

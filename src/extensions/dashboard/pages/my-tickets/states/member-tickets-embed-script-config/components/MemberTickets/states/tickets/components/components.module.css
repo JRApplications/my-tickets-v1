@@ -1,0 +1,79 @@
+.statusDropdown {
+    position: relative;
+}
+
+.selectBtn {
+    height: 38px;
+    border: 1px solid var(--color-border);
+    background: var(--surface);
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.selectBtn:focus-visible,
+.selectBtn.open {
+    outline: 2px solid #4a4a4a;
+    outline-offset: -2px;
+}
+
+.selectBtn .chevron {
+    font-size: 10px;
+    color: var(--muted);
+    transition: transform 0.12s ease;
+}
+
+.selectBtn.open .chevron {
+    transform: rotate(180deg);
+}
+
+.menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    min-width: 100%;
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 4px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    z-index: 10;
+    display: none;
+    overflow: hidden;
+}
+
+.menu.open {
+    display: block;
+}
+
+.menuItem {
+    padding: 10px 14px;
+    font-size: 14px;
+    color: var(--ink);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.menuItem+.menuItem {
+    border-top: 1px solid var(--line);
+}
+
+.menuItem:hover,
+.menuItem.active {
+    background: #fafafa;
+}
+
+.ticketSearchInput {
+    height: 38px;
+    border: 1px solid var(--color-border);
+    background: var(--surface);
+    border-radius: 4px;
+    font-size: 14px;
+    color: var(--ink);
+    padding: 0 12px;
+}

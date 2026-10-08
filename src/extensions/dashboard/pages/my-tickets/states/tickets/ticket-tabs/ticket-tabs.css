@@ -1,0 +1,28 @@
+.tabs-wrapper-container {
+    width: 100%;
+    border-bottom: 1px solid #e1e4e8;
+    box-sizing: border-box;
+    padding: 18px 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    overflow: hidden;
+}
+
+.ticket-tabs-list {
+    flex: 1;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.ticket-navigation-buttons {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+}
+
+.ticket-tabs-wrapper-card {
+    border-radius: 0px !important;
+}

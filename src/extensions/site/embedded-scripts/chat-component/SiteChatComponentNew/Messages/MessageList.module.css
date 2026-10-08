@@ -1,0 +1,24 @@
+.cw__message__list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding: 16px;
+  background-color: var(--cw-background, #ffffff);
+  scroll-behavior: smooth;
+}
+
+/* Scrollbar styling */
+.cw__message__list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.cw__message__list::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.cw__message__list::-webkit-scrollbar-thumb {
+  background-color: var(--cw-border);
+  border-radius: 10px;
+}

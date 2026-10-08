@@ -1,0 +1,102 @@
+.cw__attachment__message {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-self: flex-start;
+  max-width: 80%;
+  padding: 3px;
+}
+
+.cw__attachment__message__user {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-self: flex-start;
+  max-width: 80%;
+  align-self: flex-end;
+  align-items: flex-end;
+}
+
+.cw__attachment__message__card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background-color: var(--cw-agent-bubble);
+  border: 1px solid var(--cw-border);
+  border-radius: 12px;
+  padding: 10px 14px;
+}
+
+.cw__attachment__message__user .cw__attachment__message__card {
+  background-color: var(--cw-user-bubble);
+  border-color: transparent;
+  color: var(--cw-user-text);
+  border-bottom-right-radius: 4px;
+}
+
+.cw__attachment__message__icon {
+  flex-shrink: 0;
+  opacity: 0.75;
+  display: flex;
+  align-items: center;
+}
+
+.cw__attachment__message__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+
+.cw__attachment__message__name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cw__attachment__message__label {
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+.cw__attachment__message__open__btn {
+  background-color: var(--cw-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-family: var(--cw-font-family);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: opacity 0.15s ease;
+}
+
+.cw__attachment__message__user .cw__attachment__message__open__btn {
+  background-color: rgba(255, 255, 255, 0.25);
+  color: #ffffff;
+}
+
+.cw__attachment__message__open__btn:hover {
+  opacity: 0.85;
+}
+
+.cw__attachment__message__open__btn:focus-visible {
+  outline: 2px solid var(--cw-primary);
+  outline-offset: 2px;
+}
+
+.cw__attachment__message__time {
+  font-size: 11px;
+  color: #6b7280;
+  padding-left: 2px;
+}
+
+.cw__attachment__message__time__right {
+  padding-left: 0;
+  padding-right: 2px;
+  align-self: flex-end;
+}

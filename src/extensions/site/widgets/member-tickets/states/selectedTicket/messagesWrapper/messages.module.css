@@ -1,0 +1,66 @@
+.__MessageContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.__MessagePrimary {
+    background-color: var(--MemberTicketsAgentBubbleBackground, #ffffff);
+    color: var(--MemberTicketsAgentBubbleText, #181818);
+    font-size: 14px;
+    border: 1px solid var(--MemberTickets-color-border);
+}
+
+.__MessageSecondary {
+    background-color: var(--MemberTicketsMemberBubbleBackground, var(--MemberTickets-color-surface));
+    color: var(--MemberTicketsMemberBubbleText, #181818);
+    font-size: 14px;
+}
+
+.__AgentName {
+    font-weight: 500;
+    color: var(--MemberTicketsAgentNameColor, #181818);
+    font-size: 14px;
+}
+
+.__CustomerName {
+    font-weight: 500;
+    color: var(--MemberTicketsMemberNameColor, #181818);
+    font-size: 14px;
+}
+
+.__MessagePrimary,
+.__MessageSecondary {
+    padding: 15px;
+    border-radius: 4px;
+    width: max-content;
+}
+
+.__MessagePrimaryContainer p,
+.__MessageSecondaryContainer p,
+.__MessagePrimary p,
+.__MessageSecondary p {
+    margin: 0px !important;
+}
+
+.__MessagePrimaryContainer {
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.__MessageSecondaryContainer {
+    align-self: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+}
+
+.__MessagePrimaryHeader {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+}

@@ -1,0 +1,146 @@
+.login-page {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    height: 100%;
+    overflow: hidden;
+}
+
+.login-container-header {
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.input-container-header {
+    padding-bottom: 20px;
+}
+
+.error-text {
+    color: rgb(224, 3, 3) !important;
+}
+
+.code-input {
+    width: 100%;
+}
+
+
+.login-container {
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    height: 100%;
+}
+
+.cell {
+    width: stretch;
+    height: stretch;
+    padding-top: 100px;
+    padding-bottom: 100px;
+    padding-left: 35px;
+    padding-right: 35px;
+}
+
+.cell1 {
+    position: relative;
+    overflow: hidden;
+    background-color: #34509c;
+    width: stretch;
+    height: stretch;
+    align-items: flex-start;
+    vertical-align: middle;
+    padding: 35px;
+    border-top-right-radius: inherit;
+    border-bottom-right-radius: inherit;
+}
+
+.input-container-header-text {
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-size: 60px !important;
+    font-family: var(--wds-font-family-display, var(--wsr-font-family, Madefor, "Helvetica Neue", Helvetica, Arial, "\30E1\30A4\30EA\30AA", "meiryo", "\30D2\30E9\30AE\30CE\89D2\30B4   pro w3", "hiragino kaku gothic pro", sans-serif));
+}
+
+.input-container-header-text-h3 {
+    margin-block: 15px;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    font-weight: 500 !important;
+    font-size: 30px !important;
+    font-family: var(--wds-font-family-display, var(--wsr-font-family, Madefor, "Helvetica Neue", Helvetica, Arial, "\30E1\30A4\30EA\30AA", "meiryo", "\30D2\30E9\30AE\30CE\89D2\30B4   pro w3", "hiragino kaku gothic pro", sans-serif));
+}
+
+.login-description {
+    font-size: 30px !important;
+    font-family: var(--wds-font-family-display, var(--wsr-font-family, Madefor, "Helvetica Neue", Helvetica, Arial, "\30E1\30A4\30EA\30AA", "meiryo", "\30D2\30E9\30AE\30CE\89D2\30B4   pro w3", "hiragino kaku gothic pro", sans-serif));
+    color: white !important;
+    line-height: 1;
+    margin-bottom: 10px;
+}
+
+.login-description-h6 {
+    color: lightgrey;
+    font-size: 18px !important;
+    font-family: var(--wds-font-family-display, var(--wsr-font-family, Madefor, "Helvetica Neue", Helvetica, Arial, "\30E1\30A4\30EA\30AA", "meiryo", "\30D2\30E9\30AE\30CE\89D2\30B4   pro w3", "hiragino kaku gothic pro", sans-serif));
+    font-weight: 300 !important;
+    line-height: 1.2;
+    margin-top: 0px;
+    margin-bottom: 10px;
+}
+
+.right-bg-circle.c1 {
+    width: 280px;
+    height: 280px;
+    bottom: -80px;
+    right: -80px;
+}
+
+.right-bg-circle.c2 {
+    width: 160px;
+    height: 160px;
+    top: -50px;
+    left: -25px;
+}
+
+.right-bg-circle {
+    position: absolute;
+    border-radius: 50%;
+    background: rgba(55, 138, 221, 0.314);
+}
+
+.feature-check {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: rgba(29, 158, 117, 0.445);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+.feature-check-text {
+    color: lightgrey;
+    font-size: 17px !important;
+    font-family: var(--wds-font-family-display, var(--wsr-font-family, Madefor, "Helvetica Neue", Helvetica, Arial, "\30E1\30A4\30EA\30AA", "meiryo", "\30D2\30E9\30AE\30CE\89D2\30B4   pro w3", "hiragino kaku gothic pro", sans-serif));
+    font-weight: 500 !important;
+}
+
+.feature-check-container {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    vertical-align: middle;
+    gap: 6px;
+}
+
+[data-hook='login-container-card-content'] {
+    padding: 0px !important;
+    height: 100% !important;
+}
+
+[data-hook='login-container-card'] {
+    height: 85% !important;
+}

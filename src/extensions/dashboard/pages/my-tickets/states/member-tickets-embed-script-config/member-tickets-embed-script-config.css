@@ -1,0 +1,36 @@
+.member-tickets-embed-script-config-page {
+    width: 100%;
+}
+
+.member-tickets-embed-script-config-empty-state-container {
+    height: 100% !important;
+    width: 100% !important;
+    overflow-y: auto !important;
+    box-sizing: border-box;
+    padding: 0;
+}
+
+[data-hook='card-no-border'] {
+    border-radius: 0px !important;
+}
+
+.member-tickets-preview-stage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.member-tickets-preview-stage [data-design-element][data-design-id] {
+    cursor: pointer;
+}
+
+.member-tickets-preview-stage [data-design-element][data-design-id]:hover {
+    outline: 2px dashed #116dff;
+    outline-offset: 2px;
+}
+
+.member-tickets-preview-stage [data-design-element][data-design-id][data-design-selected="true"] {
+    outline: 2px solid #116dff;
+    outline-offset: 2px;
+}

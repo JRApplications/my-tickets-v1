@@ -1,0 +1,17 @@
+.roles-permissions-header {
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px;
+}
+
+.roles-permissions-header-text {
+    font-size: clamp(16px, 4vw, 20px) !important;
+    font-weight: 500 !important;
+}
+
+.roles-wrapper-page {
+    width: 100%;
+}

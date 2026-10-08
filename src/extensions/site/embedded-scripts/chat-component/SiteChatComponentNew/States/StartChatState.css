@@ -1,0 +1,34 @@
+.cw-start-chat-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background-color: var(--cw-start-background, var(--cw-background));
+  text-align: center;
+  gap: 14px;
+}
+
+.cw-start-chat-state__image {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  border-radius: 50%;
+  margin-bottom: 4px;
+}
+
+.cw-start-chat-state__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--cw-start-text, var(--cw-agent-text));
+  margin: 0;
+}
+
+.cw-start-chat-state__description {
+  font-size: 14px;
+  color: var(--cw-start-text, var(--cw-system-text));
+  margin: 0;
+  max-width: 260px;
+  line-height: 1.6;
+}

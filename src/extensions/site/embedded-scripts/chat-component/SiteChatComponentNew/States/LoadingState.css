@@ -1,0 +1,47 @@
+@keyframes cw-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cw-loading-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background-color: var(--cw-loading-background, var(--cw-background));
+  text-align: center;
+  gap: 12px;
+}
+
+.cw-loading-state__spinner {
+  width: 48px;
+  height: 48px;
+}
+
+.cw-loading-state__spinner-ring {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 3px solid var(--cw-border);
+  border-top-color: var(--cw-loading-spinner, var(--cw-primary));
+  animation: cw-spin 0.8s linear infinite;
+}
+
+.cw-loading-state__title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cw-loading-text, var(--cw-agent-text));
+  margin: 0;
+}
+
+.cw-loading-state__subtitle {
+  font-size: 13px;
+  color: var(--cw-loading-text, var(--cw-system-text));
+  margin: 0;
+  max-width: 240px;
+  line-height: 1.5;
+  opacity: 0.75;
+}

@@ -1,0 +1,38 @@
+.cw-chat-ended-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  background-color: var(--cw-ended-background, var(--cw-background));
+  text-align: center;
+  gap: 12px;
+}
+
+.cw-chat-ended-state__icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background-color: color-mix(in srgb, var(--cw-ended-icon, var(--cw-primary)) 10%, transparent);
+  color: var(--cw-ended-icon, var(--cw-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cw-chat-ended-state__title {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--cw-ended-text, var(--cw-agent-text));
+  margin: 0;
+}
+
+.cw-chat-ended-state__subtitle {
+  font-size: 13px;
+  color: var(--cw-ended-text, var(--cw-system-text));
+  margin: 0;
+  max-width: 240px;
+  line-height: 1.6;
+  opacity: 0.75;
+}

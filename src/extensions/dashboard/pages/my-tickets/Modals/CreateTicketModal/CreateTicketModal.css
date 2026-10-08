@@ -1,0 +1,67 @@
+.search-input {
+    width: 100%;
+}
+
+[data-hook='member-search-result-item'] div {
+    height: max-content !important;
+}
+
+[data-hook='create-ticket-card'] {
+    width: stretch;
+    /* stretchVertically alone doesn't force this into a column flexbox. */
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+/* Card.Content has no height of its own, so it won't pass a bounded
+   height down to children that rely on height: 100% for scrolling.
+   border-box keeps its own padding inside the flexed height instead
+   of the content overflowing past it. */
+[data-hook='create-ticket-card']>[data-size] {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* InputArea's className lands on its own root div, whose direct child
+   wraps the actual <textarea> - that textarea is the one that needs
+   the height, not the wrapping divs. */
+.full-height-input {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.full-height-input>div:first-child {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+}
+
+.full-height-input textarea {
+    flex: 1;
+    min-height: 0;
+    height: 100%;
+}
+
+/* FormField's children row ships with `margin: auto 0`, which vertically
+   centers the field instead of letting it grow - override both.
+   !important guards against load-order with the design system's own CSS. */
+.full-height-field {
+    flex: 1 !important;
+    min-height: 0 !important;
+}
+
+.full-height-field [data-hook='formfield-children'] {
+    height: 100% !important;
+    margin: 0 !important;
+    flex-grow: 1 !important;
+}
+
+[data-hook='related-tickets-table'] {
+    width: 100%;
+}

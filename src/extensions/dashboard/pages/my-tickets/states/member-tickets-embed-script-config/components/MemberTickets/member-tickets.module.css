@@ -1,0 +1,313 @@
+:root {
+  --MemberTickets-color-primary: #2563EB;
+  --MemberTickets-color-surface: #e2e0e0;
+  --MemberTickets-color-text: #0F172A;
+  --MemberTickets-color-text-secondary: color-mix(in srgb, var(--MemberTickets-color-text) 75%, transparent);
+  --MemberTickets-color-border: #E2E8F0;
+  --MemberTicketsBackground: #ffffff;
+  --MemberTicketsBoxShadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --MemberTicketsBorderRadiusTopLeft: 12px;
+  --MemberTicketsBorderRadiusTopRight: 12px;
+  --MemberTicketsBorderRadiusBottomRight: 12px;
+  --MemberTicketsBorderRadiusBottomLeft: 12px;
+  --MemberTicketsFontFamily: 'Arial', sans-serif;
+}
+
+.memberTickets {
+  border: 1px solid var(--MemberTickets-color-border);
+  border-top-left-radius: var(--MemberTicketsBorderRadiusTopLeft);
+  border-top-right-radius: var(--MemberTicketsBorderRadiusTopRight);
+  border-bottom-right-radius: var(--MemberTicketsBorderRadiusBottomRight);
+  border-bottom-left-radius: var(--MemberTicketsBorderRadiusBottomLeft);
+  box-shadow: var(--MemberTicketsBoxShadow);
+  /* Keep the preview surface themed even though its root is non-interactive. */
+  background: var(--MemberTicketsBackground) !important;
+  font-family: var(--MemberTicketsFontFamily);
+
+  padding: 15px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+/* SELECTED TICKET STATE */
+.SelectedTicketContainer {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.SelectedTicketContainer .__Header {
+  width: 100%;
+  gap: 12px;
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  border-bottom: 1px solid #181818;
+  padding-bottom: 12px;
+  padding-top: 12px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.SelectedTicketContainer .__Footer p {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.SelectedTicketContainer .__Footer {
+  padding-bottom: 12px;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.SelectedTicketContainer .__Footer p h5 {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.SelectedTicketContainer .__Content {
+  padding: 10px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.SelectedTicketContainer .__Content .__ReplyContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  align-items: flex-end;
+  margin-bottom: 0px;
+  margin-top: 15px;
+}
+
+.SelectedTicketContainer .__Content .__MessageContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  height: 400px;
+}
+
+
+
+
+
+.SelectedTicketContainer .__Header .__TicketNumber {
+  margin: 0px !important;
+  font-weight: 600;
+
+  color: var(--selectedTicketTicketNumberColor);
+  font-size: var(--selectedTicketTicketNumberFontSize);
+}
+
+.SelectedTicketContainer .__Header .__BackButton {
+  font-size: var(--selectedTicketBackButtonIconSize);
+  color: var(--selectedTicketBackButtonIconColor);
+  background-color: var(--selectedTicketBackButtonBackgroundColor);
+  border-radius: var(--selectedTicketBackButtonBorderRadius);
+  border: var(--selectedTicketBackButtonBorderWidth) solid var(--selectedTicketBackButtonBorderColor);
+
+  border: none;
+  padding: 8px 10px;
+  cursor: pointer;
+}
+
+.SelectedTicketContainer .__Header .__BackButton .__BackButtonText {
+  color: var(--selectedTicketBackButtonTextColor);
+  font-size: var(--selectedTicketBackButtonTextSize);
+
+  padding-left: 6px;
+}
+
+.SelectedTicketContainer .__Content .__ReplyContainer .__ReplyInput {
+  background-color: var(--selectedTicketReplyInputBackgroundColor);
+  height: var(--selectedTicketReplyInputHeight);
+  border-width: var(--selectedTicketReplyInputBorderWidth);
+  border-color: var(--selectedTicketReplyInputBorderColor);
+  border-radius: var(--selectedTicketReplyInputBorderRadius);
+  color: var(--selectedTicketReplyInputTextColor);
+  font-size: var(--selectedTicketReplyInputTextSize);
+
+  resize: none;
+  width: 100%;
+  padding: 8px;
+}
+
+.SelectedTicketContainer .__Content .__ReplyContainer .__SendButton {
+  background-color: var(--selectedTicketSendButtonBackgroundColor);
+  color: var(--selectedTicketSendButtonTextColor);
+  border-radius: var(--selectedTicketSendButtonBorderRadius);
+  font-size: var(--selectedTicketSendButtonTextSize);
+  border: var(--selectedTicketSendButtonBorderWidth) solid var(--selectedTicketSendButtonBorderColor);
+  height: var(--selectedTicketSendButtonHeight);
+  width: var(--selectedTicketSendButtonWidth);
+
+  padding: 8px 16px;
+  cursor: pointer;
+}
+
+
+
+
+
+/* TICKETS STATE  */
+
+.TicketsEmptyState {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+
+  background-color: var(--ticketsEmptyStateBackgroundColor);
+}
+
+.TicketsEmptyState .__Title {
+  font-size: var(--ticketsEmptyStateTitleSize);
+  color: var(--ticketsEmptyStateTitleColor);
+}
+
+.TicketsEmptyState .__Subtitle {
+  font-size: var(--ticketsEmptyStateSubtitleSize);
+  color: var(--ticketsEmptyStateSubtitleColor);
+}
+
+.TicketsEmptyState .__CreateButton {
+  padding: 8px 16px;
+  cursor: pointer;
+
+  background-color: var(--ticketsEmptyStateButtonBackgroundColor);
+  color: var(--ticketsEmptyStateButtonTextColor);
+  font-size: var(--ticketsEmptyStateButtonTextSize);
+  border-radius: var(--ticketsEmptyStateButtonBorderRadius);
+  border: var(--ticketsEmptyStateButtonBorderWidth) solid var(--ticketsEmptyStateButtonBorderColor);
+  width: var(--ticketsEmptyStateButtonWidth);
+  height: var(--ticketsEmptyStateButtonHeight);
+}
+
+.TicketsWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+}
+
+.TicketsWrapper .__TicketsActionsHeader {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  width: max-content;
+  justify-content: center;
+  align-self: end;
+}
+
+.TicketsWrapper .__TicketsActionsHeader .__DropdownButton {
+  width: var(--ticketsActionsHeaderDropdownButtonWidth);
+  height: var(--ticketsActionsHeaderDropdownButtonHeight);
+  border: var(--ticketsActionsHeaderDropdownButtonBorderWidth) solid var(--ticketsActionsHeaderDropdownButtonBorderColor);
+  border-radius: var(--ticketsActionsHeaderDropdownButtonBorderRadius);
+  color: var(--ticketsActionsHeaderDropdownButtonTextColor);
+  font-size: var(--ticketsActionsHeaderDropdownButtonTextSize);
+}
+
+.TicketsWrapper .__TicketsActionsHeader .__DropdownOption {
+  background-color: var(--ticketsActionsHeaderDropdownOptionBackgroundColor);
+  color: var(--ticketsActionsHeaderDropdownOptionTextColor);
+  font-size: var(--ticketsActionsHeaderDropdownOptionTextSize);
+  border: var(--ticketsActionsHeaderDropdownOptionBorderWidth) solid var(--ticketsActionsHeaderDropdownOptionBorderColor);
+}
+
+.TicketsWrapper .__TicketsActionsHeader .__DropdownOption:hover {
+  background-color: var(--ticketsActionsHeaderDropdownOptionHoverBackgroundColor);
+}
+
+.TicketsWrapper .__TicketsActionsHeader .__DropdownOptionContainer {
+  border-radius: var(--ticketsActionsHeaderDropdownOptionContainerBorderRadius);
+}
+
+.TicketCard {
+  border: var(--ticketTicketCardBorderWidth) solid var(--ticketTicketCardBorderColor);
+  border-radius: var(--ticketTicketCardBorderRadius);
+  background-color: var(--ticketTicketCardBackgroundColor);
+
+  padding: 16px;
+  margin-bottom: 12px;
+  display: flex;
+  flex-direction: row;
+  vertical-align: middle;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.TicketCard:hover {
+  background-color: #f0f0f0;
+  cursor: pointer;
+}
+
+.TicketCard .__SubmittedDate {
+  color: var(--ticketTicketSubmittedDateColor);
+  font-size: var(--ticketTicketSubmittedDateFontSize);
+}
+
+.TicketCard .__EndContainer {
+  display: flex;
+  flex-direction: row;
+  gap: 25px;
+  align-items: center;
+  vertical-align: middle;
+}
+
+.TicketCard .__ViewButton {
+  background-color: var(--ticketViewButtonBackgroundColor);
+  font-size: var(--ticketViewButtonTextSize);
+  border: var(--ticketViewButtonBorderWidth) solid var(--ticketViewButtonBorderColor);
+  border-radius: var(--ticketViewButtonBorderRadius);
+  color: var(--ticketViewButtonTextColor);
+
+  cursor: pointer;
+  padding: 8px 10px;
+}
+
+.TicketCard .__TicketNumber {
+  font-size: var(--ticketTicketNumberFontSize);
+  color: var(--ticketTicketNumberColor);
+
+  margin: 0;
+  font-weight: bold;
+}
+
+.TicketCard .__TicketSubject {
+  font-size: var(--ticketTicketSubjectFontSize);
+  color: var(--ticketTicketSubjectColor);
+
+  margin: 0;
+}
+
+.TicketCard .__TicketStatus {
+  font-size: var(--ticketTicketStatusFontSize);
+  color: var(--ticketTicketStatusColor);
+
+  margin-top: 8px;
+}
+
+
+.ticketCardFirst {
+  border-top: 1px solid var(--line) !important;
+
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.ticketCardLast {
+  border-bottom-left-radius: 4px;
+  border-bottom-right-radius: 4px;
+}

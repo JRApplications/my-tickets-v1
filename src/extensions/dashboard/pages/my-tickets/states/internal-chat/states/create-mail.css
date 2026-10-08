@@ -1,0 +1,8 @@
+[data-hook="message-input-card"] {
+    height: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.subject-input {
+    width: 100% !important;
+}

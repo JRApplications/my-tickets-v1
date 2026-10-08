@@ -1,0 +1,68 @@
+.__MessageContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.__MessagePrimary {
+    /* Colours come from an ancestor's theme (see buildThemeVars); the
+       var() fallbacks below only apply if no theme wrapper is present. */
+    background-color: var(--selectedTicketAgentMessageBackgroundColor, #ffffff);
+    color: var(--selectedTicketAgentMessageTextColor, #181818);
+    font-size: var(--selectedTicketAgentMessageTextSize, 14px);
+    border: 1px solid var(--color-border);
+}
+
+.__MessageSecondary {
+    background-color: var(--selectedTicketCustomerMessageBackgroundColor, var(--color-surface));
+    color: var(--selectedTicketCustomerMessageTextColor, #181818);
+    font-size: var(--selectedTicketCustomerMessageTextSize, 14px);
+}
+
+.__AgentName {
+    font-weight: 500;
+    color: var(--selectedTicketAgentNameColor, #181818);
+    font-size: var(--selectedTicketAgentNameFontSize, 14px);
+}
+
+.__CustomerName {
+    font-weight: 500;
+    color: var(--selectedTicketCustomerNameColor, #181818);
+    font-size: var(--selectedTicketCustomerNameFontSize, 14px);
+}
+
+.__MessagePrimary,
+.__MessageSecondary {
+    padding: 15px;
+    border-radius: 4px;
+    width: max-content;
+}
+
+.__MessagePrimaryContainer p,
+.__MessageSecondaryContainer p,
+.__MessagePrimary p,
+.__MessageSecondary p {
+    margin: 0px !important;
+}
+
+.__MessagePrimaryContainer {
+    align-self: flex-start;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.__MessageSecondaryContainer {
+    align-self: flex-end;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    align-items: flex-end;
+}
+
+.__MessagePrimaryHeader {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  align-items: center;
+}

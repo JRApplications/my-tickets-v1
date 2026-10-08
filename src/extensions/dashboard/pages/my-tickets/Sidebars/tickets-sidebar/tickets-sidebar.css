@@ -1,0 +1,11 @@
+.tickets-sidebar-card {
+    border-radius: 0px !important;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-hook='tickets-sidebar-card-content'] {
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+}

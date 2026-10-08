@@ -1,0 +1,146 @@
+.ai-help-modal {
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: -3px;
+  z-index: 1000;
+  width: 470px;
+  border-radius: 0px;
+}
+
+.ai-help-modal-card {
+  border-radius: 0px !important;
+  display: flex;
+  flex-direction: column;
+}
+
+[data-hook="ai-help-modal-card-content"] {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.ai-help-modal-input {
+  width: 100%;
+}
+
+.ai-message {
+  /* background: #ffffff; */
+  border: 1px solid #dddbdb;
+}
+
+.generating-message {
+  animation: mixPulse 1.4s ease-in-out infinite;
+  color: #5a48f5 !important;
+}
+
+.generating-message-icon {
+  animation: mixPulse 1.4s ease-in-out infinite;
+}
+
+.generating-message::after {
+  content: '';
+  animation: mixDots 1.4s steps(1) infinite;
+}
+
+@keyframes mixPulse {
+
+  0%,
+  100% {
+    opacity: 0.4;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes mixDots {
+
+  0%,
+  20% {
+    content: '.';
+  }
+
+  40% {
+    content: '..';
+  }
+
+  60%,
+  80% {
+    content: '...';
+  }
+
+  100% {
+    content: '';
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.ai-help-modal-title {
+  font-weight: 700 !important;
+  font-size: 18px !important;
+}
+
+.ai-help-modal-warning {
+  color: #686868 !important;
+}
+/* wrapper anchors the sparkles to just the avatar */
+.avatar-sparkle-wrap {
+  position: relative;
+  width: 50px;
+  height: 50px;
+}
+
+.sidebar-ai-no-chat-image {
+  animation: pulse 3s ease-in-out infinite;
+  object-fit: cover;
+  border-radius: 50%;
+  display: block;
+  box-shadow: 0 0 12px rgba(255, 220, 150, 0.4);
+  position: relative;
+  z-index: 2;
+}
+
+@keyframes pulse {
+  0%, 100% { transform: scale(0.97); opacity: 0.85; }
+  50%      { transform: scale(1.03); opacity: 1; }
+}
+
+/* smaller sparkles for a 50px avatar */
+.sparkle {
+  position: absolute;
+  width: 9px;
+  height: 9px;
+  z-index: 3;
+  pointer-events: none;
+  background: radial-gradient(circle, #5a48f5 0%, rgba(255,255,255,0) 70%);
+  clip-path: polygon(50% 0%, 61% 39%, 100% 50%, 61% 61%, 50% 100%, 39% 61%, 0% 50%, 39% 39%);
+  opacity: 0;
+  animation: twinkle 2.2s ease-in-out infinite;
+}
+
+@keyframes twinkle {
+  0%, 100% { opacity: 0; transform: scale(0.3) rotate(0deg); }
+  50%      { opacity: 1; transform: scale(1.2) rotate(90deg); }
+}
+
+/* positions scaled to sit just outside a 50px circle */
+.s1 { top: -6px;  left: 12px;  animation-delay: 0s;   }
+.s2 { top: 6px;   right: -6px; animation-delay: 0.5s; }
+.s3 { bottom: -4px; left: 4px; animation-delay: 1s;   }
+.s4 { top: -4px;  right: 10px; animation-delay: 1.5s; }
+.generation-time {
+  opacity: 0.65;
+}

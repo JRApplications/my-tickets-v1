@@ -1,0 +1,13 @@
+:root {
+    --ink: #1a1a1a;
+    --muted: #767676;
+    --line: #dcdcdc;
+    --surface: #ffffff;
+    --page: #ffffff;
+}
+
+.ticketCardListProvider {
+    display: flex;
+    flex-direction: column;
+}
+

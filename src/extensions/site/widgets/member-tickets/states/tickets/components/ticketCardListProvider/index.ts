@@ -1,0 +1,1 @@
+export { TicketCardListProvider } from './provider';

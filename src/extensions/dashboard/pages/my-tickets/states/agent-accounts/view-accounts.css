@@ -1,0 +1,47 @@
+.view-accounts-header {
+    align-items: center;
+    justify-content: space-between;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 16px;
+}
+
+.view-accounts-header-text {
+    font-size: clamp(16px, 4vw, 20px) !important;
+    font-weight: 500 !important;
+}
+
+.view-accounts-layout-main-container {
+    flex: 1;
+    overflow: hidden !important;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.view-accounts-layout-main-container > div {
+    overflow: hidden;
+    width: 100% !important;
+    overflow-y: auto !important;
+}
+
+.view-accounts-empty-state {
+    padding: clamp(24px, 5vw, 40px);
+    display: flex;
+    flex-direction: column !important;
+    row-gap: 18px;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    text-align: center;
+    width: 100% !important;
+}
+
+.view-accounts-empty-state-container {
+    height: 100% !important;
+}
+
+.view-accounts-page {
+    width: 100%;
+}

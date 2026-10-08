@@ -1,0 +1,20 @@
+.cw__system__message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  align-self: stretch;
+  padding: 4px 8px;
+  color: var(--cw-system-text, #6b7280);
+  font-size: 11px;
+}
+
+.cw__system__message__line {
+  flex: 1;
+  border-top: 1px dashed color-mix(in srgb, currentColor 25%, transparent);
+}
+
+.cw__system__message__text {
+  white-space: nowrap;
+  flex-shrink: 0;
+  font-style: italic;
+}

@@ -1,0 +1,103 @@
+.internal-chat-header-title {
+    margin: 0;
+    font-weight: 700 !important;
+    font-size: 18px !important;
+    line-height: 1 !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+.internal-mail-sidebar-card {
+    border-radius: 0px !important;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-hook="internal-chat-sidebar-content"] {
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+}
+
+.internal-chat-header-subtitle {
+    margin: 0;
+    font-weight: 500 !important;
+    font-size: 16px !important;
+    line-height: 1 !important;
+    text-overflow: clip !important;
+    white-space: nowrap !important;
+    overflow: hidden !important;
+}
+
+.internal-chat-search {
+    width: 100% !important;
+}
+
+.internal-chat-flag-button:hover {
+    color: orange !important;
+    background-color: transparent !important;
+    border-color: orange !important;
+}
+
+.internal-chat-flag-button-flagged {
+    color: white !important;
+    background-color: orange !important;
+}
+
+.internal-chat-flag-button-flagged:hover {
+    color: white !important;
+    background-color: orange !important;
+    border-color: orange !important;
+}
+
+.internal-chat-flag-button-flagged:focus {
+    color: white !important;
+    background-color: orange !important;
+}
+
+.internal-chat-to-multiselect {
+    width: 100% !important;
+}
+
+
+
+.internal-chat-sidebar-item {
+    display: flex;
+    align-items: center;
+    margin: 8px 12px;
+    margin-bottom: 0px;
+    border-radius: 12px;
+    border: 1px solid #e6e9ef;
+    background: #ffffff;
+    transition: background .2s ease, box-shadow .2s ease;
+    cursor: pointer;
+}
+
+.internal-chat-sidebar-item.selected {
+    background: #eef4ff;
+    border-color: #2d6df6;
+}
+
+.internal-chat-sidebar-item:hover {
+    background: #f8faff;
+    box-shadow: 0 1px 6px rgba(0, 0, 0, 0.08);
+}
+
+.internal-chat-status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #2d6df6;
+    flex-shrink: 0;
+}
+
+.internal-chat-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.internal-chat-actions {
+    display: flex;
+    gap: 8px;
+}

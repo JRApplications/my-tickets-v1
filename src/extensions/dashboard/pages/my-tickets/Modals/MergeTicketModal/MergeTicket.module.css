@@ -1,0 +1,28 @@
+.errorBox {
+    border: solid 1px #f50057;
+    border-radius: 8px;
+    background-color: #ffebee;
+    padding: 16px;
+}
+
+.warningBox {
+    border: solid 1px #ff9800;
+    border-radius: 8px;
+    background-color: #fff3e0;
+    padding: 16px;
+}
+
+.ticketCard {
+    border: solid 1px #e0e0e0;
+    border-radius: 8px;
+    padding: 16px;
+    background-color: #fafafa;
+}
+
+.mergePreview {
+    border-top: solid 1px #e0e0e0;
+    padding-top: 16px;
+    background-color: #e3f2fd;
+    border-radius: 8px;
+    padding: 16px;
+}
