@@ -1,51 +1,45 @@
-import React, { type FC, useState, useEffect, useCallback } from 'react';
-import { widget } from '@wix/editor';
+import React, { useState, useEffect, useCallback, type FC } from 'react';
+import { info  } from '@wix/editor'
 import {
   SidePanel,
   WixDesignSystemProvider,
-  Input,
-  FormField,
   SectionHelper,
+  Box,
 } from '@wix/design-system';
 import '@wix/design-system/styles-odeditor.global.css';
 
-const SITE_WIDGETS_DOCS = 'https://dev.wix.com/docs/wix-cli/guides/extensions/site-extensions/site-widgets/site-widget-extension-files-and-code';
-
 const Panel: FC = () => {
-  const [displayName, setDisplayName] = useState<string>('');
+  const [dashboardUrl, setDashboardUrl] = useState<string>('');
 
   useEffect(() => {
-    widget.getProp('display-name')
-      .then(displayName => setDisplayName(displayName || `Your Widget's Title`))
-      .catch(error => console.error('Failed to fetch display-name:', error));
-  }, [setDisplayName]);
+    const fetchDashboardUrl = async () => {
+      const siteId = await info.getMetaSiteId();
+      const appId = "bbc0bfe8-5b30-405a-b400-71cfe51f8ad5"
+      if (siteId && appId) {
+        setDashboardUrl(
+          `https://manage.wix.com/dashboard/${siteId}/app/${appId}?stateOverride=member-tickets-design`
+        );
+      }
+    };
+    fetchDashboardUrl();
+  }, []);
 
-  const handleDisplayNameChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const newDisplayName = event.target.value;
-    setDisplayName(newDisplayName);
-    widget.setProp('display-name', newDisplayName);
-  }, [setDisplayName]);
+  const handleActionClick = useCallback(() => {
+    if (dashboardUrl) {
+      window.open(dashboardUrl, '_blank');
+    }
+  }, [dashboardUrl]);
 
   return (
     <WixDesignSystemProvider>
       <SidePanel width="300" height="100vh">
         <SidePanel.Content noPadding stretchVertically>
-          <SidePanel.Field>
-            <FormField label="Display Name">
-              <Input
-                type="text"
-                value={displayName}
-                onChange={handleDisplayNameChange}
-                aria-label="Display Name"
-              />
-            </FormField>
-          </SidePanel.Field>
+          <Box paddingTop="8px" direction='vertical' gap={2}>
+            <SectionHelper skin='premium' border="topBottom" fullWidth actionText="Go to Dashboard" onAction={handleActionClick}>
+              Design your widget in the dashboard to customize its appearance.
+            </SectionHelper>
+          </Box>
         </SidePanel.Content>
-        <SidePanel.Footer noPadding>
-          <SectionHelper fullWidth skin="success" border="topBottom">
-            Learn more about <a href={SITE_WIDGETS_DOCS} target="_blank" rel="noopener noreferrer" title="Site Widget docs">Site Widgets</a>
-          </SectionHelper>
-        </SidePanel.Footer>
       </SidePanel>
     </WixDesignSystemProvider>
   );

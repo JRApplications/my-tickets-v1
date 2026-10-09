@@ -136,11 +136,7 @@ const MemberTicketsEmbedScriptConfigWrapper: FC<{ permissions: string[] }> = ({ 
         const load = async () => {
             try {
                 const { parameters } = await embeddedScripts.getEmbeddedScript({ componentId: ExtensionIds.MEMBER_TICKETS_EMBED_SCRIPT });
-                const theme =
-                    parameters?.themeB64
-                        ? JSON.parse(atob(parameters?.themeB64))
-                        : { ...defaultTheme };
-
+                const theme = parameters?.themeB64 ? JSON.parse(atob(parameters?.themeB64)) : { ...defaultTheme };
                 const newSettings: MemberTicketsSettings = {
                     enabled: parameters?.enabled ? true : false,
                     theme,

@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { injectEditorStyles } from './helpers/injectEditorStyles';
 import { useMemberTickets } from './hooks/useMemberTickets';
 import type { FC } from 'react';
 import ReactDOM from 'react-dom';
@@ -32,6 +33,10 @@ const MemberTickets: FC<MemberTicketsProps> = ({
   } = useMemberTickets();
   // @ts-nocheck
   const [message, setMessage] = React.useState('');
+
+  useEffect(() => {
+    injectEditorStyles();
+  }, []);
 
   return (
     <div
