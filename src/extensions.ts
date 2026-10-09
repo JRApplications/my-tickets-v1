@@ -12,5 +12,15 @@ import memberTickets from './extensions/site/widgets/member-tickets/member-ticke
 
 import dataCollections from './extensions/backend/data-collections/data-collections.extension.ts';
 
+import resetPasswordTopic from './extensions/backend/notifications/topics/reset-password.extension.ts';
+import resetPasswordUserNotification from './extensions/backend/notifications/user-notifications/reset-password.extension.ts';
+
 export default app()
-  .use(myTickets).use(myTicketsRtPro).use(chatComponent).use(memberTicketsThemeComponent).use(memberTickets).use(dataCollections);
+  .use(myTickets)
+  .use(myTicketsRtPro)
+  .use(chatComponent)
+  .use(memberTicketsThemeComponent)
+  .use(memberTickets)
+  .use(dataCollections)
+  .use(resetPasswordTopic)
+  .use(resetPasswordUserNotification);
