@@ -24,7 +24,7 @@ export default defineConfig({
       GITHUB_SKILLS_TOKEN: envField.string({ context: "server", access: "secret" }),
       MY_TICKETS_AUTH_SECRET: envField.string({ context: "server", access: "secret" }),
       BASE_44_MY_TICKETS_BACKEND_MANAGER: envField.string({ context: "server", access: "secret" }),
-      MY_TICKETS_ACCOUNT_AI_API_KEY: envField.string({ context: "server", access: "secret" }),
+      MY_TICKETS_ACCOUNT_AI_API_KEY: envField.string({ context: "server", access: "secret" })
     },
   },
 });

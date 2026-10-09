@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, CustomModalLayout, FormField, Input, Loader, Modal, Text } from '@wix/design-system';
 import { httpClient } from '@wix/essentials';
 import { storeMyTicketsAgentSession } from '../auth/myTicketsFetchWithAuth';
+import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import type { LoginSuccessData } from '../login';
 
 const baseApiUrl = new URL(import.meta.url).origin;
@@ -63,8 +64,14 @@ export function MainAdminOnboardingModal({ isOpen, onComplete }: { isOpen: boole
 }
 
 export async function checkNeedsOnboarding(): Promise<boolean> {
-    const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/onboarding/status`);
-    const result = await response.json();
-    if (!response.ok || !result.success) throw new Error(result.error || 'Could not check onboarding status');
-    return result.needsSetup === true;
+    try {
+        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/onboarding/status`);
+        const result = await response.json();
+        if (!response.ok || !result.success) throw new Error(result.error || 'Could not check onboarding status');
+        return result.needsSetup === true;
+    } catch (error) {
+        console.error(error);
+        ShowToast({ message: 'Could not check onboarding status', type: 'error' });
+        return false;
+    }
 }

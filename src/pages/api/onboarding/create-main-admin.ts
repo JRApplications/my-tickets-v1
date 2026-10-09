@@ -6,11 +6,12 @@ import { checkPermission } from '../auth/checkPermission';
 import { generateSalt, hashPassword } from '../auth/password-utils';
 import { issueToken } from '../my-tickets-auth/token';
 import { PERMISSIONS } from '../../../extensions/dashboard/pages/my-tickets/Permissions/Permissions';
+import { captureError } from '../reportError';
 
 const ROLE_NAME = 'Main Administrator';
 const TEAM_NAME = 'Main Team';
 
-export const POST: APIRoute = async ({ request }) => {
+export const POST: APIRoute = async ({ request, locals }) => {
     try {
         const authorized = await checkPermission(request.headers.get('Authorization'), ['USER']);
         if (!authorized) return json({ success: false, error: 'Forbidden' }, 403);
@@ -63,8 +64,14 @@ export const POST: APIRoute = async ({ request }) => {
             authTokenExpiresAt: session.expiresAt,
         }, 201);
     } catch (error) {
-        console.error('Failed to create the main administrator account', error);
-        return json({ success: false, error: 'Could not complete setup. Please try again.' }, 500);
+        const { requestId } = await captureError(error, { requestId: locals.myTicketsRequestId, request });
+        return new Response(JSON.stringify({ success: false, error: 'Could not complete setup. Please try again.' }), {
+            status: 500,
+            headers: {
+                'Content-Type': 'application/json',
+                'x-mytickets-request-id': requestId,
+            },
+        });
     }
 };
 

@@ -42,7 +42,7 @@ const NotificationItem = ({ id, title, subtitle, onClose }: { id: string; title:
 }
 
 const NotificationsList = ({ notifications = [], onNotificationRemove, isLoading, isError }: { notifications?: { id: string; title: string; subtitle: string }[]; onNotificationRemove?: (id: string) => void; isLoading?: boolean; isError?: boolean }) => {
-    const handleRemove = onNotificationRemove || ((id: string) => { console.log('Notification remove handler not provided for id:', id); });
+    const handleRemove = onNotificationRemove || ((id: string) => { console.error('Notification remove handler not provided for id:', id); });
     return (
         <Box width='100%' direction='vertical' height='100%'>
             {isLoading && !isError && (

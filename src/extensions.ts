@@ -2,7 +2,7 @@ import { app } from '@wix/astro/builders';
 
 import myTickets from './extensions/dashboard/pages/my-tickets/my-tickets.extension.ts';
 
-import myTicketsRtPro from './extensions/backend/service-plugins/my-tickets-rt-pro/my-tickets-rt-pro.extension.ts';
+// import myTicketsRtPro from './extensions/backend/service-plugins/my-tickets-rt-pro/my-tickets-rt-pro.extension.ts';
 
 import chatComponent from './extensions/site/embedded-scripts/chat-component/chat-component.extension.ts';
 
@@ -17,7 +17,7 @@ import resetPasswordUserNotification from './extensions/backend/notifications/us
 
 export default app()
   .use(myTickets)
-  .use(myTicketsRtPro)
+  // .use(myTicketsRtPro)
   .use(chatComponent)
   .use(memberTicketsThemeComponent)
   .use(memberTickets)

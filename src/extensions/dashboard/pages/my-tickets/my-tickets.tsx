@@ -414,7 +414,7 @@ const DashboardPage: FC = () => {
               <SidebarProvider
                 stateId={state}
                 onLogout={handleLogout}
-                onItemClick={(stateId) => { console.log('Item clicked:', stateId); setState(stateId as StateId); }}
+                onItemClick={(stateId) => { setState(stateId as StateId); }}
                 onCreateTicketClicked={() => { setIsCreateTicketModalOpen(true); }}
                 onInternalMailClicked={() => { handleStateOverrideStart(StateId.InternalChat); }}
                 permissions={loggedInAgent.permissions}

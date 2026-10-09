@@ -147,6 +147,13 @@ const MemberTicketsEmbedScriptConfigWrapper: FC<{ permissions: string[] }> = ({ 
                 };
                 setSettings(newSettings);
             } catch (err) {
+                const errorString = JSON.stringify(err);
+                const parsedError = JSON.parse(errorString);
+                const errorCode = parsedError?.details.applicationError.code;
+                if (errorCode === 'NO_HTML_EMBEDS_ON_SITE') {
+                    await handleSave();
+                    return;
+                }
                 console.error('Failed to load member tickets widget settings:', err);
                 ShowToast({ message: 'Failed to load member tickets widget settings', type: 'error' });
             } finally {
@@ -224,7 +231,7 @@ const MemberTicketsEmbedScriptConfigWrapper: FC<{ permissions: string[] }> = ({ 
     if (!hasPermission) {
         return <PermissionDeniedState />;
     }
-    
+
     return (
         <Page maxWidth={9999} className="member-tickets-embed-script-config-page">
             <Page.Header

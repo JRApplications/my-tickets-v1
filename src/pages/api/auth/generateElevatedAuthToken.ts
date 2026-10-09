@@ -1,24 +1,30 @@
 import { WIX_CLIENT_SECRET } from "astro:env/server";
 
 export const generateElevatedAuthToken = async (authToken: string | null): Promise<string> => {
-    const instanceId = await getTokenInfo(authToken);
-    const response = await fetch('https://www.wixapis.com/oauth2/token', {
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        method: 'POST',
-        body: JSON.stringify({
-            "grant_type": "client_credentials",
-            "client_id": "90136a5c-0752-4121-8520-78063fefafc6",
-            "client_secret": WIX_CLIENT_SECRET,
-            "instance_id": instanceId,
-        })
-    });
-    const data = await response.json();
-    if (!response.ok) {
-        throw new Error(`Wix OAuth credential exchange failed with status ${response.status}`);
+    try {
+        const instanceId = await getTokenInfo(authToken);
+        const response = await fetch('https://www.wixapis.com/oauth2/token', {
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            method: 'POST',
+            body: JSON.stringify({
+                "grant_type": "client_credentials",
+                "client_id": "bbc0bfe8-5b30-405a-b400-71cfe51f8ad5",
+                "client_secret": WIX_CLIENT_SECRET,
+                "instance_id": instanceId,
+            })
+        });
+        const data = await response.json();
+
+        if (!response.ok) {
+            throw new Error(`Wix OAuth credential exchange failed with status ${response.status}`);
+        }
+        return data.access_token;
+    } catch (error) {
+        console.error('Failed to generate elevated auth token', error);
+        throw error;
     }
-    return data.access_token;
 };
 
 const getTokenInfo = async (authToken: string | null) => {

@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 44.60063897763578 440.31999999999994 109.9041533546326" style="max-height: 500px" width="440.31999999999994" height="109.9041533546326">
+  
+  <rect fill="#1d4ed8" rx="28" height="104" width="104" y="48" x="0"/>
+  
+  <rect fill="rgba(255,255,255,0.18)" rx="6" height="44" width="54" y="78" x="25"/>
+  
+  <line stroke-linecap="round" stroke-width="3.6" stroke="white" y2="90" x2="69" y1="90" x1="35"/>
+  <line stroke-linecap="round" stroke-width="3.6" stroke="rgba(255,255,255,0.8)" y2="100" x2="63" y1="100" x1="35"/>
+  <line stroke-linecap="round" stroke-width="3.6" stroke="rgba(255,255,255,0.55)" y2="110" x2="51" y1="110" x1="35"/>
+  
+  <circle fill="#22c55e" r="10" cy="122" cx="79"/>
+  <path fill="none" stroke-linejoin="round" stroke-linecap="round" stroke-width="2.5" stroke="white" d="M74 122l3 3L84 119"/>
+  
+  <text letter-spacing="-2" fill="#111827" font-weight="700" font-size="48" font-family="Verdana, sans-serif" y="108" x="132">My Tickets</text>
+  
+  <text letter-spacing="3" fill="#6b7280" font-weight="500" font-size="22" font-family="Arial, sans-serif" y="140" x="136">SUPPORT &amp; LIVE CHAT</text>
+</svg>

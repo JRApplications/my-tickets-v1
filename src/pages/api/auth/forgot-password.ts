@@ -4,7 +4,7 @@ import { items } from '@wix/data';
 import { notificationsV3 } from "@wix/notifications";
 import { auth } from "@wix/essentials";
 import { RESET_SECRET } from 'astro:env/server';
-import { CollectionIds, type Agent } from '@jrapps/my_tickets_common_types';
+import { CollectionIds, type Agent, ExtensionIds } from '@jrapps/my_tickets_common_types';
 const RESET_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
 
 export const POST: APIRoute = async ({ request, locals }) => {
@@ -32,7 +32,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
                 },
             };
             const elevatedNotify = auth.elevate(notificationsV3.notify);
-            const response = await elevatedNotify('69ec5c18-f4eb-4921-a64a-b3caea1ac00c', options);
+            const response = await elevatedNotify(ExtensionIds.RESET_PASSWORD_NOTIFICATION, options);
             if (!response) throw new Error('Failed to send notification');
         }
 
