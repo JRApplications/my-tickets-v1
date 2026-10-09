@@ -3,6 +3,7 @@ import { defineMiddleware } from 'astro:middleware';
 import { captureError, flushSentry } from './monitoring/sentry';
 import { HEADER_NAME, verifyToken } from './pages/api/my-tickets-auth/token';
 import { agentHasRequestPermission } from './pages/api/auth/agent-api-permissions';
+import crypto from 'crypto';
 
 const agentDashboardApiPrefixes = [
     '/api/agents', '/api/tickets', '/api/teams', '/api/roles', '/api/chat-admin',

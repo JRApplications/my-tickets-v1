@@ -107,7 +107,7 @@ const initializeSentry = () => {
 
                 return event;
             },
-        });
+        } as Sentry.BrowserOptions );
         initialized = Sentry.isInitialized();
         if (initialized) {
             console.info('Sentry initialized:', {
