@@ -4,6 +4,7 @@ import { SiteChatComponentNew } from './SiteChatComponentNew';
 import { myWixClient, injectAccessTokenFunction, wixRecaptchaVisibleSiteKey } from './wixClient';
 export { injectAccessTokenFunction };
 
+
 const configEl = document.getElementById('chat-embed-config');
 if (!configEl) throw new Error('Chat Embed: config element not found');
 

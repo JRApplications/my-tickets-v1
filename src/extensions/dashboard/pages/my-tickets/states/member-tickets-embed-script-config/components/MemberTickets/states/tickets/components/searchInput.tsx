@@ -3,7 +3,7 @@ import styles from "./components.module.css"
 
 interface SearchInputProps {
     value: string
-    onInput: (e: React.FormEvent<HTMLInputElement>) => void
+    onInput?: (e: React.FormEvent<HTMLInputElement>) => void
 }
 
 export const SearchInput = ({value, onInput}: SearchInputProps) => {

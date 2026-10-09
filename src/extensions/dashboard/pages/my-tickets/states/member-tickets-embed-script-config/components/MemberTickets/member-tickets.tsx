@@ -89,7 +89,7 @@ const MemberTickets: FC<MemberTicketsProps> = ({
         <div className={classNames('TicketsWrapper', styles.TicketsWrapper)}>
           <div className={classNames('__TicketsActionsHeader', styles.__TicketsActionsHeader)}>
             <div data-design-element="filterDropdown" data-design-id="filter-dropdown"><Dropdown disabled /></div>
-            <div data-design-element="searchInput" data-design-id="search-input"><SearchInput value="" onInput={(e) => {}} /></div>
+            <div data-design-element="searchInput" data-design-id="search-input"><SearchInput value="" /></div>
           </div>
           <TicketCardListProvider>
             {demoTickets.map((ticket, index) => (
