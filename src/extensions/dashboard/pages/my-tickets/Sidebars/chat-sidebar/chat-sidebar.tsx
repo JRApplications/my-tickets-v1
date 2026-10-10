@@ -2,6 +2,7 @@ import { Box, Text, Badge, Loader, TableListItem, Card, CounterBadge, Divider, S
 import { type TicketStatus, formatStatus, getStatusSkin } from '@jrapps/my_tickets_common_types';
 import { forwardRef, useImperativeHandle } from 'react';
 import { useChatSidebar } from './useChatSidebar';
+import './chat-sidebar.css';
 
 
 const ChatSidebar = forwardRef<{ updateChat: (chatId: string, updates: { status?: string }) => void }, { permissions: string[]; teamId: string; onClick: (chatId: string) => void; onChatUpdate?: (chatId: string, updates: { status?: string }) => void }>(({ permissions, teamId, onClick }, ref) => {
@@ -56,8 +57,8 @@ const ChatSidebar = forwardRef<{ updateChat: (chatId: string, updates: { status?
 
     return (
         <Box width="350px" height="100%" boxSizing="border-box">
-            <Card className="tickets-sidebar-card" stretchVertically>
-                <Card.Content size='none' dataHook='tickets-sidebar-card-content'>
+            <Card className="chat-sidebar-card" stretchVertically>
+                <Card.Content size='none' dataHook='chat-sidebar-card-content'>
                     {hasPermission && (
                         <Box direction='vertical'>
                             <Box padding="10px" verticalAlign="middle" gap={2} align="center">

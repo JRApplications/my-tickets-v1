@@ -1,0 +1,11 @@
+.chat-sidebar-card {
+    border-radius: 0px !important;
+    display: flex;
+    flex-direction: column;
+}
+
+[data-hook='chat-sidebar-card-content'] {
+    height: 100% !important;
+    display: flex;
+    flex-direction: column;
+}
