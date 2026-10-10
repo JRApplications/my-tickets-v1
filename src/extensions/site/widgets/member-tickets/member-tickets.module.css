@@ -9,11 +9,13 @@
   background: var(--MemberTicketsBackground);
   font-family: var(--MemberTicketsFontFamily);
 
-  padding: 15px;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
+  margin: 15px;
   box-sizing: border-box;
+  width: calc(100% - 30px);
+  height: calc(100% - 30px);
+  overflow: hidden;
+  container-name: memberTickets;
+  container-type: inline-size;
 }
 
 /* SELECTED TICKET STATE */
@@ -60,6 +62,9 @@
   padding: 10px;
   height: 100%;
   box-sizing: border-box;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .SelectedTicketContainer .__Content .__ReplyContainer {
@@ -76,7 +81,9 @@
   flex-direction: column;
   gap: 8px;
   margin-bottom: 16px;
-  height: 400px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 
@@ -165,19 +172,6 @@
   color: var(--ticketsEmptyStateSubtitleColor);
 }
 
-.TicketsEmptyState .__CreateButton {
-  padding: 8px 16px;
-  cursor: pointer;
-
-  background-color: var(--ticketsEmptyStateButtonBackgroundColor);
-  color: var(--ticketsEmptyStateButtonTextColor);
-  font-size: var(--ticketsEmptyStateButtonTextSize);
-  border-radius: var(--ticketsEmptyStateButtonBorderRadius);
-  border: var(--ticketsEmptyStateButtonBorderWidth) solid var(--ticketsEmptyStateButtonBorderColor);
-  width: var(--ticketsEmptyStateButtonWidth);
-  height: var(--ticketsEmptyStateButtonHeight);
-}
-
 .TicketsWrapper {
   display: flex;
   flex-direction: column;
@@ -217,6 +211,70 @@
 
 .TicketsWrapper .__TicketsActionsHeader .__DropdownOptionContainer {
   border-radius: var(--ticketsActionsHeaderDropdownOptionContainerBorderRadius);
+}
+
+/* Adapt to the widget's actual width, which can differ from the viewport in Wix. */
+@container memberTickets (max-width: 700px) {
+  .TicketsWrapper {
+    padding: 12px 4px;
+  }
+
+  .TicketsWrapper .__TicketsActionsHeader {
+    width: 100%;
+    max-width: 100%;
+    align-self: stretch;
+    justify-content: stretch;
+  }
+
+  .TicketsWrapper .__TicketsActionsHeader > * {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .SelectedTicketContainer .__Header {
+    padding: 10px 4px;
+  }
+
+  .SelectedTicketContainer .__Content {
+    padding: 10px 4px;
+  }
+}
+
+@container memberTickets (max-width: 480px) {
+  .TicketsWrapper {
+    gap: 8px;
+    padding: 8px 0;
+  }
+
+  .TicketsWrapper .__TicketsActionsHeader {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .TicketsWrapper .__TicketsActionsHeader > * {
+    width: 100%;
+    flex-basis: auto;
+  }
+
+  .SelectedTicketContainer .__Header {
+    gap: 8px;
+    padding: 8px 2px;
+  }
+
+  .SelectedTicketContainer .__Footer {
+    padding: 8px 2px;
+  }
+
+  .SelectedTicketContainer .__Content .__ReplyContainer {
+    gap: 6px;
+    align-items: stretch;
+  }
+
+  .SelectedTicketContainer .__Content .__ReplyContainer .__SendButton {
+    padding: 8px 12px;
+    flex-shrink: 0;
+  }
 }
 
 .TicketCard {

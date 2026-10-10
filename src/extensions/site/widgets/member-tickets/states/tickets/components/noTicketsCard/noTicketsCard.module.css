@@ -2,10 +2,22 @@
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     text-align: center;
-    padding: 100px 20px;
-    max-width: 320px;
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 100%;
+    padding: var(--ticketsEmptyStatePaddingVertical, 24px) var(--ticketsEmptyStatePaddingHorizontal, 20px);
+    max-width: none;
     margin: 0 auto;
+    background-color: var(--ticketsEmptyStateBackgroundColor, transparent);
+}
+
+@container memberTickets (max-height: 360px) {
+    .emptyState {
+        padding-top: var(--ticketsEmptyStateCompactPaddingVertical, 12px);
+        padding-bottom: var(--ticketsEmptyStateCompactPaddingVertical, 12px);
+    }
 }
 
 .emptyIcon {
@@ -14,32 +26,34 @@
 }
 
 .emptyTitle {
-    font-size: 16px;
+    font-size: var(--ticketsEmptyStateTitleSize, 16px);
     font-weight: 600;
-    color: var(--MemberTickets-color-text);
+    color: var(--ticketsEmptyStateTitleColor, var(--MemberTickets-color-text));
     margin: 0 0 6px 0;
 }
 
 .emptySubtitle {
-    font-size: 14px;
-    color: var(--MemberTickets-color-text-secondary);
+    font-size: var(--ticketsEmptyStateSubtitleSize, 14px);
+    color: var(--ticketsEmptyStateSubtitleColor, var(--MemberTickets-color-text-secondary));
     margin: 0 0 20px 0;
     line-height: 1.4;
 }
 
 .emptyBtn {
-    height: 38px;
+    height: var(--ticketsEmptyStateButtonHeight, 38px);
+    width: var(--ticketsEmptyStateButtonWidth, auto);
     padding: 0 20px;
-    background: var(--MemberTickets-color-primary);
-    color: #ffffff;
-    border: none;
-    border-radius: 4px;
-    font-size: 14px;
+    background: var(--ticketsEmptyStateButtonBackgroundColor, var(--MemberTickets-color-primary));
+    color: var(--ticketsEmptyStateButtonTextColor, #ffffff);
+    border: var(--ticketsEmptyStateButtonBorderWidth, 0px) solid var(--ticketsEmptyStateButtonBorderColor, transparent);
+    border-radius: var(--ticketsEmptyStateButtonBorderRadius, 4px);
+    font-size: var(--ticketsEmptyStateButtonTextSize, 14px);
     font-weight: 500;
     white-space: nowrap;
     cursor: pointer;
 }
 
 .emptyBtn:hover {
-    background: #333333;
+    background: color-mix(in srgb, var(--ticketsEmptyStateButtonBackgroundColor, var(--MemberTickets-color-primary)) 50%, transparent);
+    color: color-mix(in srgb, var(--ticketsEmptyStateButtonTextColor, #ffffff) 50%, transparent);
 }

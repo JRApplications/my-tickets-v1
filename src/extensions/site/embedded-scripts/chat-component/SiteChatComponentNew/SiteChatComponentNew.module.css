@@ -9,7 +9,6 @@
   gap: 12px;
   /* Scope CSS vars and stacking context */
   isolation: isolate;
-
   background-color: transparent;
 }
 
@@ -88,7 +87,7 @@
 /* ─── Tablet (481px – 768px): panel floats, slightly narrower margin ────────── */
 
 @media (min-width: 481px) and (max-width: 768px) {
-  .cw__root {
+  :global(.cw__root) {
     bottom: max(16px, env(safe-area-inset-bottom));
     right: max(16px, env(safe-area-inset-right));
   }
@@ -102,16 +101,18 @@
 /* ─── Mobile (≤ 480px): full-screen panel, launcher stays fixed ─────────────── */
 
 @media (max-width: 480px) {
-  .cw__root {
+  :global(.cw__root) {
     position: fixed;
     bottom: 0;
     right: 0;
     gap: 0;
     width: 100vw;
     height: 100dvh;
+    align-items: stretch;
+    justify-content: flex-end;
   }
 
-  .cw__root > .cw_launcher {
+  :global(.cw__root > .cw_launcher) {
     position: fixed;
     bottom: max(20px, env(safe-area-inset-bottom));
     right: max(20px, env(safe-area-inset-right));

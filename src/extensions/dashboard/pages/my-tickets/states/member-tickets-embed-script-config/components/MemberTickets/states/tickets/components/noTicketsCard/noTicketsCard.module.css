@@ -41,5 +41,6 @@
 }
 
 .emptyBtn:hover {
-    background: #333333;
+    background: color-mix(in srgb, var(--color-primary) 50%, transparent);
+    color: color-mix(in srgb, #ffffff 50%, transparent);
 }

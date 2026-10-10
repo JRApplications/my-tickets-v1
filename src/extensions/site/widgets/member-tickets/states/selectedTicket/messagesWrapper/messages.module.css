@@ -34,6 +34,9 @@
     padding: 15px;
     border-radius: 4px;
     width: max-content;
+    max-width: min(85%, 42rem);
+    box-sizing: border-box;
+    overflow-wrap: anywhere;
 }
 
 .__MessagePrimaryContainer p,
