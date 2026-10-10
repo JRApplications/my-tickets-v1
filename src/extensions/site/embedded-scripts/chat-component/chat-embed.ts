@@ -46,6 +46,23 @@ if (offlineFormB64) {
 
 const isDemoData = demoData === 'true';
 
+declare global {
+  interface Window {
+    myTickets?: { openChat?: () => void; [key: string]: unknown };
+    __myTicketsOpenChatRequested?: boolean;
+  }
+}
+
+const openChatEventName = 'myTickets:openChat';
+
+// Keep the request until the React component has mounted, so callers can use
+// the public API immediately after the embedded script loads.
+window.myTickets = window.myTickets && typeof window.myTickets === 'object' ? window.myTickets : {};
+window.myTickets.openChat = () => {
+  window.__myTicketsOpenChatRequested = true;
+  window.dispatchEvent(new Event(openChatEventName));
+};
+
 function initChatEmbed() {
 
   const container = document.createElement('div');

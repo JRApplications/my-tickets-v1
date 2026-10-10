@@ -91,6 +91,19 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
   const isOfflineState = Boolean(offlineForm && config && !isBusinessOpen);
   const themeVars = buildThemeVars(theme, width, height);
 
+  React.useEffect(() => {
+    const handleExternalOpen = () => {
+      const chatWindow = window as Window & { __myTicketsOpenChatRequested?: boolean };
+      if (!chatWindow.__myTicketsOpenChatRequested) return;
+      chatWindow.__myTicketsOpenChatRequested = false;
+      openWidget();
+    };
+
+    window.addEventListener('myTickets:openChat', handleExternalOpen);
+    handleExternalOpen();
+    return () => window.removeEventListener('myTickets:openChat', handleExternalOpen);
+  }, [openWidget]);
+
   // --- Pre-chat question flow state ---
   // For a brand-new visitor, questions are asked locally (no conversation
   // exists yet) and only get sent anywhere once every question is answered.
