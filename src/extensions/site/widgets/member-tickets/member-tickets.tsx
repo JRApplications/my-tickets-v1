@@ -69,9 +69,7 @@ const MemberTickets: FC<MemberTicketsProps> = ({
       )}
 
       {(state === 'noTickets') && (
-
-        <NoTicketsCard onCreateTicket={() => console.log('Create ticket clicked')} />
-
+        <NoTicketsCard onCreateTicket={() => window.myTickets?.openChat?.()} />
       )}
 
       {(state === 'selectedTicketLoading') && (
