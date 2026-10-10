@@ -19,6 +19,9 @@ const {
 import { BackButton, TicketNumber, ReplyInput, SendButton, PoweredBy, LoadingState as SelectedTicketLoadingState } from './states/selectedTicket/components';
 import { MessagesWrapper } from './states/selectedTicket/messagesWrapper/wrapper';
 
+const normalizeTicketStatus = (status: unknown) =>
+  String(status ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
+
 const MemberTickets: FC<MemberTicketsProps> = ({
   id,
   className,
@@ -33,6 +36,10 @@ const MemberTickets: FC<MemberTicketsProps> = ({
   } = useMemberTickets();
   // @ts-nocheck
   const [message, setMessage] = React.useState('');
+  const [statusFilter, setStatusFilter] = React.useState('');
+  const visibleTickets = tickets.filter((ticket: any) =>
+    !statusFilter || normalizeTicketStatus(ticket.status) === statusFilter
+  );
 
   useEffect(() => {
     injectEditorStyles();
@@ -52,19 +59,23 @@ const MemberTickets: FC<MemberTicketsProps> = ({
       {state === 'tickets' && (
         <div className={classNames('TicketsWrapper', styles.TicketsWrapper)}>
           <div className={classNames('__TicketsActionsHeader', styles.__TicketsActionsHeader)}>
-            <Dropdown />
+            <Dropdown value={statusFilter} onChange={setStatusFilter} />
             <SearchInput value="" onInput={(e) => console.log(e.currentTarget.value)} />
           </div>
-          <TicketCardListProvider>
-            {tickets.map((ticket: any, index) => (
-              <TicketCard
-                key={ticket?._id}
-                className={index === 0 ? styles.ticketCardFirst : index === tickets.length - 1 ? styles.ticketCardLast : ""}
-                ticket={ticket}
-                onOpen={() => selectTicket(ticket?._id)}
-              />
-            ))}
-          </TicketCardListProvider>
+          {visibleTickets.length > 0 ? (
+            <TicketCardListProvider>
+              {visibleTickets.map((ticket: any, index) => (
+                <TicketCard
+                  key={ticket?._id}
+                  className={index === 0 ? styles.ticketCardFirst : index === visibleTickets.length - 1 ? styles.ticketCardLast : ""}
+                  ticket={ticket}
+                  onOpen={() => selectTicket(ticket?._id)}
+                />
+              ))}
+            </TicketCardListProvider>
+          ) : (
+            <div className={styles.TicketsFilteredEmpty} role="status">No tickets match this status.</div>
+          )}
         </div>
       )}
 

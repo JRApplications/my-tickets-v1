@@ -29,6 +29,57 @@
   height: 100%;
   overflow: hidden;
   box-sizing: border-box;
+  container-name: memberTickets;
+  container-type: inline-size;
+}
+
+@container memberTickets (max-width: 700px) {
+  .TicketsWrapper {
+    padding: 12px 4px;
+  }
+
+  .TicketsWrapper .__TicketsActionsHeader {
+    width: 100%;
+    max-width: 100%;
+    align-self: stretch;
+    justify-content: stretch;
+  }
+
+  .TicketsWrapper .__TicketsActionsHeader > * {
+    min-width: 0;
+    flex: 1 1 0;
+  }
+}
+
+@container memberTickets (max-width: 480px) {
+  .TicketsWrapper {
+    gap: 12px;
+    padding: 12px 10px;
+  }
+
+  .TicketsWrapper .__TicketsActionsHeader {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .TicketsWrapper .__TicketsActionsHeader > * {
+    width: auto;
+    flex: 1 1 0;
+    flex-basis: 0;
+  }
+}
+
+@container memberTickets (max-width: 360px) {
+  .TicketsWrapper .__TicketsActionsHeader {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .TicketsWrapper .__TicketsActionsHeader > * {
+    width: 100%;
+    flex: 1 1 auto;
+  }
 }
 
 /* SELECTED TICKET STATE */
@@ -36,6 +87,8 @@
   width: 100%;
   display: flex;
   flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
   height: 100%;
   box-sizing: border-box;
 }
@@ -73,8 +126,11 @@
 
 .SelectedTicketContainer .__Content {
   padding: 10px;
-  height: 100%;
+  flex: 1 1 0;
+  min-height: 0;
   box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
 }
 
 .SelectedTicketContainer .__Content .__ReplyContainer {
@@ -83,7 +139,8 @@
   gap: 8px;
   align-items: flex-end;
   margin-bottom: 0px;
-  margin-top: 15px;
+  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .SelectedTicketContainer .__Content .__MessageContainer {
@@ -91,7 +148,10 @@
   flex-direction: column;
   gap: 8px;
   margin-bottom: 16px;
-  height: 400px;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding-bottom: 10px;
 }
 
 
@@ -198,6 +258,12 @@
   flex-direction: column;
   gap: 12px;
   padding: 16px;
+}
+
+.TicketsFilteredEmpty {
+  padding: 24px 16px;
+  color: var(--MemberTickets-color-text-secondary);
+  text-align: center;
 }
 
 .TicketsWrapper .__TicketsActionsHeader {

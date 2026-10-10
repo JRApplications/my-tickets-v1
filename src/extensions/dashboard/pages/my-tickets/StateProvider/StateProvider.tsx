@@ -1,4 +1,4 @@
-import { ViewTicket, ViewAccounts, ViewTeams, AgentRoles, ChatWidgetConfig, ChatComponentEmbedScriptConfig, InternalChat, WorkforceDashboard, SlaSettings, ReportsDashboard, OfflineFormSubmissions } from '../states';
+import { ViewTicket, ViewAccounts, ViewTeams, AgentRoles, ChatWidgetConfig, ChatComponentEmbedScriptConfig, InternalChat, WorkforceDashboard, SlaSettings, ReportsDashboard, OfflineFormSubmissions, TicketsList } from '../states';
 import { StateId } from '@jrapps/my_tickets_common_types';
 import MemberTicketsEmbedScriptConfig from '../states/member-tickets-embed-script-config/member-tickets-embed-script-config.route';
 import ViewChat from '../states/chats/view-chat.route';
@@ -10,6 +10,8 @@ const StateProvider = ({
     onCreateTicket,
     onNavigate,
     onTicketClick,
+    onVisibleTicketsChange,
+    onGetTicketUpdateFn,
     permissions,
     teamId,
     agentId,
@@ -23,6 +25,8 @@ const StateProvider = ({
     onCreateTicket: () => void,
     onNavigate: (stateId: StateId) => void,
     onTicketClick: (ticketId: string) => void,
+    onVisibleTicketsChange?: (ticketIds: string[]) => void,
+    onGetTicketUpdateFn?: (updateFn: (ticketId: string, updates: { status?: string; priority?: string; isSpam?: boolean; isDeleted?: boolean; assignedAgent?: { id?: string; name?: string }; assignedTeam?: { id?: string; name?: string } }) => void) => void,
     permissions: string[],
     teamId: string,
     agentId: string,
@@ -61,6 +65,8 @@ const StateProvider = ({
     }
 }) => {
     switch (stateId) {
+        case StateId.TicketsList:
+            return <TicketsList teamId={teamId} permissions={permissions} onTicketClick={onTicketClick} onCreateTicket={onCreateTicket} onVisibleTicketsChange={onVisibleTicketsChange} onGetTicketUpdateFn={onGetTicketUpdateFn} />;
         case StateId.Home:
             return <HomeDashboard teamId={teamId} onCreateTicket={onCreateTicket} onNavigate={onNavigate} onTicketClick={onTicketClick} />;
         case StateId.ViewTickets:

@@ -5,6 +5,7 @@ export { default as ChatWidgetConfig } from './chat-widget-config/chat-widget-co
 export { default as ChatComponentEmbedScriptConfig } from './chat-component-embed-script-config/chat-component-embed-script-config.route';
 export { default as SlaSettings } from './sla-settings/sla-settings.route';
 export { default as ViewTicket } from './tickets/view-ticket.route';
+export { default as TicketsList } from './tickets-list/tickets-list.route';
 export { default as InternalChat } from './internal-chat/internal-chat.route';
 export { default as WorkforceDashboard } from './workforce/workforce-dashboard';
 export { default as ReportsDashboard } from './reports/reports-dashboard';

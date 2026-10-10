@@ -169,6 +169,13 @@ const DashboardPage: FC = () => {
     setTicketStateProps((prev: any) => ({ ...prev, ticketId }));
   };
 
+  const handleNavigate = (stateId: StateId) => {
+    if (stateId === StateId.ViewTickets) {
+      setTicketStateProps((prev: any) => ({ ...prev, ticketId: '' }));
+    }
+    setState(stateId);
+  };
+
   const handleTicketTabChange = (ticketId: string | null) => {
     setTicketStateProps((prev: any) => ({ ...prev, ticketId: ticketId ?? '' }));
   };
@@ -414,7 +421,7 @@ const DashboardPage: FC = () => {
               <SidebarProvider
                 stateId={state}
                 onLogout={handleLogout}
-                onItemClick={(stateId) => { setState(stateId as StateId); }}
+                onItemClick={(stateId) => { handleNavigate(stateId as StateId); }}
                 onCreateTicketClicked={() => { setIsCreateTicketModalOpen(true); }}
                 onInternalMailClicked={() => { handleStateOverrideStart(StateId.InternalChat); }}
                 permissions={loggedInAgent.permissions}
@@ -423,9 +430,6 @@ const DashboardPage: FC = () => {
                 agentRole={loggedInAgent.roleName}
                 agentProfilePictureUrl={loggedInAgent.agentProfilePictureUrl}
                 teamId={loggedInAgent.teamId}
-                onTicketClick={handleTicketClick}
-                onVisibleTicketsChange={handleVisibleTicketsChange}
-                onGetTicketUpdateFn={(updateFn) => { updateTicketFnRef.current = updateFn; }}
                 onAiButtonClicked={() => { setIsAiHelpModalOpen(true); }}
                 notificationProps={{
                   onNotificationRemove: handleNotificationRemove,
@@ -441,8 +445,10 @@ const DashboardPage: FC = () => {
               <StateContainerProvider>
                 <StateProvider
                   onCreateTicket={() => setIsCreateTicketModalOpen(true)}
-                  onNavigate={(stateId) => setState(stateId)}
+                  onNavigate={handleNavigate}
                   onTicketClick={handleTicketClick}
+                  onVisibleTicketsChange={handleVisibleTicketsChange}
+                  onGetTicketUpdateFn={(updateFn) => { updateTicketFnRef.current = updateFn; }}
                   teamId={loggedInAgent.teamId}
                   agentId={loggedInAgent.agentId}
                   stateId={state}

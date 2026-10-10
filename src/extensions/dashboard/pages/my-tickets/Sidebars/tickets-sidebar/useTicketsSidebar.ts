@@ -9,6 +9,8 @@ interface Ticket {
     subject: string;
     status: string;
     priority: string;
+    createdDate?: string;
+    memberName?: string;
     assignedAgent?: { id?: string; name?: string };
     assignedTeam?: { id?: string; name?: string };
     tags?: string[];
@@ -16,6 +18,35 @@ interface Ticket {
     isDeleted?: boolean;
     sla?: TicketSla;
 }
+
+const TICKETS_CACHE_PREFIX = 'my-tickets:tickets-list:';
+const ticketsMemoryCache = new Map<string, Ticket[]>();
+
+const readTicketsCache = (teamId: string): Ticket[] | null => {
+    if (!teamId) return null;
+    const memoryCached = ticketsMemoryCache.get(teamId);
+    if (memoryCached) return memoryCached;
+    try {
+        const serialized = window.sessionStorage.getItem(`${TICKETS_CACHE_PREFIX}${teamId}`);
+        if (!serialized) return null;
+        const cached = JSON.parse(serialized);
+        if (!Array.isArray(cached)) return null;
+        ticketsMemoryCache.set(teamId, cached);
+        return cached;
+    } catch {
+        return null;
+    }
+};
+
+const writeTicketsCache = (teamId: string, tickets: Ticket[]) => {
+    if (!teamId) return;
+    ticketsMemoryCache.set(teamId, tickets);
+    try {
+        window.sessionStorage.setItem(`${TICKETS_CACHE_PREFIX}${teamId}`, JSON.stringify(tickets));
+    } catch {
+        // The in-memory cache still helps if session storage is unavailable.
+    }
+};
 
 const searchTickets = async (query: string, teamId: string): Promise<any[]> => {
     const baseApiUrl = new URL(import.meta.url).origin;
@@ -28,18 +59,22 @@ const searchTickets = async (query: string, teamId: string): Promise<any[]> => {
 };
 
 export const useTicketsSidebar = (teamId: string) => {
-    const [tickets, setTickets] = useState<Ticket[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [initialCache] = useState(() => readTicketsCache(teamId));
+    const [tickets, setTickets] = useState<Ticket[]>(initialCache ?? []);
+    const [isLoading, setIsLoading] = useState(initialCache === null);
     const [isError, setIsError] = useState(false);
     const [searchTerm, setSearchTerm] = useState("");
-    const [originalTickets, setOriginalTickets] = useState<Ticket[]>([]); 
+    const [originalTickets, setOriginalTickets] = useState<Ticket[]>(initialCache ?? []);
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const searchRequestId = useRef(0);
 
     useEffect(() => {
         const fetchTickets = async () => {
-            setIsLoading(true);
+            const cachedTickets = readTicketsCache(teamId);
+            setTickets(cachedTickets ?? []);
+            setOriginalTickets(cachedTickets ?? []);
+            setIsLoading(cachedTickets === null);
             setIsError(false);
             if (!teamId) {
                 setIsLoading(false);
@@ -56,9 +91,10 @@ export const useTicketsSidebar = (teamId: string) => {
                 setTickets(data.tickets || []);
                 setOriginalTickets(data.tickets || []);
                 setNextCursor(data.nextCursor || null);
+                writeTicketsCache(teamId, data.tickets || []);
             } catch (error) {
                 console.error("Failed to fetch tickets", error);
-                setIsError(true);
+                setIsError(cachedTickets === null);
             } finally {
                 setIsLoading(false);
             }
@@ -78,6 +114,8 @@ export const useTicketsSidebar = (teamId: string) => {
             const page = data.tickets || [];
             setTickets((current) => [...current, ...page]);
             setOriginalTickets((current) => [...current, ...page]);
+            const cached = readTicketsCache(teamId) ?? [];
+            writeTicketsCache(teamId, [...cached, ...page]);
             setNextCursor(data.nextCursor || null);
         } catch (error: any) {
             ShowToast({ message: error.message || 'Failed to load more tickets', type: 'error' });
@@ -143,6 +181,10 @@ export const useTicketsSidebar = (teamId: string) => {
                     : ticket
             )
         );
+        const cachedTickets = readTicketsCache(teamId);
+        if (cachedTickets) {
+            writeTicketsCache(teamId, cachedTickets.map((ticket) => ticket._id === ticketId ? { ...ticket, ...updates } : ticket));
+        }
     };
 
     const demoTickets = [

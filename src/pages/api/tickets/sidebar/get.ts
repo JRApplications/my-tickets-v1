@@ -13,6 +13,7 @@ interface SidebarTicket extends Ticket {
     assignedAgent?: Ticket['assignedAgent'];
     assignedTeam?: Ticket['assignedTeam'];
     tags?: string[];
+    createdDate: string;
 }
 
 interface PageInfo {
@@ -27,7 +28,7 @@ interface FetchTeamTicketsPageResult {
 
 interface SidebarTicketDataItem {
     id: string;
-    data: Pick<SidebarTicket, 'primaryTicketNumber' | 'subject' | 'priority' | 'status' | 'assignedAgent' | 'assignedTeam' | 'tags' | 'isSpam' | 'isDeleted' | 'sla'>;
+    data: Pick<SidebarTicket, 'primaryTicketNumber' | 'subject' | 'priority' | 'status' | 'assignedAgent' | 'assignedTeam' | 'tags' | 'isSpam' | 'isDeleted' | 'sla' | '_createdDate'>;
 }
 
 const PAGE_SIZE = 100;
@@ -180,6 +181,7 @@ async function fetchTeamTicketPage(
     }
 
     const { items, pageInfo } = result.data.dataItemsV2DataItems;
+    console.log(items[0].data._createdDate.$date, pageInfo);
 
     const mapped: SidebarTicket[] = items.map((item: SidebarTicketDataItem) => ({
         _id: item.id,
@@ -193,6 +195,7 @@ async function fetchTeamTicketPage(
         isSpam: item.data.isSpam === true,
         isDeleted: item.data.isDeleted === true,
         sla: item.data.sla,
+        createdDate: item.data?._createdDate?.$date,
     }));
 
     return { items: mapped, pageInfo };

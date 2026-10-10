@@ -37,7 +37,7 @@ const DemoSelectedTicket = {
             id: '2',
             _id: '2',
             sender: 'member',
-            message: 'This is a demo response from support.',
+            message: 'This is a demo response from the member.',
             timestamp: '2024-06-01T11:00:00Z'
         },
         {
@@ -45,7 +45,7 @@ const DemoSelectedTicket = {
             _id: '1',
             senderName: 'John Doe',
             senderType: 'agent',
-            message: 'This is a demo message from the user.',
+            message: 'This is a demo message from support.',
             timestamp: '2024-06-01T10:00:00Z'
         },
     ]
