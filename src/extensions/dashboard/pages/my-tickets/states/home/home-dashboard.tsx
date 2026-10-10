@@ -185,7 +185,7 @@ const HomeDashboard = ({ teamId, onCreateTicket, onNavigate, onTicketClick }: Ho
             <Page.Header
                 title="Home"
                 subtitle="A clear view of your team's ticket workload."
-                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.ViewTickets)}>View tickets</Button><Button prefixIcon={<Add />} onClick={onCreateTicket}>Create ticket</Button></Box>}
+                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.TicketsList)}>View tickets</Button><Button prefixIcon={<Add />} onClick={onCreateTicket}>Create ticket</Button></Box>}
             />
             <Page.Content>
                 <Box direction="vertical" gap="SP4">

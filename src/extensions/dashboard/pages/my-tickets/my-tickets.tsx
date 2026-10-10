@@ -170,7 +170,7 @@ const DashboardPage: FC = () => {
   };
 
   const handleNavigate = (stateId: StateId) => {
-    if (stateId === StateId.ViewTickets) {
+    if (stateId === StateId.TicketsList) {
       setTicketStateProps((prev: any) => ({ ...prev, ticketId: '' }));
     }
     setState(stateId);
@@ -178,6 +178,9 @@ const DashboardPage: FC = () => {
 
   const handleTicketTabChange = (ticketId: string | null) => {
     setTicketStateProps((prev: any) => ({ ...prev, ticketId: ticketId ?? '' }));
+    if (!ticketId) {
+      setState(StateId.TicketsList);
+    }
   };
 
   const handleVisibleTicketsChange = useCallback((ticketIds: string[]) => {

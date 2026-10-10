@@ -33,6 +33,7 @@ interface SidebarProps {
 const STATE_ID_TO_ITEM_KEY: Partial<Record<StateId, string>> = {
     [StateId.Home]: 'home',
     [StateId.ViewChats]: 'inbox-chats',
+    [StateId.TicketsList]: 'inbox-tickets',
     [StateId.ViewTickets]: 'inbox-tickets',
     [StateId.OfflineFormSubmissions]: 'inbox-offline-submissions',
     [StateId.ManageTeams]: 'settings-teams',
@@ -163,7 +164,7 @@ const Sidebar = (props: SidebarProps) => {
                     title="Inbox"
                     itemKey="inbox"
                     prefix={<Icons.Inbox />}
-                    onClick={() => props.onItemClick?.(StateId.ViewTickets)}
+                    onClick={() => props.onItemClick?.(StateId.TicketsList)}
                     as="div"
                 >
                     <SidebarItemNext
@@ -176,7 +177,7 @@ const Sidebar = (props: SidebarProps) => {
                     <SidebarItemNext
                         itemKey="inbox-tickets"
                         minimizedTooltipContent="Tickets"
-                        onClick={() => props.onItemClick?.(StateId.ViewTickets)}
+                        onClick={() => props.onItemClick?.(StateId.TicketsList)}
                     >
                         Tickets
                     </SidebarItemNext>
