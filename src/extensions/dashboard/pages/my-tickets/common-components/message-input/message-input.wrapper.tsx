@@ -238,7 +238,7 @@ const MessageInputWrapper: FC<MessageInputWrapperProps> = ({
                                             <Button
                                                 size='small'
                                                 prefixIcon={<SendIcon />}
-                                                onClick={handleSendMessage}
+                                                onClick={() => handleSendMessage?.()}
                                                 disabled={!ticketPermissions.includes('my-tickets-single-ticket-send-message') || disabled || isSending || isUploading}
                                                 skin={hasFailedSend ? 'destructive' : undefined}
                                             >

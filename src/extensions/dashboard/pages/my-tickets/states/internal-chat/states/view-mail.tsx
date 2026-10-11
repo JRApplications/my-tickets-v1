@@ -58,7 +58,7 @@ const ViewMail = ({
             mailId: selectedItemId,
             agentId,
         };
-        if (isSending || (!payload.message.trim() && payload.attachments.length === 0)) return;
+        if (isSending) return;
         setIsSending(true);
         try {
             const result = await handleSendMessage(payload);
