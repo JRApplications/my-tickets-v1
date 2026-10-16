@@ -3,6 +3,7 @@ import { items } from "@wix/data";
 import { captureError } from '../reportError';
 import { CollectionIds, type Team } from '@jrapps/my_tickets_common_types';
 import { checkPermission } from '../auth/checkPermission';
+import { getPlanLimitStatus } from '../utils/plan-limits';
 
 export const POST: APIRoute = async ({ request, locals }) => {
     let status = 500;
@@ -25,6 +26,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
             email: data.email ? `${data.email.replace(/@mytickets\.internal$/i, '')}@mytickets.internal` : `${data?.name.replace(/\s+/g, '').toLowerCase()}@mytickets.internal`,
             teamPictureUrl: data.teamPictureUrl || undefined,
         }
+        status = 503;
+        const teamLimit = await getPlanLimitStatus('teams');
+        if (teamLimit.reached) {
+            status = 409;
+            return new Response(JSON.stringify({ success: false, limitReached: true, error: `Team limit reached (${teamLimit.count}/${teamLimit.limit}). Upgrade your plan to add more teams.` }), {
+                status, headers: { 'Content-Type': 'application/json' },
+            });
+        }
+        status = 500;
         const createdTeam = await items.insert(CollectionIds.TEAMS, newTeam as Team);
         const result = { success: true, team: createdTeam };
         return new Response(JSON.stringify(result), {

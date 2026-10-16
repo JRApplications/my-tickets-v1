@@ -18,6 +18,7 @@ import { sanitizeText } from '../utils/sanitize';
 import { SYSTEM_ADMIN_ID, SYSTEM_ADMIN_NAME, isSystemAdmin } from '../auth/system-admin';
 import { getConversation } from '../chat/conversation-auth';
 import { initTicketSla, runSlaHook } from '../utils/slaServer';
+import { getPlanLimitStatus } from '../utils/plan-limits';
 
 export const POST: APIRoute = async ({ request, locals }) => {
     let status = 500;
@@ -77,6 +78,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
             tags: data.tags || [],
             relatedTickets: data.relatedTickets || []
         };
+        status = 503;
+        const ticketLimit = await getPlanLimitStatus('tickets');
+        if (ticketLimit.reached) {
+            status = 409;
+            return new Response(JSON.stringify({
+                success: false,
+                limitReached: true,
+                error: `Monthly ticket limit reached (${ticketLimit.count}/${ticketLimit.limit}). Upgrade your plan to create more tickets.`,
+            }), { status, headers: { 'Content-Type': 'application/json' } });
+        }
+        status = 500;
         const ticketCreated = await items.insert(CollectionIds.TICKETS, formattedTicket);
         if (chatCommunication.length) {
             for (const message of chatCommunication) {

@@ -59,7 +59,7 @@ const AgentModal = ({ isOpen, onClose, state, agentId }: { isOpen: boolean; onCl
                 ShowToast({ message: state === 'create' ? 'Agent created.' : 'Agent changes saved.', type: 'success' });
                 onClose();
             } else {
-                ShowToast({ message: `Failed to ${state === 'create' ? 'create' : 'save'} agent. Please try again.`, type: 'error' });
+                ShowToast({ message: result.error || `Failed to ${state === 'create' ? 'create' : 'save'} agent. Please try again.`, type: 'error' });
             }
         } finally {
             setIsSaving(false);

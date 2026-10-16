@@ -33,7 +33,7 @@ const TeamModal = ({ isOpen, onClose, state, teamId }: { isOpen: boolean; onClos
             ShowToast({ message: state === 'create' ? 'Team created.' : 'Team changes saved.', type: 'success' });
             onClose();
         } else {
-            ShowToast({ message: `Failed to ${state === 'create' ? 'create' : 'save'} team. Please try again.`, type: 'error' });
+            ShowToast({ message: result?.error || `Failed to ${state === 'create' ? 'create' : 'save'} team. Please try again.`, type: 'error' });
         }
     };
 

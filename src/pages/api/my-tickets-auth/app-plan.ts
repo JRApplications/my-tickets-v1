@@ -80,21 +80,22 @@ export const GET: APIRoute = async ({ request }) => {
         const freeTrialAvailable = instance?.freeTrialAvailable === true;
         const hasPlan = instance?.isFree === false;
         const billingPeriod = getCurrentBillingPeriod(billing?.timeStamp, new Date());
-        const countItems = auth.elevate(items.count);
         const queryItems = auth.elevate(items.query);
+        const agentCountPromise = queryItems(CollectionIds.AGENTS).count({ consistentRead: true });
+        const teamCountPromise = queryItems(CollectionIds.TEAMS).count({ consistentRead: true });
         const chatConversationCountPromise: Promise<number | null> = billingPeriod
             ? queryItems(CollectionIds.CHAT_CONVERSATIONS)
                 .ge('_createdDate', billingPeriod.start)
-                .count()
+                .count({ consistentRead: true })
             : Promise.resolve(null);
         const ticketCountPromise: Promise<number | null> = billingPeriod
             ? queryItems(CollectionIds.TICKETS)
                 .ge('_createdDate', billingPeriod.start)
-                .count()
+                .count({ consistentRead: true })
             : Promise.resolve(null);
         const [agentCount, teamCount, chatConversationCount, ticketCount] = await Promise.all([
-            countItems(CollectionIds.AGENTS),
-            countItems(CollectionIds.TEAMS),
+            agentCountPromise,
+            teamCountPromise,
             chatConversationCountPromise,
             ticketCountPromise,
         ]);

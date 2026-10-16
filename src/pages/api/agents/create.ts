@@ -5,6 +5,7 @@ import { captureError } from '../reportError';
 import { CollectionIds, type Agent } from '@jrapps/my_tickets_common_types';
 import { auth } from '@wix/essentials';
 import { checkPermission } from '../auth/checkPermission';
+import { getPlanLimitStatus } from '../utils/plan-limits';
 
 export const POST: APIRoute = async ({ request, locals }) => {
     let status = 500;
@@ -24,6 +25,15 @@ export const POST: APIRoute = async ({ request, locals }) => {
             assignedTickets: undefined, // always undefined on creation
             isAdmin: undefined, // always undefined
         }
+        status = 503;
+        const agentLimit = await getPlanLimitStatus('agents');
+        if (agentLimit.reached) {
+            status = 409;
+            return new Response(JSON.stringify({ success: false, limitReached: true, error: `Agent limit reached (${agentLimit.count}/${agentLimit.limit}). Upgrade your plan to add more agents.` }), {
+                status, headers: { 'Content-Type': 'application/json' },
+            });
+        }
+        status = 500;
         const elevatedInsert = auth.elevate(items.insert);
         const createdUser = await elevatedInsert(CollectionIds.AGENTS, newUser as Agent);
         const result = { success: true, user: createdUser };

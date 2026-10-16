@@ -26,7 +26,7 @@ const useTeams = () => {
         }
     };
 
-    const updateTeamData = async (teamId: string, teamData: Record<string, any>): Promise<{ success: boolean }> => {
+    const updateTeamData = async (teamId: string, teamData: Record<string, any>): Promise<{ success: boolean; error?: string }> => {
         setIsLoading(true);
         setIsCreating(true);
         try {
@@ -55,7 +55,7 @@ const useTeams = () => {
         }
     };
 
-    const createTeam = async (teamData: Record<string, any>): Promise<{ success: boolean }> => {
+    const createTeam = async (teamData: Record<string, any>): Promise<{ success: boolean; error?: string }> => {
         setIsCreating(true);
         try {
             const baseApiUrl = new URL(import.meta.url).origin;
@@ -67,13 +67,13 @@ const useTeams = () => {
                 body: JSON.stringify(teamData),
             });
             const data = await response.json();
-            if (!response.ok || data?.success === false) throw new Error('Team creation failed');
+            if (!response.ok || data?.success === false) return { success: false, error: data?.error || 'Team creation failed.' };
             setIsError(false);
-            return { success: data?.success !== false };
+            return { success: true };
         } catch (error) {
             console.error('Failed to create team:', error);
             setIsError(false);
-            return { success: false };
+            return { success: false, error: 'Could not create team. Please try again.' };
         } finally {
             setIsCreating(false);
         }

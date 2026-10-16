@@ -26,7 +26,7 @@ const useAgents = () => {
         }
     };
 
-    const updateAgentData = async (agentId: string, agentData: Record<string, any>): Promise<{ success: boolean }> => {
+    const updateAgentData = async (agentId: string, agentData: Record<string, any>): Promise<{ success: boolean; error?: string }> => {
         setIsLoading(true);
         try {
             const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/agents/update?id=${encodeURIComponent(agentId)}`, {
@@ -49,7 +49,7 @@ const useAgents = () => {
         }
     };
 
-    const createAgent = async (agentData: any): Promise<{ success: boolean }> => {
+    const createAgent = async (agentData: any): Promise<{ success: boolean; error?: string }> => {
         setIsLoading(true);
         try {
             const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/agents/create`, {
@@ -60,14 +60,12 @@ const useAgents = () => {
                 body: JSON.stringify(agentData),
             });
             const data = await response.json();
-            if (response.ok && data.success === true) {
-                setIsError(false);
-            } else setIsError(false);
-            return { success: response.ok && data.success === true };
+            setIsError(false);
+            return { success: response.ok && data.success === true, error: data.error };
         } catch (error) {
             console.error('Failed to create agent:', error);
             setIsError(false);
-            return { success: false };
+            return { success: false, error: 'Could not create agent. Please try again.' };
         } finally {
             setIsLoading(false);
         }
