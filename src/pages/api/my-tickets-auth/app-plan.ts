@@ -2,6 +2,7 @@ import type { APIRoute } from 'astro';
 import { appInstances } from '@wix/app-management';
 import { auth } from '@wix/essentials';
 import { checkPermission } from '../auth/checkPermission';
+import wixConfig from '../../../../wix.config.json';
 
 const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringify(body), {
     status,
@@ -37,6 +38,9 @@ export const GET: APIRoute = async ({ request }) => {
         const freeTrialActive = freeTrialStatus === 'IN_PROGRESS';
         const freeTrialAvailable = instance?.freeTrialAvailable === true;
         const hasPlan = instance?.isFree === false;
+        const upgradeUrl = instance?.instanceId && wixConfig.appId
+            ? `https://www.wix.com/apps/upgrade/${encodeURIComponent(wixConfig.appId)}?appInstanceId=${encodeURIComponent(instance.instanceId)}`
+            : undefined;
 
         return jsonResponse({
             success: true,
@@ -44,6 +48,7 @@ export const GET: APIRoute = async ({ request }) => {
             freeTrialAvailable,
             hasPlan,
             planName: packageName ?? undefined,
+            upgradeUrl,
         });
     } catch (error) {
         console.error('Failed to retrieve the current Wix app plan', error);

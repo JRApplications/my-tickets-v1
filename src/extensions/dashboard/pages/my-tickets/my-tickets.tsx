@@ -13,13 +13,14 @@ import { dashboard } from '@wix/dashboard';
 import { ModalsProvider } from './Modals';
 import { LoginPage } from './login';
 import { DevTestOverrideProvider } from './DevTestOverrideProvider';
-import { clearMyTicketsAgentSession, myTicketsFetchWithAuth } from './auth/myTicketsFetchWithAuth';
+import { clearMyTicketsAgentSession, myTicketsFetchWithAuth, storeMyTicketsAgentSession } from './auth/myTicketsFetchWithAuth';
 import { subscriber } from '@wix/realtime';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import NotificationProvider from './NotificationProvider';
 import type { LoginSuccessData } from './login';
 import { getAgentActivitySessionId } from './SidebarProvider/useTeamPresence';
 import { checkNeedsOnboarding, MainAdminOnboardingModal } from './Modals/MainAdminOnboardingModal';
+import { httpClient } from '@wix/essentials';
 
 const DashboardPage: FC = () => {
   const [state, setState] = useState<StateId>(StateId.Home);
@@ -88,6 +89,8 @@ const DashboardPage: FC = () => {
     isError: false,
   });
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
+  const [isAccessReady, setIsAccessReady] = useState(false);
+  const [isEssentialsPlan, setIsEssentialsPlan] = useState(false);
   const [userBetaFeatures, setUserBetaFeatures] = useState<string[]>([]);
   const subscriptionRef = useRef<string | null>(null);
   const updateTicketFnRef = useRef<((ticketId: string, updates: { status?: string; priority?: string; isSpam?: boolean; isDeleted?: boolean; assignedAgent?: { id?: string; name?: string }; assignedTeam?: { id?: string; name?: string } }) => void) | null>(null);
@@ -110,41 +113,74 @@ const DashboardPage: FC = () => {
     };
     window.addEventListener('my-tickets-auth-expired', handleAuthExpired);
 
-    const restoreAgentSession = async () => {
-      if (!localStorage.getItem('my-tickets-auth-token')) return;
+    const initializeDashboardAccess = async () => {
+      let restoredAgentSession = false;
       try {
-        const response = await myTicketsFetchWithAuth(`${currentUrl.origin}/api/agents/logged-in-agent`);
-        const result = await response.json();
-        if (!response.ok || !result.success || !result.user) {
-          throw new Error(result.error || 'Could not restore agent session');
+        if (localStorage.getItem('my-tickets-auth-token')) {
+          const response = await myTicketsFetchWithAuth(`${currentUrl.origin}/api/agents/logged-in-agent`);
+          const result = await response.json();
+          if (!response.ok || !result.success || !result.user) {
+            throw new Error(result.error || 'Could not restore agent session');
+          }
+          setLoggedInAgent({
+            agentId: result.user._id,
+            teamId: result.user.teamId,
+            roleId: result.user.roleId,
+            name: result.user.name,
+            teamName: result.user.teamName,
+            roleName: result.user.roleName,
+            permissions: result.user.permissions,
+            agentProfilePictureUrl: result.user.agentProfilePictureUrl,
+          });
+          restoredAgentSession = true;
         }
-        setLoggedInAgent({
-          agentId: result.user._id,
-          teamId: result.user.teamId,
-          roleId: result.user.roleId,
-          name: result.user.name,
-          teamName: result.user.teamName,
-          roleName: result.user.roleName,
-          permissions: result.user.permissions,
-          agentProfilePictureUrl: result.user.agentProfilePictureUrl,
-        });
       } catch (error) {
         console.error('Failed to restore My Tickets agent session', error);
         clearMyTicketsAgentSession();
         handleAuthExpired();
       }
+
+      try {
+        const needsSetup = await checkNeedsOnboarding();
+        setNeedsOnboarding(needsSetup);
+        const planResponse = await httpClient.fetchWithAuth(`${currentUrl.origin}/api/my-tickets-auth/app-plan`);
+        const plan = await planResponse.json();
+        if (!planResponse.ok || !plan.success) throw new Error(plan.error || 'Could not check your My Tickets plan');
+        const hasEssentialsPlan = typeof plan.planName === 'string' && plan.planName.trim().toLowerCase().includes('essential');
+        setIsEssentialsPlan(hasEssentialsPlan);
+
+        if (!restoredAgentSession && !needsSetup) {
+          if (hasEssentialsPlan) {
+            const sessionResponse = await httpClient.fetchWithAuth(`${currentUrl.origin}/api/my-tickets-auth/essentials-session`, { method: 'POST' });
+            const session = await sessionResponse.json();
+            if (sessionResponse.ok && session.success && session.user && session.authToken && session.authTokenExpiresAt) {
+              storeMyTicketsAgentSession(session.authToken, session.authTokenExpiresAt, false);
+              setLoggedInAgent({
+                agentId: session.user.agentId,
+                teamId: session.user.teamId,
+                roleId: session.user.roleId,
+                name: session.user.name,
+                teamName: session.user.teamName,
+                roleName: session.user.roleName,
+                permissions: session.user.permissions,
+                agentProfilePictureUrl: session.user.agentProfilePictureUrl,
+              });
+            } else {
+              console.error('Essentials auto sign-in was rejected', sessionResponse.status, session.error);
+              ShowToast({ message: session.error || 'Could not start the Essentials administrator session', type: 'error' });
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Failed to initialize My Tickets access', error);
+        ShowToast({ message: error instanceof Error ? error.message : 'Could not initialize My Tickets access', type: 'error' });
+      } finally {
+        setIsAccessReady(true);
+      }
     };
-    void restoreAgentSession();
+    void initializeDashboardAccess();
 
     return () => window.removeEventListener('my-tickets-auth-expired', handleAuthExpired);
-  }, []);
-
-  useEffect(() => {
-    let isMounted = true;
-    void checkNeedsOnboarding()
-      .then((needsSetup) => { if (isMounted) setNeedsOnboarding(needsSetup); })
-      .catch((error) => console.error('Failed to check initial My Tickets setup', error));
-    return () => { isMounted = false; };
   }, []);
 
   const handleStateOverride = (stateId: string) => {
@@ -402,7 +438,7 @@ const DashboardPage: FC = () => {
   if (!loggedInAgent.agentId) {
     return (
       <WixDesignSystemProvider>
-        <LoginPage handleLoginSuccess={handleLoginSuccess} isGettingReady={false} />
+        <LoginPage handleLoginSuccess={handleLoginSuccess} isGettingReady={!isAccessReady && !needsOnboarding} />
         <MainAdminOnboardingModal
           isOpen={needsOnboarding}
           onComplete={(user) => {
@@ -444,6 +480,7 @@ const DashboardPage: FC = () => {
                 onChatClick={handleChatClick}
                 userBetaFeatures={userBetaFeatures}
                 sidebarIsLoading={false}
+                showUserFooter={!isEssentialsPlan}
               />
               <StateContainerProvider>
                 <StateProvider

@@ -28,6 +28,7 @@ interface SidebarProps {
     }
     userBetaFeatures: string[];
     isLoading?: boolean;
+    showUserFooter?: boolean;
 }
 
 const STATE_ID_TO_ITEM_KEY: Partial<Record<StateId, string>> = {
@@ -127,10 +128,10 @@ const Sidebar = (props: SidebarProps) => {
                         )}
 
 
-                        <Box width={'100%'} direction='vertical' gap='10px'>
+                        {props.showUserFooter !== false && <Box width={'100%'} direction='vertical' gap='10px'>
                             <SidebarDividerNext />
                             <AvatarDropdown isLoading={props.isLoading} minimised={sidebarMinimized} permissions={props.permissions} status={props.agentStatus} onStatusChange={props.onAgentStatusChange} agentName={props.agentName} agentRole={props.agentRole} agentProfilePictureUrl={props.agentProfilePictureUrl} onLogout={props.onLogout} />
-                        </Box>
+                        </Box>}
                     </Box>
                 }
                 selectedKey={selectedKey}

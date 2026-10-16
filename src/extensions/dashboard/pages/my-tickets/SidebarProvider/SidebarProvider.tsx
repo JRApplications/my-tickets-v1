@@ -25,16 +25,17 @@ interface SidebarProviderProps {
     }   
     userBetaFeatures: string[];
     sidebarIsLoading: boolean;
+    showUserFooter?: boolean;
 }
 
 
 
-export const SidebarProvider = ({ stateId, onItemClick, onCreateTicketClicked, onInternalMailClicked, onAiButtonClicked, onLogout, permissions, agentId, agentName, agentRole, agentProfilePictureUrl, teamId, viewTicketStateOverride, notificationProps, onChatClick, userBetaFeatures, sidebarIsLoading }: SidebarProviderProps) => {
+export const SidebarProvider = ({ stateId, onItemClick, onCreateTicketClicked, onInternalMailClicked, onAiButtonClicked, onLogout, permissions, agentId, agentName, agentRole, agentProfilePictureUrl, teamId, viewTicketStateOverride, notificationProps, onChatClick, userBetaFeatures, sidebarIsLoading, showUserFooter = true }: SidebarProviderProps) => {
     const { onlineCount, status: agentStatus, setStatus: onAgentStatusChange } = useTeamPresence(teamId, agentId);
 
     return (
         <>
-            {(stateId !== StateId.InternalChat && !viewTicketStateOverride) && <MainSidebar isLoading={sidebarIsLoading} userBetaFeatures={userBetaFeatures} notificationProps={notificationProps} stateId={stateId} permissions={permissions} onItemClick={onItemClick} onCreateTicketClicked={onCreateTicketClicked} onInternalMailClicked={onInternalMailClicked} onAiButtonClicked={onAiButtonClicked} onLogout={onLogout} agentName={agentName} agentRole={agentRole} agentProfilePictureUrl={agentProfilePictureUrl} teamId={teamId} onlineCount={onlineCount} agentStatus={agentStatus} onAgentStatusChange={onAgentStatusChange} />}
+            {(stateId !== StateId.InternalChat && !viewTicketStateOverride) && <MainSidebar isLoading={sidebarIsLoading} userBetaFeatures={userBetaFeatures} notificationProps={notificationProps} stateId={stateId} permissions={permissions} onItemClick={onItemClick} onCreateTicketClicked={onCreateTicketClicked} onInternalMailClicked={onInternalMailClicked} onAiButtonClicked={onAiButtonClicked} onLogout={onLogout} agentName={agentName} agentRole={agentRole} agentProfilePictureUrl={agentProfilePictureUrl} teamId={teamId} onlineCount={onlineCount} agentStatus={agentStatus} onAgentStatusChange={onAgentStatusChange} showUserFooter={showUserFooter} />}
             {stateId === StateId.ViewChats && !viewTicketStateOverride && (<ChatSidebar permissions={permissions} teamId={teamId} onClick={onChatClick} />)}
         </>
     )

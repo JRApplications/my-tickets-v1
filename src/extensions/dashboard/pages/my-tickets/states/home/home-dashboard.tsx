@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { AreaChart, Badge, Box, Button, Card, Cell, Heading, Layout, LinearProgressBar, Page, SkeletonRectangle, TableListItem, Text } from '@wix/design-system';
 import { Add, Inbox } from '@wix/wix-ui-icons-common/odeditor';
+import { httpClient } from '@wix/essentials';
 import {
     getPrioritySkin,
     formatPriority,
@@ -84,6 +85,9 @@ interface HomeDashboardCacheEntry {
 const homeDashboardCache = new Map<string, HomeDashboardCacheEntry>();
 
 const HomeDashboard = ({ teamId, onCreateTicket, onNavigate, onTicketClick }: HomeDashboardProps) => {
+    const [upgradeUrl, setUpgradeUrl] = useState<string | null>(null);
+    const [planName, setPlanName] = useState<string | null>(null);
+    const [hasLoadedPlan, setHasLoadedPlan] = useState(false);
     const initialCache = homeDashboardCache.get(teamId);
     const [tickets, setTickets] = useState<DashboardTicket[]>(initialCache?.tickets ?? []);
     const [isLoading, setIsLoading] = useState(initialCache?.tickets === undefined);
@@ -91,6 +95,28 @@ const HomeDashboard = ({ teamId, onCreateTicket, onNavigate, onTicketClick }: Ho
     const [analytics, setAnalytics] = useState<TicketAnalytics | null>(initialCache?.analytics ?? null);
     const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(initialCache?.analytics === undefined);
     const loadRequestId = useRef(0);
+
+    useEffect(() => {
+        let isMounted = true;
+        const loadPlan = async () => {
+            try {
+                const baseApiUrl = new URL(import.meta.url).origin;
+                const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load app plan');
+                if (isMounted) {
+                    setPlanName(typeof result.planName === 'string' ? result.planName : null);
+                    setUpgradeUrl(typeof result.upgradeUrl === 'string' ? result.upgradeUrl : null);
+                }
+            } catch (error) {
+                console.error('Failed to load app plan for the home dashboard', error);
+            } finally {
+                if (isMounted) setHasLoadedPlan(true);
+            }
+        };
+        void loadPlan();
+        return () => { isMounted = false; };
+    }, []);
 
     const loadTickets = useCallback(async () => {
         const requestId = ++loadRequestId.current;
@@ -185,7 +211,7 @@ const HomeDashboard = ({ teamId, onCreateTicket, onNavigate, onTicketClick }: Ho
             <Page.Header
                 title="Home"
                 subtitle="A clear view of your team's ticket workload."
-                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.TicketsList)}>View tickets</Button><Button prefixIcon={<Add />} onClick={onCreateTicket}>Create ticket</Button></Box>}
+                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.TicketsList)}>View tickets</Button><Button prefixIcon={<Add />} onClick={onCreateTicket}>Create ticket</Button>{hasLoadedPlan && normalize(planName ?? '') !== 'advanced' && upgradeUrl && <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>Upgrade</Button>}</Box>}
             />
             <Page.Content>
                 <Box direction="vertical" gap="SP4">
