@@ -8,6 +8,9 @@ import HomeDashboard from '../states/home/home-dashboard';
 const StateProvider = ({
     stateId,
     onCreateTicket,
+    isTicketLimitReached = false,
+    isAgentLimitReached = false,
+    isTeamLimitReached = false,
     onNavigate,
     onTicketClick,
     onVisibleTicketsChange,
@@ -23,6 +26,9 @@ const StateProvider = ({
 }: {
     stateId: StateId,
     onCreateTicket: () => void,
+    isTicketLimitReached?: boolean,
+    isAgentLimitReached?: boolean,
+    isTeamLimitReached?: boolean,
     onNavigate: (stateId: StateId) => void,
     onTicketClick: (ticketId: string) => void,
     onVisibleTicketsChange?: (ticketIds: string[]) => void,
@@ -66,9 +72,9 @@ const StateProvider = ({
 }) => {
     switch (stateId) {
         case StateId.TicketsList:
-            return <TicketsList teamId={teamId} permissions={permissions} onTicketClick={onTicketClick} onCreateTicket={onCreateTicket} onVisibleTicketsChange={onVisibleTicketsChange} onGetTicketUpdateFn={onGetTicketUpdateFn} />;
+            return <TicketsList teamId={teamId} permissions={permissions} onTicketClick={onTicketClick} onCreateTicket={onCreateTicket} isTicketLimitReached={isTicketLimitReached} onVisibleTicketsChange={onVisibleTicketsChange} onGetTicketUpdateFn={onGetTicketUpdateFn} />;
         case StateId.Home:
-            return <HomeDashboard teamId={teamId} onCreateTicket={onCreateTicket} onNavigate={onNavigate} onTicketClick={onTicketClick} />;
+            return <HomeDashboard teamId={teamId} onCreateTicket={onCreateTicket} isTicketLimitReached={isTicketLimitReached} onNavigate={onNavigate} onTicketClick={onTicketClick} />;
         case StateId.ViewTickets:
             return <ViewTicket
                 permissions={permissions}
@@ -94,11 +100,13 @@ const StateProvider = ({
             return <ViewAccounts
                 permissions={permissions}
                 onModalOpen={agentProps.onModalOpen}
+                isAgentLimitReached={isAgentLimitReached}
             />;
         case StateId.ManageTeams:
             return <ViewTeams
                 permissions={permissions}
                 onModalOpen={teamProps.onModalOpen}
+                isTeamLimitReached={isTeamLimitReached}
             />;
         case StateId.Workforce:
             return <WorkforceDashboard teamId={teamId} agentId={agentId} permissions={permissions} />;

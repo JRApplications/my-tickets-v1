@@ -41,6 +41,7 @@ type TicketsListWrapperProps = {
     permissions: string[];
     onTicketClick: (ticketId: string) => void;
     onCreateTicket: () => void;
+    isTicketLimitReached?: boolean;
     onVisibleTicketsChange?: (ticketIds: string[]) => void;
 };
 
@@ -66,7 +67,7 @@ const formatCreatedDate = (createdDate?: string) => {
     };
 };
 
-const TicketsListWrapper = ({ tickets, isLoading, isError, searchTerm, handleSearch, handleClear, loadMore, hasMore, isLoadingMore, permissions, onTicketClick, onCreateTicket, onVisibleTicketsChange }: TicketsListWrapperProps) => {
+const TicketsListWrapper = ({ tickets, isLoading, isError, searchTerm, handleSearch, handleClear, loadMore, hasMore, isLoadingMore, permissions, onTicketClick, onCreateTicket, isTicketLimitReached = false, onVisibleTicketsChange }: TicketsListWrapperProps) => {
     const [statusFilter, setStatusFilter] = useState<string>(ALL);
     const [priorityFilter, setPriorityFilter] = useState<string>(ALL);
     const [assigneeFilter, setAssigneeFilter] = useState<string>(ALL);
@@ -189,8 +190,8 @@ const TicketsListWrapper = ({ tickets, isLoading, isError, searchTerm, handleSea
                 title="Tickets"
                 subtitle="Manage and respond to customer support tickets."
                 actionsBar={(
-                    <Tooltip disabled={canCreateTicket} content="You don't have permission to create tickets">
-                        <Button prefixIcon={<Icons.Add />} onClick={onCreateTicket} disabled={!canCreateTicket}>Create Ticket</Button>
+                    <Tooltip disabled={canCreateTicket && !isTicketLimitReached} content={isTicketLimitReached ? 'Upgrade required to create more tickets this month' : "You don't have permission to create tickets"}>
+                        <Button prefixIcon={<Icons.Add />} onClick={onCreateTicket} disabled={!canCreateTicket || isTicketLimitReached}>Create Ticket</Button>
                     </Tooltip>
                 )}
             />
@@ -218,7 +219,7 @@ const TicketsListWrapper = ({ tickets, isLoading, isError, searchTerm, handleSea
                                 title={searchTerm || statusFilter !== ALL || priorityFilter !== ALL || assigneeFilter !== ALL || slaFilter !== ALL ? 'No tickets match these filters' : 'No tickets yet'}
                                 subtitle={searchTerm || statusFilter !== ALL || priorityFilter !== ALL || assigneeFilter !== ALL || slaFilter !== ALL ? 'Try changing your search or filters.' : 'Create a ticket to start helping your customers.'}
                             >
-                                {!searchTerm && statusFilter === ALL && priorityFilter === ALL && assigneeFilter === ALL && slaFilter === ALL && canCreateTicket && <Button onClick={onCreateTicket} prefixIcon={<Icons.Add />}>Create Ticket</Button>}
+                                {!searchTerm && statusFilter === ALL && priorityFilter === ALL && assigneeFilter === ALL && slaFilter === ALL && canCreateTicket && <Tooltip disabled={!isTicketLimitReached} content="Upgrade required to create more tickets this month"><Button onClick={onCreateTicket} disabled={isTicketLimitReached} prefixIcon={<Icons.Add />}>Create Ticket</Button></Tooltip>}
                             </Table.EmptyState>
                         )}
                         {hasMore && <Box className="tickets-list-load-more" align="center" padding="SP3"><Button priority="secondary" onClick={loadMore} disabled={isLoadingMore}>{isLoadingMore ? 'Loading…' : 'Load more tickets'}</Button></Box>}

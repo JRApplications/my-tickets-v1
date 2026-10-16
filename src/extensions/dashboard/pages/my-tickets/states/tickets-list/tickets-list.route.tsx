@@ -7,11 +7,12 @@ interface TicketsListProps {
     permissions: string[];
     onTicketClick: (ticketId: string) => void;
     onCreateTicket: () => void;
+    isTicketLimitReached?: boolean;
     onVisibleTicketsChange?: (ticketIds: string[]) => void;
     onGetTicketUpdateFn?: (updateFn: (ticketId: string, updates: { status?: string; priority?: string; isSpam?: boolean; isDeleted?: boolean; assignedAgent?: { id?: string; name?: string }; assignedTeam?: { id?: string; name?: string } }) => void) => void;
 }
 
-const TicketsList = ({ teamId, permissions, onTicketClick, onCreateTicket, onVisibleTicketsChange, onGetTicketUpdateFn }: TicketsListProps) => {
+const TicketsList = ({ teamId, permissions, onTicketClick, onCreateTicket, isTicketLimitReached, onVisibleTicketsChange, onGetTicketUpdateFn }: TicketsListProps) => {
     const ticketsState = useTicketsList(teamId);
     const { updateTicket, ...listProps } = ticketsState;
 
@@ -25,6 +26,7 @@ const TicketsList = ({ teamId, permissions, onTicketClick, onCreateTicket, onVis
             permissions={permissions}
             onTicketClick={onTicketClick}
             onCreateTicket={onCreateTicket}
+            isTicketLimitReached={isTicketLimitReached}
             onVisibleTicketsChange={onVisibleTicketsChange}
         />
     );

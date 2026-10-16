@@ -12,7 +12,7 @@ import type { Agent } from '@jrapps/my_tickets_common_types';
 const accountsCache = new Map<string, Agent[]>();
 const CACHE_KEY = 'accounts';
 
-const ViewAccounts = ({ permissions, onModalOpen }: ViewAccountsProps) => {
+const ViewAccounts = ({ permissions, onModalOpen, isAgentLimitReached }: ViewAccountsProps) => {
     const [data, setData] = useState<Agent[]>(() => accountsCache.get(CACHE_KEY) ?? []);
     const [isLoading, setIsLoading] = useState(() => !accountsCache.get(CACHE_KEY));
     const [isError, setIsError] = useState(false);
@@ -54,7 +54,7 @@ const ViewAccounts = ({ permissions, onModalOpen }: ViewAccountsProps) => {
         setData(next);
     };
 
-    return <ViewAccountsWrapper data={data} permissions={permissions} isLoading={isLoading} isError={isError} onModalOpen={onModalOpen} onRemoveAgent={handleRemoveAgent} />;
+    return <ViewAccountsWrapper data={data} permissions={permissions} isLoading={isLoading} isError={isError} onModalOpen={onModalOpen} onRemoveAgent={handleRemoveAgent} isAgentLimitReached={isAgentLimitReached} />;
 }
 
 export default ViewAccounts;

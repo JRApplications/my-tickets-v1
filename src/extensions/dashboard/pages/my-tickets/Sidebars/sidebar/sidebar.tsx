@@ -9,6 +9,7 @@ interface SidebarProps {
     stateId: StateId;
     onItemClick: (stateId: StateId) => void;
     onCreateTicketClicked: () => void;
+    isTicketLimitReached?: boolean;
     onInternalMailClicked: () => void;
     onAiButtonClicked: () => void;
     onLogout: () => void;
@@ -155,10 +156,13 @@ const Sidebar = (props: SidebarProps) => {
                 <SidebarItemNext
                     prefix={<Icons.Compose />}
                     itemKey="create-ticket"
-                    minimizedTooltipContent="Create Ticket"
-                    onClick={() => props.onCreateTicketClicked?.()}
+                    minimizedTooltipContent={props.isTicketLimitReached ? 'Upgrade required to create tickets' : 'Create Ticket'}
+                    disabled={props.isTicketLimitReached}
+                    onClick={() => { if (!props.isTicketLimitReached) props.onCreateTicketClicked?.(); }}
                 >
-                    Create Ticket
+                    <Tooltip disabled={!props.isTicketLimitReached} content="Upgrade required to create more tickets this month">
+                        <span>Create Ticket</span>
+                    </Tooltip>
                 </SidebarItemNext>
 
                 <SidebarSubMenuNext

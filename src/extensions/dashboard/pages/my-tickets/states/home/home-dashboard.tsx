@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
-import { AreaChart, Badge, Box, Button, Card, Cell, Heading, Layout, LinearProgressBar, Page, SkeletonRectangle, TableListItem, Text } from '@wix/design-system';
+import { AreaChart, Badge, Box, Button, Card, Cell, Heading, Layout, LinearProgressBar, Page, SkeletonRectangle, TableListItem, Text, Tooltip } from '@wix/design-system';
 import { Add, Inbox } from '@wix/wix-ui-icons-common/odeditor';
 import { httpClient } from '@wix/essentials';
 import {
@@ -71,6 +71,7 @@ interface TicketAnalytics {
 interface HomeDashboardProps {
     teamId: string;
     onCreateTicket: () => void;
+    isTicketLimitReached?: boolean;
     onNavigate: (stateId: StateId) => void;
     onTicketClick: (ticketId: string) => void;
 }
@@ -84,7 +85,7 @@ interface HomeDashboardCacheEntry {
 
 const homeDashboardCache = new Map<string, HomeDashboardCacheEntry>();
 
-const HomeDashboard = ({ teamId, onCreateTicket, onNavigate, onTicketClick }: HomeDashboardProps) => {
+const HomeDashboard = ({ teamId, onCreateTicket, isTicketLimitReached = false, onNavigate, onTicketClick }: HomeDashboardProps) => {
     const [upgradeUrl, setUpgradeUrl] = useState<string | null>(null);
     const [planName, setPlanName] = useState<string | null>(null);
     const [hasLoadedPlan, setHasLoadedPlan] = useState(false);
@@ -211,7 +212,7 @@ const HomeDashboard = ({ teamId, onCreateTicket, onNavigate, onTicketClick }: Ho
             <Page.Header
                 title="Home"
                 subtitle="A clear view of your team's ticket workload."
-                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.TicketsList)}>View tickets</Button><Button prefixIcon={<Add />} onClick={onCreateTicket}>Create ticket</Button>{hasLoadedPlan && normalize(planName ?? '') !== 'advanced' && upgradeUrl && <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>Upgrade</Button>}</Box>}
+                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.TicketsList)}>View tickets</Button><Tooltip disabled={!isTicketLimitReached} content="Upgrade required to create more tickets this month"><Button prefixIcon={<Add />} onClick={onCreateTicket} disabled={isTicketLimitReached}>Create ticket</Button></Tooltip>{hasLoadedPlan && normalize(planName ?? '') !== 'advanced' && upgradeUrl && <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>Upgrade</Button>}</Box>}
             />
             <Page.Content>
                 <Box direction="vertical" gap="SP4">
@@ -309,7 +310,7 @@ const HomeDashboard = ({ teamId, onCreateTicket, onNavigate, onTicketClick }: Ho
                                     {isLoading ? <Box direction="vertical" gap="SP3"><SkeletonRectangle height="18px" /><SkeletonRectangle height="18px" /><SkeletonRectangle height="18px" /></Box> : total === 0 ? (
                                         <Box direction="vertical" gap="SP2">
                                             <Text>No tickets to show yet.</Text>
-                                            <Button priority="secondary" onClick={onCreateTicket}>Create your first ticket</Button>
+                                            <Tooltip disabled={!isTicketLimitReached} content="Upgrade required to create more tickets this month"><Button priority="secondary" onClick={onCreateTicket} disabled={isTicketLimitReached}>Create your first ticket</Button></Tooltip>
                                         </Box>
                                     ) : (
                                         <Box direction="vertical" gap="SP3">

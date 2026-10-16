@@ -34,7 +34,7 @@ interface UserData {
     isAdmin?: boolean;
 }
 
-const ViewAccountsWrapper = ({ data = [], permissions, isLoading = true, isError = false, onModalOpen, onRemoveAgent }: ViewAccountsWrapperProps) => {
+const ViewAccountsWrapper = ({ data = [], permissions, isLoading = true, isError = false, onModalOpen, onRemoveAgent, isAgentLimitReached = false }: ViewAccountsWrapperProps) => {
     const [filter, setFilter] = useState<string>('');
     const [agentToRemove, setAgentToRemove] = useState<UserData | null>(null);
     const [isRemoving, setIsRemoving] = useState(false);
@@ -126,12 +126,12 @@ const ViewAccountsWrapper = ({ data = [], permissions, isLoading = true, isError
                 title="Create your first agent account"
                 subtitle="Once you create agent accounts, you'll be able to see and manage them here."
             >
-                <Tooltip disabled={canCreateAgent} content="You don't have permission to create agent accounts">
+                <Tooltip disabled={canCreateAgent && !isAgentLimitReached} content={isAgentLimitReached ? 'Upgrade required to add more agents' : "You don't have permission to create agent accounts"}>
                     <Button
                         size='large'
                         prefixIcon={<Icons.Add />}
                         onClick={handleCreateUser}
-                        disabled={!canCreateAgent}>
+                        disabled={!canCreateAgent || isAgentLimitReached}>
                         Create Agent Account
                     </Button>
                 </Tooltip>
@@ -145,10 +145,10 @@ const ViewAccountsWrapper = ({ data = [], permissions, isLoading = true, isError
             <Page.Header
                 title="Agent Accounts"
                 actionsBar={isLoading ? <SkeletonRectangle width="130px" height="40px" /> : (
-                    <Tooltip disabled={canCreateAgent} content="You don't have permission to create agent accounts">
+                    <Tooltip disabled={canCreateAgent && !isAgentLimitReached} content={isAgentLimitReached ? 'Upgrade required to add more agents' : "You don't have permission to create agent accounts"}>
                         <Button
                             size="medium"
-                            disabled={!canCreateAgent}
+                            disabled={!canCreateAgent || isAgentLimitReached}
                             onClick={handleCreateUser}
                             prefixIcon={<Icons.Add />}>
                             Create Agent Account

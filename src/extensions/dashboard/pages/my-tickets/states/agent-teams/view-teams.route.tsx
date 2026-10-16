@@ -16,7 +16,7 @@ import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 const teamsCache = new Map<string, TeamData[]>();
 const CACHE_KEY = 'teams';
 
-const ViewTeams = ({ permissions, onModalOpen }: ViewTeamsProps) => {
+const ViewTeams = ({ permissions, onModalOpen, isTeamLimitReached }: ViewTeamsProps) => {
     const [data, setData] = useState<TeamData[]>(() => teamsCache.get(CACHE_KEY) ?? []);
     const [isLoading, setIsLoading] = useState<boolean>(() => !teamsCache.get(CACHE_KEY));
     const [isError, setIsError] = useState<boolean>(false);
@@ -51,7 +51,7 @@ const ViewTeams = ({ permissions, onModalOpen }: ViewTeamsProps) => {
         loadTeams();
     }, []);
 
-    return <ViewTeamsWrapper data={data} permissions={permissions} isLoading={isLoading} isError={isError} onModalOpen={onModalOpen} />;
+    return <ViewTeamsWrapper data={data} permissions={permissions} isLoading={isLoading} isError={isError} onModalOpen={onModalOpen} isTeamLimitReached={isTeamLimitReached} />;
 }
 
 export default ViewTeams;

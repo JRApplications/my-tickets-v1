@@ -6,6 +6,7 @@ interface SidebarProviderProps {
     stateId: StateId;
     onItemClick: (stateId: StateId) => void;
     onCreateTicketClicked: () => void;
+    isTicketLimitReached?: boolean;
     onInternalMailClicked: () => void;
     onAiButtonClicked: () => void;
     onLogout: () => void;
@@ -30,12 +31,12 @@ interface SidebarProviderProps {
 
 
 
-export const SidebarProvider = ({ stateId, onItemClick, onCreateTicketClicked, onInternalMailClicked, onAiButtonClicked, onLogout, permissions, agentId, agentName, agentRole, agentProfilePictureUrl, teamId, viewTicketStateOverride, notificationProps, onChatClick, userBetaFeatures, sidebarIsLoading, showUserFooter = true }: SidebarProviderProps) => {
+export const SidebarProvider = ({ stateId, onItemClick, onCreateTicketClicked, isTicketLimitReached = false, onInternalMailClicked, onAiButtonClicked, onLogout, permissions, agentId, agentName, agentRole, agentProfilePictureUrl, teamId, viewTicketStateOverride, notificationProps, onChatClick, userBetaFeatures, sidebarIsLoading, showUserFooter = true }: SidebarProviderProps) => {
     const { onlineCount, status: agentStatus, setStatus: onAgentStatusChange } = useTeamPresence(teamId, agentId);
 
     return (
         <>
-            {(stateId !== StateId.InternalChat && !viewTicketStateOverride) && <MainSidebar isLoading={sidebarIsLoading} userBetaFeatures={userBetaFeatures} notificationProps={notificationProps} stateId={stateId} permissions={permissions} onItemClick={onItemClick} onCreateTicketClicked={onCreateTicketClicked} onInternalMailClicked={onInternalMailClicked} onAiButtonClicked={onAiButtonClicked} onLogout={onLogout} agentName={agentName} agentRole={agentRole} agentProfilePictureUrl={agentProfilePictureUrl} teamId={teamId} onlineCount={onlineCount} agentStatus={agentStatus} onAgentStatusChange={onAgentStatusChange} showUserFooter={showUserFooter} />}
+            {(stateId !== StateId.InternalChat && !viewTicketStateOverride) && <MainSidebar isLoading={sidebarIsLoading} userBetaFeatures={userBetaFeatures} notificationProps={notificationProps} stateId={stateId} permissions={permissions} onItemClick={onItemClick} onCreateTicketClicked={onCreateTicketClicked} isTicketLimitReached={isTicketLimitReached} onInternalMailClicked={onInternalMailClicked} onAiButtonClicked={onAiButtonClicked} onLogout={onLogout} agentName={agentName} agentRole={agentRole} agentProfilePictureUrl={agentProfilePictureUrl} teamId={teamId} onlineCount={onlineCount} agentStatus={agentStatus} onAgentStatusChange={onAgentStatusChange} showUserFooter={showUserFooter} />}
             {stateId === StateId.ViewChats && !viewTicketStateOverride && (<ChatSidebar permissions={permissions} teamId={teamId} onClick={onChatClick} />)}
         </>
     )

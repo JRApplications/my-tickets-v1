@@ -9,12 +9,14 @@ interface TeamData {
 
 export interface ViewTeamsProps {
     permissions: string[];
+    isTeamLimitReached?: boolean;
     onModalOpen?: (modalState: 'create' | 'edit', teamId?: string) => void;
 }
 
 export interface ViewTeamsWrapperProps {
     data?: TeamData[];
     permissions: string[];
+    isTeamLimitReached?: boolean;
     isLoading?: boolean;
     isError?: boolean;
     onModalOpen?: (modalState: 'create' | 'edit', teamId?: string) => void;

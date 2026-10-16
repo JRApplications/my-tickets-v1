@@ -29,7 +29,7 @@ interface TeamData {
 
 import type { ViewTeamsWrapperProps } from './teams.types';
 
-const ViewTeamsWrapper = ({ data = [], permissions, isLoading = true, isError = false, onModalOpen }: ViewTeamsWrapperProps) => {
+const ViewTeamsWrapper = ({ data = [], permissions, isLoading = true, isError = false, onModalOpen, isTeamLimitReached = false }: ViewTeamsWrapperProps) => {
 
     const [searchQuery, setSearchQuery] = useState('');
 
@@ -138,12 +138,12 @@ const ViewTeamsWrapper = ({ data = [], permissions, isLoading = true, isError = 
                     title="Create your first team"
                     subtitle="Once you create teams, you'll be able to see and manage them here."
                 >
-                    <Tooltip disabled={canCreateTeam} content="You don't have permission to create teams">
+                    <Tooltip disabled={canCreateTeam && !isTeamLimitReached} content={isTeamLimitReached ? 'Upgrade required to add more teams' : "You don't have permission to create teams"}>
                         <Button
                             size='large'
                             prefixIcon={<Add />}
                             onClick={handleCreateTeam}
-                            disabled={!canCreateTeam}>
+                            disabled={!canCreateTeam || isTeamLimitReached}>
                             Create Team
                         </Button>
                     </Tooltip>
@@ -157,8 +157,8 @@ const ViewTeamsWrapper = ({ data = [], permissions, isLoading = true, isError = 
             <Page.Header
                 title="Teams"
                 actionsBar={isLoading ? <SkeletonRectangle width="130px" height="40px" /> : (
-                    <Tooltip disabled={canCreateTeam} content="You don't have permission to create teams">
-                        <Button size="medium" prefixIcon={<Add />} onClick={handleCreateTeam} disabled={!canCreateTeam}>
+                    <Tooltip disabled={canCreateTeam && !isTeamLimitReached} content={isTeamLimitReached ? 'Upgrade required to add more teams' : "You don't have permission to create teams"}>
+                        <Button size="medium" prefixIcon={<Add />} onClick={handleCreateTeam} disabled={!canCreateTeam || isTeamLimitReached}>
                             Create Team
                         </Button>
                     </Tooltip>

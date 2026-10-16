@@ -91,6 +91,7 @@ const DashboardPage: FC = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [isAccessReady, setIsAccessReady] = useState(false);
   const [isEssentialsPlan, setIsEssentialsPlan] = useState(false);
+  const [planLimitsReached, setPlanLimitsReached] = useState({ tickets: false, agents: false, teams: false });
   const [userBetaFeatures, setUserBetaFeatures] = useState<string[]>([]);
   const subscriptionRef = useRef<string | null>(null);
   const updateTicketFnRef = useRef<((ticketId: string, updates: { status?: string; priority?: string; isSpam?: boolean; isDeleted?: boolean; assignedAgent?: { id?: string; name?: string }; assignedTeam?: { id?: string; name?: string } }) => void) | null>(null);
@@ -148,6 +149,11 @@ const DashboardPage: FC = () => {
         if (!planResponse.ok || !plan.success) throw new Error(plan.error || 'Could not check your My Tickets plan');
         const hasEssentialsPlan = typeof plan.planName === 'string' && plan.planName.trim().toLowerCase().includes('essential');
         setIsEssentialsPlan(hasEssentialsPlan);
+        setPlanLimitsReached({
+          tickets: plan.hasMaxTickets === true,
+          agents: plan.hasMaxAgents === true,
+          teams: plan.hasMaxTeams === true,
+        });
 
         if (!restoredAgentSession && !needsSetup) {
           if (hasEssentialsPlan) {
@@ -461,7 +467,8 @@ const DashboardPage: FC = () => {
                 stateId={state}
                 onLogout={handleLogout}
                 onItemClick={(stateId) => { handleNavigate(stateId as StateId); }}
-                onCreateTicketClicked={() => { setIsCreateTicketModalOpen(true); }}
+                onCreateTicketClicked={() => { if (!planLimitsReached.tickets) setIsCreateTicketModalOpen(true); }}
+                isTicketLimitReached={planLimitsReached.tickets}
                 onInternalMailClicked={() => { handleStateOverrideStart(StateId.InternalChat); }}
                 permissions={loggedInAgent.permissions}
                 agentId={loggedInAgent.agentId}
@@ -484,7 +491,10 @@ const DashboardPage: FC = () => {
               />
               <StateContainerProvider>
                 <StateProvider
-                  onCreateTicket={() => setIsCreateTicketModalOpen(true)}
+                  onCreateTicket={() => { if (!planLimitsReached.tickets) setIsCreateTicketModalOpen(true); }}
+                  isTicketLimitReached={planLimitsReached.tickets}
+                  isAgentLimitReached={planLimitsReached.agents}
+                  isTeamLimitReached={planLimitsReached.teams}
                   onNavigate={handleNavigate}
                   onTicketClick={handleTicketClick}
                   onVisibleTicketsChange={handleVisibleTicketsChange}
@@ -495,6 +505,7 @@ const DashboardPage: FC = () => {
                   permissions={loggedInAgent.permissions}
                   agentProps={{
                     onModalOpen: (modalState, agentId) => {
+                      if (modalState === 'create' && planLimitsReached.agents) return;
                       setAgentStateProps((prev: any) => ({
                         ...prev, isAgentModalOpen: true, state: modalState, agentId: agentId || ""
                       }));
@@ -502,6 +513,7 @@ const DashboardPage: FC = () => {
                   }}
                   teamProps={{
                     onModalOpen: (modalState, teamId) => {
+                      if (modalState === 'create' && planLimitsReached.teams) return;
                       setTeamStateProps((prev: any) => ({
                         ...prev, isTeamModalOpen: true, state: modalState, teamId: teamId || ""
                       }));
