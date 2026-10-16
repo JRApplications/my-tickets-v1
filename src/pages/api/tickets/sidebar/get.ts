@@ -181,7 +181,10 @@ async function fetchTeamTicketPage(
     }
 
     const { items, pageInfo } = result.data.dataItemsV2DataItems;
-    console.log(items[0].data._createdDate.$date, pageInfo);
+
+    if (!items) {
+        return { items: [], pageInfo}
+    }
 
     const mapped: SidebarTicket[] = items.map((item: SidebarTicketDataItem) => ({
         _id: item.id,
