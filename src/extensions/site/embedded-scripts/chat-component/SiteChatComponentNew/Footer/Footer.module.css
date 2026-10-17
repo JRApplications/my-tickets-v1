@@ -14,6 +14,11 @@
   gap: 8px;
 }
 
+.cw__footer__error {
+  color: #b42318;
+  font-size: 12px;
+}
+
 /* ─── Staged file chips ──────────────────────────────────────────────────────── */
 
 .cw__footer__file__list {

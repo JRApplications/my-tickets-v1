@@ -50,7 +50,7 @@ The widget renders a fixed bottom-right launcher button. Clicking it opens the c
 | `title` | `string` | Displayed in the header and Start Chat screen. |
 | `messages` | `MessageProps[]` | The conversation history. Pass `[]` to show the Start Chat screen. |
 | `onSend` | `(message: string) => void` | Called when the user submits a text message. |
-| `onAttachment` | `(file: File) => void` | Called when the user selects a file attachment. |
+| `onAttachment` | `(file: File, conversationId: string) => void \| Promise<void>` | Uploads and sends a selected file in the current conversation. Rejections are shown in the chat composer so the visitor can retry. |
 | `onOfflineSubmit` | `(values: Record<string, unknown>) => void` | Called when the offline form is submitted. |
 
 ### Optional

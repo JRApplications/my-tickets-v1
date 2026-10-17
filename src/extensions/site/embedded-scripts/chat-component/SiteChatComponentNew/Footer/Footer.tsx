@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS_PER_MESSAGE, resolveAttachmentMimeType } from '@jrapps/my_tickets_common_types';
 import type { FooterProps } from '../SiteChatComponentNew.types';
 import styles from './Footer.module.css';
 
@@ -8,6 +9,8 @@ const TYPING_STOP_DELAY = 3000; // ms of inactivity before "stopped typing"
 const Footer: React.FC<FooterProps> = ({ onSend, onAttachment, onTypingStarted, onTypingStopped, disabled }) => {
   const [text, setText] = useState('');
   const [stagedFiles, setStagedFiles] = useState<File[]>([]);
+  const [isSending, setIsSending] = useState(false);
+  const [sendError, setSendError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -15,7 +18,7 @@ const Footer: React.FC<FooterProps> = ({ onSend, onAttachment, onTypingStarted, 
   const isTypingRef = useRef(false);
 
   const isEmpty = text.trim().length === 0 && stagedFiles.length === 0;
-  const controlsDisabled = disabled;
+  const controlsDisabled = disabled || isSending;
 
   const stopTyping = useCallback(() => {
     if (typingTimeoutRef.current) {
@@ -28,18 +31,30 @@ const Footer: React.FC<FooterProps> = ({ onSend, onAttachment, onTypingStarted, 
     }
   }, [onTypingStopped]);
 
-  const handleSend = useCallback(() => {
+  const handleSend = useCallback(async () => {
     if (!isEmpty && !controlsDisabled) {
       stopTyping();
-      if (text.trim().length > 0) {
-        onSend?.(text.trim());
-        setText('');
-      }
-      stagedFiles.forEach((file) => onAttachment?.(file));
-      setStagedFiles([]);
-      if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
-        textareaRef.current.focus();
+      setIsSending(true);
+      setSendError(null);
+      try {
+        if (text.trim().length > 0) {
+          await onSend?.(text.trim());
+          setText('');
+        }
+        for (const file of stagedFiles) {
+          if (!onAttachment) throw new Error('Attachments are unavailable right now.');
+          await onAttachment(file);
+          setStagedFiles((current) => current.filter((stagedFile) => stagedFile !== file));
+        }
+        if (textareaRef.current) {
+          textareaRef.current.style.height = 'auto';
+          textareaRef.current.focus();
+        }
+      } catch (error) {
+        console.error('Failed to send chat message:', error);
+        setSendError(error instanceof Error ? error.message : 'Failed to send message. Please try again.');
+      } finally {
+        setIsSending(false);
       }
     }
   }, [isEmpty, controlsDisabled, onSend, text, stagedFiles, onAttachment, stopTyping]);
@@ -92,14 +107,30 @@ const Footer: React.FC<FooterProps> = ({ onSend, onAttachment, onTypingStarted, 
   const handleFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const files = Array.from(e.target.files ?? []);
-      if (files.length > 0) {
-        setStagedFiles((prev) => [...prev, ...files]);
+      const acceptedFiles: File[] = [];
+      let rejectionMessage: string | null = null;
+
+      for (const file of files) {
+        if (!resolveAttachmentMimeType(file.name)) {
+          rejectionMessage = `"${file.name}" is not a supported file type.`;
+        } else if (file.size > MAX_ATTACHMENT_BYTES) {
+          rejectionMessage = `"${file.name}" is larger than ${Math.floor(MAX_ATTACHMENT_BYTES / (1024 * 1024))} MB.`;
+        } else if (stagedFiles.length + acceptedFiles.length >= MAX_ATTACHMENTS_PER_MESSAGE) {
+          rejectionMessage = `You can attach up to ${MAX_ATTACHMENTS_PER_MESSAGE} files at a time.`;
+        } else {
+          acceptedFiles.push(file);
+        }
       }
+
+      if (acceptedFiles.length > 0) {
+        setStagedFiles((prev) => [...prev, ...acceptedFiles]);
+      }
+      setSendError(rejectionMessage);
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
     },
-    [],
+    [stagedFiles.length],
   );
 
   const handleRemoveStagedFile = useCallback((index: number) => {
@@ -120,6 +151,7 @@ const Footer: React.FC<FooterProps> = ({ onSend, onAttachment, onTypingStarted, 
 
   return (
     <footer className={classNames("cw__footer", styles.cw__footer)} role="contentinfo">
+      {sendError && <div className={styles.cw__footer__error} role="alert">{sendError}</div>}
       {stagedFiles.length > 0 && (
         <ul className={classNames("cw__footer__file__list", styles.cw__footer__file__list)} aria-label="Files to send">
           {stagedFiles.map((file, i) => (
@@ -132,6 +164,7 @@ const Footer: React.FC<FooterProps> = ({ onSend, onAttachment, onTypingStarted, 
                 onClick={() => handleRemoveStagedFile(i)}
                 aria-label={`Remove ${file.name}`}
                 type="button"
+                disabled={isSending}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
                   <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />
@@ -187,6 +220,7 @@ const Footer: React.FC<FooterProps> = ({ onSend, onAttachment, onTypingStarted, 
           onChange={handleFileChange}
           aria-hidden="true"
           tabIndex={-1}
+          disabled={controlsDisabled}
           multiple
         />
       </div>

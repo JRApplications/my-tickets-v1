@@ -12,7 +12,11 @@ export interface MessageProps {
     id: string;
     name: string;
     url: string;
-  };
+  } | Array<{
+    id: string;
+    name: string;
+    url: string;
+  }>;
   item?: {
     id: string;
     name: string;
@@ -145,8 +149,8 @@ export interface HeaderProps {
 // ─── Footer Props ─────────────────────────────────────────────────────────────
 
 export interface FooterProps {
-  onSend?(message: string): void;
-  onAttachment?(file: File): void;
+  onSend?(message: string): Promise<void> | void;
+  onAttachment?(file: File): Promise<void> | void;
   disabled?: boolean;
   onTypingStarted?(): void;
   onTypingStopped?(): void;
@@ -177,7 +181,7 @@ export interface ChatWidgetProps {
   /** Show the "Chat Ended" banner below the message list. */
   chatEnded?: boolean;
   /** Called with the selected File when the user picks an attachment. */
-  onAttachment(file: File): void;
+  onAttachment(file: File, conversationId: string): Promise<void> | void;
   /** Called with form values when the offline form is submitted. */
   onOfflineSubmit(values: Record<string, unknown>, captchaToken: string): Promise<void> | void;
   /** Public Google reCAPTCHA v2 site key for the offline form. */

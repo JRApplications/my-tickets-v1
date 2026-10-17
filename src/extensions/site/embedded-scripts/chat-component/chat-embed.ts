@@ -2,6 +2,8 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { SiteChatComponentNew } from './SiteChatComponentNew';
 import { myWixClient, injectAccessTokenFunction, wixRecaptchaVisibleSiteKey } from './wixClient';
+import { sendMessage } from './api/sendMessage/sendMessage';
+import { uploadChatAttachment } from './api/uploadAttachment';
 export { injectAccessTokenFunction };
 
 
@@ -91,7 +93,13 @@ function initChatEmbed() {
       theme: parsedTheme as any,
       offlineForm: parsedOfflineForm as any,
       recaptchaSiteKey: wixRecaptchaVisibleSiteKey,
-      onAttachment: (_file: File) => {},
+      onAttachment: async (file: File, conversationId: string) => {
+        const attachment = await uploadChatAttachment(file, conversationId);
+        const result = await sendMessage(conversationId, '', 'message', [attachment]);
+        if (!result.success) {
+          throw result.error instanceof Error ? result.error : new Error('Failed to send attachment.');
+        }
+      },
       onOfflineSubmit: async (values: Record<string, unknown>, captchaToken: string) => {
         const fields = Array.isArray(parsedOfflineForm?.fields) ? parsedOfflineForm.fields : [];
         const baseApiUrl = new URL(import.meta.url).origin;

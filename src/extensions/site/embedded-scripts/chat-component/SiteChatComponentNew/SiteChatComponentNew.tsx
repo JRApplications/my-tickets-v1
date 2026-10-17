@@ -408,7 +408,10 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
       return;
     }
 
-    handleSendMessage(conversationId, message, 'message');
+    const result = await handleSendMessage(conversationId, message, 'message');
+    if (!result.success) {
+      throw result.error instanceof Error ? result.error : new Error('Failed to send message.');
+    }
   };
 
   /**
@@ -454,7 +457,10 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
             onTypingStarted={() => { if (conversationId) handleSendMessage(conversationId, 'start', 'typing'); }}
             onTypingStopped={() => { if (conversationId) handleSendMessage(conversationId, 'stop', 'typing'); }}
             onSend={handleFooterSend}
-            onAttachment={onAttachment}
+            onAttachment={(file) => {
+              if (!conversationId) throw new Error('Start a chat before sending an attachment.');
+              return onAttachment(file, conversationId);
+            }}
             disabled={isEndingChat}
           />
         )}

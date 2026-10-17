@@ -10,7 +10,10 @@ interface MessageRendererProps {
 }
 
 const MessageRenderer: React.FC<MessageRendererProps> = ({ message }) => {
-  if (message.messageType === 'ATTACHMENT') {
+  const hasAttachments = Array.isArray(message.attachment)
+    ? message.attachment.length > 0
+    : Boolean(message.attachment || message.item);
+  if (message.messageType === 'ATTACHMENT' || hasAttachments) {
     return <AttachmentMessage message={message} />;
   }
 
