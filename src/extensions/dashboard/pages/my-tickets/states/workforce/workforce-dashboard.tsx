@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { httpClient } from '@wix/essentials';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
-import { AreaChart, Badge, Box, Button, Card, Cell, Heading, Layout, LinearProgressBar, Page, SkeletonRectangle, Text } from '@wix/design-system';
+import { AreaChart, Badge, Box, Button, Card, Cell, EmptyState, Heading, Layout, LinearProgressBar, Loader, Page, SkeletonRectangle, Text } from '@wix/design-system';
 import { PermissionDeniedState } from '@jrapps/my_tickets_dashboard_ui';
 import './workforce-dashboard.css';
 
@@ -29,7 +30,9 @@ interface WorkforceDashboardProps {
     permissions: string[];
 }
 
-const WorkforceDashboard = ({ teamId, agentId, permissions }: WorkforceDashboardProps) => {
+type PlanAccess = 'loading' | 'allowed' | 'restricted' | 'error';
+
+const WorkforceDashboardContent = ({ teamId, agentId, permissions }: WorkforceDashboardProps) => {
     const canView = permissions.includes('my-tickets-view-workforce');
     const [overview, setOverview] = useState<WorkforceOverview>({ agents: [], activeTicketCount: 0 });
     const [forecast, setForecast] = useState<VolumeForecast | null>(null);
@@ -133,6 +136,67 @@ const WorkforceDashboard = ({ teamId, agentId, permissions }: WorkforceDashboard
                         </Cell>
                     </Layout>
 
+                </Box>
+            </Page.Content>
+        </Page>
+    );
+};
+
+const WorkforceDashboard = (props: WorkforceDashboardProps) => {
+    const canView = props.permissions.includes('my-tickets-view-workforce');
+    const [planAccess, setPlanAccess] = useState<PlanAccess>('loading');
+    const [upgradeUrl, setUpgradeUrl] = useState('');
+
+    useEffect(() => {
+        if (!canView) return;
+
+        let cancelled = false;
+        const loadPlan = async () => {
+            try {
+                const baseApiUrl = new URL(import.meta.url).origin;
+                const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
+                const result = await response.json();
+                if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load your plan');
+                const normalizedPlanName = typeof result.planName === 'string'
+                    ? result.planName.toLowerCase().replace(/[ _-]/g, '')
+                    : '';
+                const allowed = normalizedPlanName.includes('team') || normalizedPlanName.includes('advanced');
+                if (cancelled) return;
+                setUpgradeUrl(typeof result.upgradeUrl === 'string' ? result.upgradeUrl : '');
+                setPlanAccess(allowed ? 'allowed' : 'restricted');
+            } catch (error) {
+                console.error('Failed to load plan for workforce page', error);
+                if (!cancelled) setPlanAccess('error');
+            }
+        };
+
+        void loadPlan();
+        return () => { cancelled = true; };
+    }, [canView]);
+
+    if (!canView) return <PermissionDeniedState />;
+    if (planAccess === 'allowed') return <WorkforceDashboardContent {...props} />;
+
+    return (
+        <Page maxWidth={9999} className="workforce-dashboard-page">
+            <Page.Header title="Workforce" subtitle="Plan team coverage against current ticket workload and projected demand." />
+            <Page.Content>
+                <Box align="center" verticalAlign="middle" padding="SP8">
+                    {planAccess === 'loading' ? <Loader /> : (
+                        <EmptyState
+                            skin="page"
+                            title={planAccess === 'restricted' ? 'Workforce requires a Team or Advanced plan' : 'Could not check your plan'}
+                            subtitle={planAccess === 'restricted'
+                                ? 'Upgrade your plan to view workforce capacity and ticket demand.'
+                                : 'Refresh the page to try checking your plan again.'}
+                        >
+                            {planAccess === 'restricted' && upgradeUrl && (
+                                <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>
+                                    Upgrade plan
+                                </Button>
+                            )}
+                        </EmptyState>
+                    )}
                 </Box>
             </Page.Content>
         </Page>
