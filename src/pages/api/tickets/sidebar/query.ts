@@ -41,12 +41,16 @@ export const readTicketListFilters = (url: URL): TicketListFilters => ({
 export const createScopedTicketQuery = (
     identity: MyTicketsIdentity,
     filters: TicketListFilters,
+    teamId?: string | null,
 ) => {
     let query = elevatedQuery(CollectionIds.TICKETS);
-    if (!isSystemAdmin(identity.agentId)) {
+    const scopedTeamId = teamId === undefined
+        ? (isSystemAdmin(identity.agentId) ? undefined : identity.teamId)
+        : teamId;
+    if (scopedTeamId) {
         const teamFilter = items.filter()
-            .eq('teamId', identity.teamId)
-            .or(items.filter().eq('assignedTeam.id', identity.teamId));
+            .eq('assignedTeam.id', scopedTeamId)
+            .or(items.filter().isEmpty('assignedTeam.id'));
         query = query.and(teamFilter);
     }
     if (filters.status) query = query.eq('status', filters.status);
@@ -61,8 +65,9 @@ export const createScopedTicketQuery = (
 export const findScopedTicketById = async (
     identity: MyTicketsIdentity,
     ticketId: string,
+    teamId?: string | null,
 ): Promise<Ticket | null> => {
-    const result = await createScopedTicketQuery(identity, {})
+    const result = await createScopedTicketQuery(identity, {}, teamId)
         .eq('_id', ticketId)
         .limit(1)
         .find();
@@ -72,8 +77,9 @@ export const findScopedTicketById = async (
 export const findScopedTicketNumberById = async (
     identity: MyTicketsIdentity,
     ticketId: string,
+    teamId?: string | null,
 ): Promise<string> => {
-    const ticket = await findScopedTicketById(identity, ticketId);
+    const ticket = await findScopedTicketById(identity, ticketId, teamId);
     return ticket?.primaryTicketNumber ?? '';
 };
 

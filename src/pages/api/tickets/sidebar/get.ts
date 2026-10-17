@@ -8,6 +8,7 @@ import {
     readTicketListFilters,
     type SidebarTicket,
 } from './query';
+import { isSystemAdmin } from '../../auth/system-admin';
 
 const PAGE_SIZE = 100;
 const TICKET_FIELDS = [
@@ -40,6 +41,16 @@ export const GET: APIRoute = async ({ request, locals }) => {
         }
 
         const url = new URL(request.url);
+        const teamId = url.searchParams.get('teamId');
+        if (!teamId) {
+            status = 400;
+            throw new Error('Team ID is required');
+        }
+        if (!isSystemAdmin(identity.agentId) && teamId !== identity.teamId) {
+            status = 403;
+            throw new Error('Requested team is outside your access scope');
+        }
+
         const rawCursor = url.searchParams.get('cursor') ?? '0';
         let offset = Number(rawCursor);
         if (!Number.isSafeInteger(offset) || offset < 0) {
@@ -48,7 +59,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
         }
 
         const filters = readTicketListFilters(url);
-        const query = createScopedTicketQuery(identity, filters)
+        const query = createScopedTicketQuery(identity, filters, teamId)
             .fields(...TICKET_FIELDS)
         const tickets: SidebarTicket[] = [];
         let hasMore = false;

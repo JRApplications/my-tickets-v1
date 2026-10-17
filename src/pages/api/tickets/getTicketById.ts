@@ -8,7 +8,7 @@ import { findScopedTicketById, findScopedTicketNumberById } from './sidebar/quer
 
 const getTicketPrimaryTicketNumberById = async (identity: NonNullable<App.Locals['myTicketsIdentity']>, ticketId: string): Promise<string> => {
     try {
-        return await findScopedTicketNumberById(identity, ticketId);
+        return await findScopedTicketNumberById(identity, ticketId, null);
     } catch (error) {
         throw new Error(`Error fetching ticket primary ticket number: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -35,10 +35,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
         const url = new URL(request.url);
         const id = url.searchParams.get('id');
         if (id) {
-            const ticketResponse = await findScopedTicketById(identity, id);
+            const ticketResponse = await findScopedTicketById(identity, id, null);
             if (!ticketResponse) {
                 status = 404;
-                throw new Error(`Ticket with ID ${id} not found or is outside your team scope`);
+                throw new Error(`Ticket with ID ${id} was not found`);
             }
 
             if (ticketResponse.mergeSummary) {

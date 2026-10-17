@@ -88,7 +88,11 @@ export const useTicketsList = (teamId: string, initialSlaFilter: string) => {
                 const params = createFilterParams(filters);
                 const normalizedSearch = searchTerm.trim();
                 const endpoint = normalizedSearch ? 'search' : 'get';
-                if (normalizedSearch) params.set('query', normalizedSearch);
+                if (normalizedSearch) {
+                    params.set('query', normalizedSearch);
+                } else {
+                    params.set('teamId', teamId);
+                }
                 const response = await myTicketsFetchWithAuth(
                     `${baseApiUrl}/api/tickets/sidebar/${endpoint}?${params.toString()}`,
                 );
@@ -146,6 +150,7 @@ export const useTicketsList = (teamId: string, initialSlaFilter: string) => {
         setIsLoadingMore(true);
         try {
             const params = createFilterParams(filters);
+            params.set('teamId', teamId);
             params.set('cursor', nextCursor);
             const response = await myTicketsFetchWithAuth(
                 `${baseApiUrl}/api/tickets/sidebar/get?${params.toString()}`,

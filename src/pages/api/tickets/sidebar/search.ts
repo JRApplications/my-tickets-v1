@@ -79,7 +79,7 @@ export const GET: APIRoute = async ({ request, locals }) => {
         }
 
         const filters = readTicketListFilters(url);
-        const ticketSearch = createScopedTicketQuery(identity, filters).and(searchFilter);
+        const ticketSearch = createScopedTicketQuery(identity, filters, null).and(searchFilter);
         let results = await ticketSearch
             .fields(...TICKET_FIELDS)
             .limit(SEARCH_PAGE_SIZE)
