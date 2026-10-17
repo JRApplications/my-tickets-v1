@@ -31,11 +31,11 @@ export interface ForgotPasswordRequest {
 export interface ForgotPasswordResponse {
     success: boolean;
     message?: string;
-    token: string;
+    challengeId: string;
 }
 
 export interface VerifyResetCodeRequest {
-    token: string;
+    challengeId: string;
     code: string;
 }
 
@@ -43,15 +43,10 @@ export interface VerifyResetCodeResponse {
     success: boolean;
     message?: string;
     error?: string;
-    user: {
-        teamId: string;
-        agentId: string;
-        permissions: string[];
-    };
 }
 
 export interface ResetPasswordRequest {
-    token: string;
+    challengeId: string;
     code: string;
     newPassword: string;
 }

@@ -1,176 +1,178 @@
 import type { APIRoute } from 'astro';
+import { randomUUID } from 'node:crypto';
 import { captureError } from '../reportError';
 import { items } from '@wix/data';
-import { notificationsV3 } from "@wix/notifications";
-import { auth } from "@wix/essentials";
+import { notificationsV3 } from '@wix/notifications';
+import { auth } from '@wix/essentials';
 import { RESET_SECRET } from 'astro:env/server';
-import { CollectionIds, type Agent, ExtensionIds } from '@jrapps/my_tickets_common_types';
-const RESET_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
+import { CollectionIds, ExtensionIds } from '@jrapps/my_tickets_common_types';
+
+const RESET_EXPIRY_MS = 15 * 60 * 1000;
+const RESET_RESEND_COOLDOWN_MS = 60 * 1000;
+export const MAX_RESET_ATTEMPTS = 5;
+
+interface ResetAgent {
+    _id: string;
+    name?: string;
+    resetChallengeId?: string;
+    resetCodeHash?: string;
+    resetExpiresAt?: number;
+    resetAttempts?: number;
+    resetRequestedAt?: number;
+}
+
+const resetResponse = (challengeId: string) => new Response(JSON.stringify({
+    success: true,
+    message: 'If an account exists for this email, a reset code has been sent.',
+    challengeId,
+}), {
+    status: 200,
+    headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+});
 
 export const POST: APIRoute = async ({ request, locals }) => {
-    let resetToken = '';
+    let challengeId = randomUUID();
     try {
-        const { email } = await request.json();
-        if (!email) {
-            throw new Error('Email is required');
-        }
-        const name = await getName(email);
-        const accessCode = generateAccessCode();
-        const hashedCode = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(accessCode));
-        const codeHash = Array.from(new Uint8Array(hashedCode)).map(b => b.toString(16).padStart(2, '0')).join('');
-        const expiry = Date.now() + RESET_EXPIRY_MS;
-        const token = await createResetToken(email, codeHash, expiry);
-        resetToken = token;
+        const body = await request.json() as { email?: unknown };
+        const email = typeof body.email === 'string' ? body.email.trim() : '';
+        if (!email || email.length > 320) return resetResponse(challengeId);
 
-        // Always return the same response shape. Unknown emails receive an
-        // unusable token and no email, preventing account-existence disclosure.
-        if (name) {
-            const options = {
+        const agent = await findAgentByEmail(email);
+        if (!agent) return resetResponse(challengeId);
+
+        const now = Date.now();
+        const previousRequestAt = Number(agent.resetRequestedAt ?? 0);
+        if (now - previousRequestAt < RESET_RESEND_COOLDOWN_MS) {
+            const activeChallengeId = typeof agent.resetChallengeId === 'string' ? agent.resetChallengeId : '';
+            const activeChallenge = Boolean(activeChallengeId)
+                && Number(agent.resetExpiresAt ?? 0) > now
+                && Number(agent.resetAttempts ?? 0) < MAX_RESET_ATTEMPTS;
+            return resetResponse(activeChallenge ? activeChallengeId : challengeId);
+        }
+
+        challengeId = randomUUID();
+        const accessCode = generateAccessCode();
+        const expiry = now + RESET_EXPIRY_MS;
+        const codeHash = await hashResetCode(accessCode);
+
+        await patchAgent(agent._id)
+            .setField('resetChallengeId', challengeId)
+            .setField('resetCodeHash', codeHash)
+            .setField('resetExpiresAt', expiry)
+            .setField('resetAttempts', 0)
+            .setField('resetRequestedAt', now)
+            .run();
+
+        try {
+            const elevatedNotify = auth.elevate(notificationsV3.notify);
+            const response = await elevatedNotify(ExtensionIds.RESET_PASSWORD_NOTIFICATION, {
                 dynamicValues: {
-                    UserName: { text: name },
+                    UserName: { text: agent.name ?? '' },
                     AccessCode: { text: accessCode },
                 },
-            };
-            const elevatedNotify = auth.elevate(notificationsV3.notify);
-            const response = await elevatedNotify(ExtensionIds.RESET_PASSWORD_NOTIFICATION, options);
-            if (!response) throw new Error('Failed to send notification');
+            });
+            if (!response) throw new Error('Failed to send password reset notification');
+        } catch (error) {
+            await clearResetState(agent._id, true);
+            throw error;
         }
 
-        return new Response(JSON.stringify({
-            success: true,
-            message: 'If an account exists for this email, a reset code has been sent.',
-            token: resetToken,
-        }), { status: 200 });
-
-    } catch (error: any) {
+        return resetResponse(challengeId);
+    } catch (error) {
         const { requestId } = await captureError(error, { requestId: locals.myTicketsRequestId, request });
-        return new Response(JSON.stringify({
-            success: true,
-            message: 'If an account exists for this email, a reset code has been sent.',
-            token: resetToken,
-        }), {
-            status: 200,
-            headers: {
-                "Content-Type": "application/json",
-                "x-mytickets-request-id": requestId
-            },
-        });
+        console.error('Password reset request failed', { requestId });
+        // Keep the response indistinguishable for known and unknown email addresses.
+        return resetResponse(randomUUID());
     }
+};
+
+async function findAgentByEmail(email: string): Promise<ResetAgent | null> {
+    const elevatedQuery = auth.elevate(items.query);
+    const result = await elevatedQuery(CollectionIds.AGENTS)
+        .eq('email', email)
+        .fields('_id', 'name', 'resetChallengeId', 'resetExpiresAt', 'resetAttempts', 'resetRequestedAt')
+        .limit(1)
+        .find();
+    return (result.items[0] as ResetAgent | undefined) ?? null;
 }
 
-async function getName(email: string): Promise<string | null> {
-    try {
-        let allItems: Agent[] = [];
-        let result = await items.query(CollectionIds.AGENTS).eq('email', email).limit(1).find();
+async function findAgentByChallengeId(challengeId: string): Promise<ResetAgent | null> {
+    const elevatedQuery = auth.elevate(items.query);
+    const result = await elevatedQuery(CollectionIds.AGENTS)
+        .eq('resetChallengeId', challengeId)
+        .fields('_id', 'email', 'resetChallengeId', 'resetCodeHash', 'resetExpiresAt', 'resetAttempts')
+        .limit(1)
+        .find();
+    return (result.items[0] as ResetAgent | undefined) ?? null;
+}
 
-        while (result.hasNext()) {
-            allItems = allItems.concat(result.items as Agent[]);
-            result = await result.next();
+export function patchAgent(agentId: string) {
+    return auth.elevate(items.patch)(CollectionIds.AGENTS, agentId);
+}
+
+export async function clearResetState(agentId: string, clearCooldown = false): Promise<void> {
+    const patch = patchAgent(agentId)
+        .setField('resetChallengeId', '')
+        .setField('resetCodeHash', '')
+        .setField('resetExpiresAt', 0)
+        .setField('resetAttempts', 0);
+    if (clearCooldown) patch.setField('resetRequestedAt', 0);
+    await patch.run();
+}
+
+async function hashResetCode(code: string): Promise<string> {
+    const key = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(RESET_SECRET),
+        { name: 'HMAC', hash: 'SHA-256' },
+        false,
+        ['sign'],
+    );
+    const digest = await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(code.trim().toUpperCase()));
+    return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, '0')).join('');
+}
+
+function hashesMatch(left: string, right: string): boolean {
+    if (left.length !== right.length) return false;
+    let difference = 0;
+    for (let index = 0; index < left.length; index += 1) {
+        difference |= left.charCodeAt(index) ^ right.charCodeAt(index);
+    }
+    return difference === 0;
+}
+
+export async function verifyResetChallenge(
+    challengeId: string,
+    code: string,
+): Promise<{ valid: boolean; agentId?: string }> {
+    if (!challengeId || !code || challengeId.length > 100 || code.length > 100) return { valid: false };
+
+    const agent = await findAgentByChallengeId(challengeId);
+    if (!agent || agent.resetChallengeId !== challengeId) return { valid: false };
+
+    const now = Date.now();
+    const attempts = Number(agent.resetAttempts ?? 0);
+    if (Number(agent.resetExpiresAt ?? 0) <= now || attempts >= MAX_RESET_ATTEMPTS) {
+        await clearResetState(agent._id);
+        return { valid: false };
+    }
+
+    const submittedHash = await hashResetCode(code);
+    if (!agent.resetCodeHash || !hashesMatch(submittedHash, agent.resetCodeHash)) {
+        const updatedAgent = await patchAgent(agent._id).incrementField('resetAttempts', 1).run();
+        const nextAttempts = Number(updatedAgent.resetAttempts ?? attempts + 1);
+        if (nextAttempts >= MAX_RESET_ATTEMPTS) {
+            await clearResetState(agent._id);
         }
-        allItems = allItems.concat(result.items as Agent[]);
-
-        if (allItems.length > 0) {
-            return allItems[0].name;
-        } else return null;
-    } catch (error: any) {
-        throw error;
+        return { valid: false };
     }
+
+    return { valid: true, agentId: agent._id };
 }
 
-function generateAccessCode(length = 12) {
+function generateAccessCode(length = 12): string {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     const bytes = new Uint8Array(length);
     crypto.getRandomValues(bytes);
-    return Array.from(bytes, b => chars[b % chars.length]).join('');
-}
-
-export async function createResetToken(email: string, codeHash: string, expiry: number): Promise<string> {
-    try {
-        const encoder = new TextEncoder();
-        const key = await crypto.subtle.importKey(
-            'raw', encoder.encode(RESET_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-        );
-        const data = `${email}:${codeHash}:${expiry}`;
-        const signature = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
-        const sig = Array.from(new Uint8Array(signature)).map(b => b.toString(16).padStart(2, '0')).join('');
-        // Token format: base64(email):codeHash:expiry:hmac
-        return btoa(email) + ':' + codeHash + ':' + expiry + ':' + sig;
-    } catch (error: any) {
-        throw error;
-    }
-}
-
-interface UserWithTeam {
-    _id?: string;
-    email: string;
-    team: { _id: string };
-    [key: string]: any;
-}
-
-interface TeamItem {
-    _id?: string;
-    permissions: Record<string, boolean>;
-}
-
-async function verifiedLogin(email: string): Promise<{ user: { success: boolean; teamId: string; agentId: string; permissions: Record<string, boolean> } }> {
-    try {
-        let allItems: UserWithTeam[] = [];
-        let results = await items.query(CollectionIds.AGENTS)
-            .eq('email', email)
-            .include('team')
-            .find()
-
-        allItems = allItems.concat(results.items as UserWithTeam[]);
-
-        while (results.hasNext()) {
-            results = await results.next();
-            allItems = allItems.concat(results.items as UserWithTeam[]);
-        }
-
-        if (allItems && allItems.length > 0) {
-            const teamId = allItems[0]?.team?._id;
-            const agentId = allItems[0]._id;
-            if (!teamId || !agentId) {
-                throw new Error("Team or agent ID not found");
-            }
-            const item = await items.get(CollectionIds.TEAMS, teamId) as TeamItem;
-            if (!item) {
-                throw new Error("Team not found for the user");
-            }
-            return { user: { success: true, teamId, agentId, permissions: item.permissions } };
-        }
-        throw new Error("User not found");
-    } catch (error: any) {
-        throw error;
-    }
-}
-
-export async function verifyResetToken(token: string, submittedCodeHash: string): Promise<{ valid: boolean; user?: { success: boolean; teamId: string; agentId: string; permissions: Record<string, boolean> } }> {
-    try {
-        const parts = token.split(':');
-        if (parts.length !== 4) return { valid: false };
-        const [emailB64, storedHash, expiryStr, sig] = parts;
-        const email = atob(emailB64);
-        const expiry = parseInt(expiryStr, 10);
-
-        if (Date.now() > expiry) return { valid: false };
-        if (submittedCodeHash !== storedHash) return { valid: false };
-
-        // Verify HMAC to ensure token wasn't tampered with
-        const encoder = new TextEncoder();
-        const key = await crypto.subtle.importKey(
-            'raw', encoder.encode(RESET_SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']
-        );
-        const data = `${email}:${storedHash}:${expiry}`;
-        const expected = await crypto.subtle.sign('HMAC', key, encoder.encode(data));
-        const expectedHex = Array.from(new Uint8Array(expected)).map(b => b.toString(16).padStart(2, '0')).join('');
-
-        if (sig !== expectedHex) return { valid: false };
-        const userResult = await verifiedLogin(email);
-        if (!userResult || !userResult.user) return { valid: false };
-        return { valid: true, user: userResult.user };
-    } catch (error) {
-        const { requestId } = await captureError(error as Error);
-        throw new Error(`Error verifying reset token. Request ID: ${requestId}`);
-    }
+    return Array.from(bytes, (byte) => chars[byte % chars.length]).join('');
 }

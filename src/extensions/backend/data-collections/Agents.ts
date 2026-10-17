@@ -73,6 +73,36 @@ export default {
       "arrayOptions": {
         "elementType": "ANY"
       }
+    },
+    {
+      "key": "resetChallengeId",
+      "displayName": "Password Reset Challenge ID",
+      "type": "TEXT",
+      "description": "Private, short-lived identifier for an active password reset challenge",
+    },
+    {
+      "key": "resetCodeHash",
+      "displayName": "Password Reset Code Hash",
+      "type": "TEXT",
+      "description": "Private server-side HMAC of the active password reset code",
+    },
+    {
+      "key": "resetExpiresAt",
+      "displayName": "Password Reset Expiry",
+      "type": "NUMBER",
+      "description": "Private expiration time for the active password reset challenge",
+    },
+    {
+      "key": "resetAttempts",
+      "displayName": "Password Reset Attempts",
+      "type": "NUMBER",
+      "description": "Private failed verification attempts for the active reset challenge",
+    },
+    {
+      "key": "resetRequestedAt",
+      "displayName": "Password Reset Requested At",
+      "type": "NUMBER",
+      "description": "Private timestamp used to limit password reset email frequency",
     }
   ],
   dataPermissions: {

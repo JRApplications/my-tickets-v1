@@ -1,33 +1,33 @@
 import type { APIRoute } from 'astro';
-import { verifyResetToken } from './forgot-password';
+import { verifyResetChallenge } from './forgot-password';
 import { captureError } from '../reportError';
 
 interface ResetCodeRequest {
-    token: string;
+    challengeId: string;
     code: string;
 }
 
 export const POST: APIRoute = async ({ request, locals }) => {
     let status = 500;
     try {
-        const { token, code } = await request.json() as ResetCodeRequest;
+        const { challengeId, code } = await request.json() as ResetCodeRequest;
 
-        if (!token || typeof token !== 'string') {
+        if (!challengeId || typeof challengeId !== 'string') {
             status = 400;
-            throw new Error('Valid token is required');
+            throw new Error('Valid challenge is required');
         }
         if (!code || typeof code !== 'string') {
             status = 400;
             throw new Error('Valid code is required');
         }
 
-        const hashedCode = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code));
-        const codeHash = Array.from(new Uint8Array(hashedCode)).map(b => b.toString(16).padStart(2, '0')).join('');
-
-        const result = await verifyResetToken(token, codeHash);
+        const result = await verifyResetChallenge(challengeId, code);
 
         if (result.valid) {
-            return new Response(JSON.stringify({ success: true, user: result.user }), { status: 200, headers: { "Content-Type": "application/json" } });
+            return new Response(JSON.stringify({ success: true }), {
+                status: 200,
+                headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+            });
         } else {
             status = 400;
             throw new Error('Invalid or expired code');

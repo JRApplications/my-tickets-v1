@@ -27,7 +27,7 @@ export const useLogin = ({
     const [loginError, setLoginError] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const [resetToken, setResetToken] = useState<string | null>(null);
+    const [resetChallengeId, setResetChallengeId] = useState<string | null>(null);
     const [isForgotPasswordModalOpen, setIsForgotPasswordModalOpen] =
         useState(false);
 
@@ -71,7 +71,7 @@ export const useLogin = ({
         try {
             const data = await requestPasswordReset({ email });
 
-            setResetToken(data.token);
+            setResetChallengeId(data.challengeId);
             setIsForgotPasswordModalOpen(true);
         } catch (error: unknown) {
             const message =
@@ -87,7 +87,7 @@ export const useLogin = ({
     const handleVerifyCode = async () => {
         try {
             await verifyResetCode({
-                token: resetToken || '',
+                challengeId: resetChallengeId || '',
                 code: inputValue,
             });
 
@@ -116,7 +116,7 @@ export const useLogin = ({
 
         try {
             await resetPassword({
-                token: resetToken || '',
+                challengeId: resetChallengeId || '',
                 code: inputValue,
                 newPassword,
             });
@@ -139,7 +139,7 @@ export const useLogin = ({
     };
 
     const closeForgotPasswordModal = () => {
-        setResetToken(null);
+        setResetChallengeId(null);
         setIsForgotPasswordModalOpen(false);
         setForgotPasswordStep('code');
         setInputValue('');
@@ -159,7 +159,7 @@ export const useLogin = ({
         loginError,
         isLoading,
 
-        resetToken,
+        resetChallengeId,
         inputValue,
         setInputValue,
 

@@ -1,12 +1,13 @@
 import type { APIRoute } from 'astro';
 import { items } from '@wix/data';
-import { verifyResetToken } from './forgot-password';
+import { auth } from '@wix/essentials';
+import { verifyResetChallenge } from './forgot-password';
 import { hashPassword, generateSalt } from './password-utils';
 import { captureError } from '../reportError';
 import { CollectionIds } from '@jrapps/my_tickets_common_types';
 
 interface ResetPasswordRequest {
-    token: string;
+    challengeId: string;
     code: string;
     newPassword: string;
 }
@@ -14,11 +15,11 @@ interface ResetPasswordRequest {
 export const POST: APIRoute = async ({ request, locals }) => {
     let status = 500;
     try {
-        const { token, code, newPassword } = await request.json() as ResetPasswordRequest;
+        const { challengeId, code, newPassword } = await request.json() as ResetPasswordRequest;
 
-        if (!token || typeof token !== 'string') {
+        if (!challengeId || typeof challengeId !== 'string') {
             status = 400;
-            throw new Error('Valid token is required');
+            throw new Error('Valid challenge is required');
         }
         if (!code || typeof code !== 'string') {
             status = 400;
@@ -29,12 +30,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
             throw new Error('New password must be at least 6 characters');
         }
 
-        const hashedCode = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(code));
-        const codeHash = Array.from(new Uint8Array(hashedCode)).map(b => b.toString(16).padStart(2, '0')).join('');
+        const result = await verifyResetChallenge(challengeId, code);
 
-        const result = await verifyResetToken(token, codeHash);
-
-        if (!result.valid || !result.user) {
+        if (!result.valid || !result.agentId) {
             status = 400;
             throw new Error('Invalid or expired code');
         }
@@ -42,9 +40,16 @@ export const POST: APIRoute = async ({ request, locals }) => {
         // Hash the new password and update the user record
         const salt = await generateSalt();
         const hashedPassword = await hashPassword(newPassword, salt);
-        await items.patch(CollectionIds.AGENTS, result.user.agentId).setField('userId', hashedPassword).run();
+        const elevatedPatch = auth.elevate(items.patch);
+        await elevatedPatch(CollectionIds.AGENTS, result.agentId)
+            .setField('userId', hashedPassword)
+            .setField('resetChallengeId', '')
+            .setField('resetCodeHash', '')
+            .setField('resetExpiresAt', 0)
+            .setField('resetAttempts', 0)
+            .run();
 
-        return new Response(JSON.stringify({ success: true, user: result.user }), {
+        return new Response(JSON.stringify({ success: true }), {
             "status": 200,
             headers: { "Content-Type": "application/json" },
         });
