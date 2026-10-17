@@ -274,22 +274,35 @@ const DashboardPage: FC = () => {
       }
     } catch (error) {
       console.error('Failed to assign agent to ticket', error);
+      ShowToast({
+        message: `Failed to ${type === 'assign' ? 'assign' : 'unassign'} agent. Please try again.`,
+        type: 'error',
+      });
     }
   };
 
   const handleNotificationRemove = async (id: string) => {
-    await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/notifications/removeNotification`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ notificationId: id, agentId: loggedInAgent.agentId })
-    });
+    try {
+      const response = await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/notifications/removeNotification`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ notificationId: id, agentId: loggedInAgent.agentId })
+      });
+      const result = await response.json();
+      if (!response.ok || !result.success) {
+        throw new Error(result.error || 'Failed to remove notification');
+      }
 
-    setNotificationStateProps((prev: any) => ({
-      ...prev,
-      notifications: prev.notifications?.filter((notification: any) => notification.id !== id)
-    }));
+      setNotificationStateProps((prev: any) => ({
+        ...prev,
+        notifications: prev.notifications?.filter((notification: any) => notification.id !== id)
+      }));
+    } catch (error) {
+      console.error('Failed to remove notification', error);
+      ShowToast({ message: 'Failed to remove notification. Please try again.', type: 'error' });
+    }
   };
 
   const handleTicketUpdate = (ticketId: string, updates: { status?: string; priority?: string; isSpam?: boolean; isDeleted?: boolean; assignedAgent?: { id?: string; name?: string }; assignedTeam?: { id?: string; name?: string } }) => {
