@@ -30,9 +30,16 @@ const MemberTickets: FC<MemberTicketsProps> = ({
   const { demoTickets, demoSelectedTicket } = useDemoData();
   const [message, setMessage] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('');
-  const visibleDemoTickets = demoTickets.filter((ticket) =>
-    !statusFilter || normalizeTicketStatus(ticket.status) === statusFilter
-  );
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase();
+  const visibleDemoTickets = demoTickets.filter((ticket) => {
+    const matchesStatus = !statusFilter || normalizeTicketStatus(ticket.status) === statusFilter;
+    const searchableText = [ticket.subject, ticket.ticketId, ticket.primaryTicketNumber, ticket.status]
+      .filter((value) => value != null)
+      .join(' ')
+      .toLocaleLowerCase();
+    return matchesStatus && (!normalizedSearchQuery || searchableText.includes(normalizedSearchQuery));
+  });
 
   React.useEffect(() => {
     const root = document.getElementById(id ?? '');
@@ -96,7 +103,7 @@ const MemberTickets: FC<MemberTicketsProps> = ({
         <div className={classNames('TicketsWrapper', styles.TicketsWrapper)}>
           <div className={classNames('__TicketsActionsHeader', styles.__TicketsActionsHeader)}>
             <div data-design-element="filterDropdown" data-design-id="filter-dropdown"><Dropdown disabled value={statusFilter} onChange={setStatusFilter} /></div>
-            <div data-design-element="searchInput" data-design-id="search-input"><SearchInput value="" /></div>
+            <div data-design-element="searchInput" data-design-id="search-input"><SearchInput value={searchQuery} onInput={(e) => setSearchQuery(e.currentTarget.value)} /></div>
           </div>
           {visibleDemoTickets.length > 0 ? (
             <TicketCardListProvider>
@@ -110,7 +117,7 @@ const MemberTickets: FC<MemberTicketsProps> = ({
               ))}
             </TicketCardListProvider>
           ) : (
-            <div className={styles.TicketsFilteredEmpty} role="status">No tickets match this status.</div>
+            <div className={styles.TicketsFilteredEmpty} role="status">No tickets match your filters.</div>
           )}
         </div>
       )}

@@ -37,9 +37,16 @@ const MemberTickets: FC<MemberTicketsProps> = ({
   // @ts-nocheck
   const [message, setMessage] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('');
-  const visibleTickets = tickets.filter((ticket: any) =>
-    !statusFilter || normalizeTicketStatus(ticket.status) === statusFilter
-  );
+  const [searchQuery, setSearchQuery] = React.useState('');
+  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase();
+  const visibleTickets = tickets.filter((ticket: any) => {
+    const matchesStatus = !statusFilter || normalizeTicketStatus(ticket.status) === statusFilter;
+    const searchableText = [ticket.subject, ticket.ticketId, ticket.primaryTicketNumber, ticket.status]
+      .filter((value) => value != null)
+      .join(' ')
+      .toLocaleLowerCase();
+    return matchesStatus && (!normalizedSearchQuery || searchableText.includes(normalizedSearchQuery));
+  });
 
   useEffect(() => {
     injectEditorStyles();
@@ -60,7 +67,7 @@ const MemberTickets: FC<MemberTicketsProps> = ({
         <div className={classNames('TicketsWrapper', styles.TicketsWrapper)}>
           <div className={classNames('__TicketsActionsHeader', styles.__TicketsActionsHeader)}>
             <Dropdown value={statusFilter} onChange={setStatusFilter} />
-            <SearchInput value="" onInput={(e) => console.log(e.currentTarget.value)} />
+            <SearchInput value={searchQuery} onInput={(e) => setSearchQuery(e.currentTarget.value)} />
           </div>
           {visibleTickets.length > 0 ? (
             <TicketCardListProvider>
@@ -74,7 +81,7 @@ const MemberTickets: FC<MemberTicketsProps> = ({
               ))}
             </TicketCardListProvider>
           ) : (
-            <div className={styles.TicketsFilteredEmpty} role="status">No tickets match this status.</div>
+            <div className={styles.TicketsFilteredEmpty} role="status">No tickets match your filters.</div>
           )}
         </div>
       )}
