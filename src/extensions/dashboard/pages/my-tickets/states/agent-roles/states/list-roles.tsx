@@ -18,6 +18,7 @@ interface Props {
     onDelete: (roleId: string) => void;
     onDuplicate: (roleId: string) => void;
     onCreateRole: () => void;
+    canCreateRole?: boolean;
 }
 
 interface RoleData {
@@ -33,6 +34,7 @@ const ListRoles = ({
     onDelete,
     onDuplicate,
     onCreateRole,
+    canCreateRole = true,
     isLoading
 }: Props) => {
     const [filter, setFilter] = useState('');
@@ -88,7 +90,7 @@ const ListRoles = ({
                 title="Create your first role"
                 subtitle="Once you create your roles, you'll be able to see and manage them here."
             >
-                <Button onClick={onCreateRole}>Create Role</Button>
+                {canCreateRole && <Button onClick={onCreateRole}>Create Role</Button>}
             </Table.EmptyState>
         );
     };
