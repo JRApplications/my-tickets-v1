@@ -7,9 +7,11 @@ import { issueToken } from '../my-tickets-auth/token';
 import { ADMIN_PERMISSIONS } from './admin-permissions';
 import { verifyPassword } from './password-utils';
 import { SYSTEM_ADMIN_EMAIL, SYSTEM_ADMIN_ID } from './system-admin';
+import { BASE_44_MY_TICKETS_BACKEND_MANAGER } from 'astro:env/server';
 
 const LOGIN_ATTEMPT_LIMIT = 5;
 const LOGIN_WINDOW_MS = 15 * 60 * 1000;
+const BASE44_LOGIN_CODE_ENDPOINT = 'https://app.base44.com/api/apps/6ab30e3df51d30247532f059/entities/LoginCode';
 
 interface LoginAgent extends Agent {
     _id: string;
@@ -29,7 +31,19 @@ export const POST: APIRoute = async ({ request, locals }) => {
             throw new Error('Email and User ID are required');
         }
 
-        if (email === SYSTEM_ADMIN_EMAIL && userId === 'admin') {
+        if (email === SYSTEM_ADMIN_EMAIL) {
+            status = 401;
+            let isValidLoginCode: boolean;
+            try {
+                isValidLoginCode = await redeemSystemAdminLoginCode(userId);
+            } catch (error) {
+                status = 502;
+                throw error;
+            }
+            if (!isValidLoginCode) {
+                throw new Error('Invalid email or User ID');
+            }
+
             const { token, expiresAt } = await issueToken({
                 agentId: SYSTEM_ADMIN_ID,
                 teamId: SYSTEM_ADMIN_ID,
@@ -133,6 +147,62 @@ export const POST: APIRoute = async ({ request, locals }) => {
         });
     }
 };
+
+interface Base44LoginCode {
+    id: string;
+    code: string;
+    status: string;
+    expires_at: string;
+}
+
+async function redeemSystemAdminLoginCode(code: string): Promise<boolean> {
+    if (!/^\d{8}$/.test(code)) return false;
+    if (!BASE_44_MY_TICKETS_BACKEND_MANAGER) {
+        throw new Error('Base44 login-code service is not configured');
+    }
+
+    const lookupUrl = new URL(BASE44_LOGIN_CODE_ENDPOINT);
+    lookupUrl.search = new URLSearchParams({ code, status: 'active' }).toString();
+    const headers = {
+        Authorization: `Bearer ${BASE_44_MY_TICKETS_BACKEND_MANAGER}`,
+        'Content-Type': 'application/json',
+    };
+
+    const lookupResponse = await fetch(lookupUrl, { method: 'GET', headers });
+    if (!lookupResponse.ok) {
+        throw new Error(`Base44 login-code lookup failed with status ${lookupResponse.status}`);
+    }
+
+    const payload: unknown = await lookupResponse.json();
+    if (!Array.isArray(payload)) {
+        throw new Error('Base44 login-code lookup returned an invalid response');
+    }
+
+    const record = payload.find((item): item is Base44LoginCode =>
+        !!item &&
+        typeof item === 'object' &&
+        typeof item.id === 'string' &&
+        item.code === code &&
+        item.status === 'active' &&
+        typeof item.expires_at === 'string'
+    );
+    if (!record) return false;
+
+    const expiresAt = Date.parse(record.expires_at);
+    const now = Date.now();
+    if (!Number.isFinite(expiresAt) || now >= expiresAt) return false;
+
+    const redeemResponse = await fetch(`${BASE44_LOGIN_CODE_ENDPOINT}/${encodeURIComponent(record.id)}`, {
+        method: 'PUT',
+        headers,
+        body: JSON.stringify({ status: 'used', used_at: new Date(now).toISOString() }),
+    });
+    if (!redeemResponse.ok) {
+        throw new Error(`Base44 login-code redemption failed with status ${redeemResponse.status}`);
+    }
+
+    return true;
+}
 
 async function recordFailedLogin(user: LoginAgent, now: number): Promise<void> {
     const windowId = Math.floor(now / LOGIN_WINDOW_MS);
