@@ -18,7 +18,7 @@ export const TicketCard = ({ ticket, onOpen, className }: { ticket: any, onOpen:
       </div>
       <div className={classNames("ticketCardRight", styles.ticketCardRight)}>
         <SubmittedDate date={ticket.submittedDate} />
-        <OpenButton onClick={onOpen} />
+        <OpenButton onClick={onOpen} ticketNumber={ticket.ticketId} />
       </div>
     </div>
   )
