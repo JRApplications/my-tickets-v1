@@ -1,19 +1,22 @@
-import { useState } from 'react';
+import {
+    CollectionEmptyState,
+    CollectionErrorState,
+    CollectionNoResultsState,
+    CollectionSearch,
+    Table,
+    useTableCollection,
+    type OffsetQuery,
+} from '@wix/patterns';
 import {
     Card,
-    Button,
-    Table,
-    TableActionCell,
-    TableToolbar,
-    Search,
     SkeletonRectangle,
-    SkeletonLine
 } from '@wix/design-system';
-import { Duplicate, Delete } from '@wix/wix-ui-icons-common/lazy';
+import { Duplicate, Delete, Edit } from '@wix/wix-ui-icons-common/lazy';
 
 interface Props {
     isLoading: boolean;
     data?: RoleData[];
+    refreshKey: number;
     onEditRole: (roleId: string) => void;
     onDelete: (roleId: string) => void;
     onDuplicate: (roleId: string) => void;
@@ -35,123 +38,90 @@ const ListRoles = ({
     onDuplicate,
     onCreateRole,
     canCreateRole = true,
-    isLoading
+    isLoading,
+    refreshKey,
 }: Props) => {
-    const [filter, setFilter] = useState('');
-    const normalizedFilter = filter.trim().toLowerCase();
-    const filteredData = normalizedFilter
-        ? data?.filter((row) => row.roleName?.toLowerCase().includes(normalizedFilter))
-        : data;
+    const tableState = useTableCollection<RoleData>({
+        queryName: `my-tickets.roles.${refreshKey}`,
+        paginationMode: 'offset',
+        queryOptions: { staleTime: 0 },
+        itemKey: (role) => role.id ?? role.roleName,
+        itemName: (role) => role.roleName,
+        filters: {},
+        fetchData: async ({ limit, offset, search }: OffsetQuery) => {
+            const normalizedSearch = search?.trim().toLowerCase();
+            const matchingRoles = normalizedSearch
+                ? (data ?? []).filter((role) => role.roleName.toLowerCase().includes(normalizedSearch))
+                : data ?? [];
+
+            return {
+                items: matchingRoles.slice(offset, offset + limit),
+                total: matchingRoles.length,
+            };
+        },
+    });
 
     const columns = [
-        { title: 'Name', render: (row: RoleData) => row.roleName ? row.roleName : '' },
-        { title: 'Last Updated', render: (row: RoleData) => row.lastUpdated ? row.lastUpdated : '' },
-        { title: 'Created', render: (row: RoleData) => row.created ? row.created : '' },
-        {
-            title: '',
-            width: '100px',
-            render: (row: RoleData) =>
-                <TableActionCell
-                    popoverMenuProps={
-                        { appendTo: 'window', placement: 'left' }
-                    }
-                    primaryAction={{ text: 'Edit', onClick: () => onEditRole(row.id!) }}
-                    secondaryActions={[
-                        {
-                            text: 'Duplicate',
-                            icon: <Duplicate />,
-                            onClick: () => onDuplicate(row.id!),
-                        },
-                        {
-                            text: 'Delete',
-                            icon: <Delete />,
-                            skin: 'destructive',
-                            onClick: () => onDelete(row.id!),
-                        },
-                    ]}
-                    moreActionsTooltipText="More actions"
-                />
-        },
+        { id: 'name', title: 'Name', render: (row: RoleData) => row.roleName || '' },
+        { id: 'lastUpdated', title: 'Last Updated', render: (row: RoleData) => row.lastUpdated || '' },
+        { id: 'created', title: 'Created', render: (row: RoleData) => row.created || '' },
     ];
-
-    const renderEmptyState = () => {
-        if (normalizedFilter) {
-            return (
-                <Table.EmptyState
-                    skin='page-no-border'
-                    title="No roles found"
-                    subtitle={`No roles match "${filter}". Try a different search term.`}
-                />
-            );
-        }
-        return (
-            <Table.EmptyState
-                skin='page-no-border'
-                title="Create your first role"
-                subtitle="Once you create your roles, you'll be able to see and manage them here."
-            >
-                {canCreateRole && <Button onClick={onCreateRole}>Create Role</Button>}
-            </Table.EmptyState>
-        );
-    };
 
     if (isLoading) {
         return (
             <Card>
-                <Table
-                    showHeaderWhenEmpty
-                    columns={[
-                        { title: <SkeletonLine width="100px" />, render: () => <SkeletonRectangle width="100px" height="20px" /> },
-                        { title: <SkeletonLine width="100px" />, render: () => <SkeletonRectangle width="100px" height="20px" /> },
-                        { title: <SkeletonLine width="100px" />, render: () => <SkeletonRectangle width="100px" height="20px" /> },
-                        {
-                            title: '',
-                            width: '100px',
-                            render: () =>
-                                <SkeletonRectangle width="50px" height="30px" />
-                        },
-                    ]}
-                    data={[{}, {}, {}]}
-                >
-                    <TableToolbar>
-                        <TableToolbar.ItemGroup position="end">
-                            <TableToolbar.Item>
-                                <SkeletonRectangle width="200px" height="35px" />
-                            </TableToolbar.Item>
-                        </TableToolbar.ItemGroup>
-                    </TableToolbar>
-                    <Table.Content />
-                </Table>
+                <SkeletonRectangle width="100%" height="180px" />
             </Card>
         );
     }
 
     return (
-        <Card>
-            <Table
-                showHeaderWhenEmpty
-                columns={columns}
-                data={filteredData}
-            >
-                <TableToolbar>
-                    <TableToolbar.ItemGroup position="end">
-                        <TableToolbar.Item>
-                            <Search
-                                size="medium"
-                                value={filter}
-                                onChange={(event) =>
-                                    setFilter(event.target.value)
-                                }
-                                onClear={() => setFilter('')}
-                            />
-                        </TableToolbar.Item>
-                    </TableToolbar.ItemGroup>
-                </TableToolbar>
-                {filteredData?.length !== undefined && filteredData?.length > 0 && <Table.Content />}
-                {filteredData?.length === 0 && renderEmptyState()}
-            </Table>
-        </Card>
-    )
+        <Table
+            state={tableState}
+            columns={columns}
+            emptyState={
+                <CollectionEmptyState
+                    title="Create your first role"
+                    subtitle="Once you create your roles, you'll be able to see and manage them here."
+                    {...(canCreateRole ? { addNewCta: { text: 'Create Role', onClick: onCreateRole } } : {})}
+                />
+            }
+            noResultsState={
+                <CollectionNoResultsState
+                    title="No roles found"
+                    subtitle="No roles match your search. Try a different search term."
+                />
+            }
+            errorState={(error, { retry }) => (
+                <CollectionErrorState
+                    title="Failed to load roles"
+                    subtitle={String(error)}
+                    action={{ text: 'Retry', onClick: retry }}
+                />
+            )}
+            actionCell={(row) => ({
+                primaryAction: {
+                    text: 'Edit',
+                    prefixIcon: <Edit />,
+                    onClick: () => onEditRole(row.id!),
+                },
+                secondaryActions: [
+                    {
+                        text: 'Duplicate',
+                        icon: <Duplicate />,
+                        onClick: () => onDuplicate(row.id!),
+                    },
+                    {
+                        text: 'Delete',
+                        icon: <Delete />,
+                        skin: 'destructive',
+                        onClick: () => onDelete(row.id!),
+                    },
+                ],
+            })}
+            search={<CollectionSearch placeholder="Search roles" />}
+        />
+    );
 }
 
 export default ListRoles;

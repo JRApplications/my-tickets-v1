@@ -18,13 +18,14 @@ interface RoleListItem {
 
 export const useRoles = () => {
     const [state, setState] = useState<string>('list-roles');
-    const [isLoading, setIsLoading] = useState<boolean>(false);
+    const [isLoading, setIsLoading] = useState<boolean>(true);
     const [isError, setIsError] = useState<boolean>(false);
     const [errorMessage, setErrorMessage] = useState<string>('');
     const [isLoadingRole, setIsLoadingRole] = useState<boolean>(false);
     const [isSaving, setIsSaving] = useState<boolean>(false);
     const [selectedRole, setSelectedRole] = useState<CreateManageRoleData | null>(null);
     const [tableData, setTableData] = useState<RoleListItem[]>();
+    const [tableRefreshKey, setTableRefreshKey] = useState(0);
     const [isCreating, setIsCreating] = useState<boolean>(false);
 
     useEffect(() => {
@@ -39,6 +40,7 @@ export const useRoles = () => {
                 const data = await response.json();
                 if (data.success) {
                     setTableData(data.roles);
+                    setTableRefreshKey((key) => key + 1);
                 } else {
                     throw new Error(data.error || 'Unknown error');
                 }
@@ -132,6 +134,7 @@ export const useRoles = () => {
                     // Push new role into table
                     setTableData(prev => [...(prev ?? []), savedRole]);
                 }
+                setTableRefreshKey((key) => key + 1);
                 setSelectedRole(savedRole);
                 setState('list-roles');
             } else {
@@ -158,6 +161,7 @@ export const useRoles = () => {
             const data = await response.json();
             if (data.success) {
                 setTableData(prev => prev?.filter(r => (r as any).id !== roleId));
+                setTableRefreshKey((key) => key + 1);
                 ShowToast({message: "Role deleted successfully.", type: 'success'});
             } else {
                 throw new Error(data.error || 'Unknown error');
@@ -185,6 +189,7 @@ export const useRoles = () => {
             if (data.success) {
                 const duplicatedRole = data.role;
                 setTableData(prev => [...(prev ?? []), duplicatedRole]);
+                setTableRefreshKey((key) => key + 1);
                 ShowToast({message: "Role duplicated successfully.", type: 'success'});
             } else {
                 throw new Error(data.error || 'Unknown error');
@@ -204,6 +209,7 @@ export const useRoles = () => {
         isSaving,
         selectedRole,
         tableData,
+        tableRefreshKey,
         handleSaveRole,
         onBack,
         onCreateRole,

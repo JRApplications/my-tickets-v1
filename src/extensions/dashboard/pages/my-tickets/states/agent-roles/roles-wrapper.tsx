@@ -6,6 +6,7 @@ import {
     Page,
     SkeletonRectangle
 } from '@wix/design-system';
+import { CollectionPage } from '@wix/patterns/page';
 import { Add, Confirm } from '@wix/wix-ui-icons-common/lazy';
 
 import './roles.css';
@@ -33,6 +34,7 @@ const RolesWrapper = ({
         isSaving,
         selectedRole,
         tableData,
+        tableRefreshKey,
         handleSaveRole,
         onBack,
         onCreateRole,
@@ -114,6 +116,31 @@ const RolesWrapper = ({
         );
     }
 
+    if (planAccess === 'allowed' && state === 'list-roles') {
+        return (
+            <CollectionPage height="100%">
+                <CollectionPage.Header
+                    title={{ text: 'Roles & Permissions', hideTotal: true }}
+                    primaryAction={actionsBar}
+                />
+                <CollectionPage.Content>
+                    <Box width="100%" height="100%" direction="vertical" maxHeight="100%" boxSizing="border-box">
+                        <ListRoles
+                            isLoading={isLoading}
+                            canCreateRole={canCreateRole}
+                            refreshKey={tableRefreshKey}
+                            onCreateRole={onCreateRole}
+                            data={tableData}
+                            onEditRole={onEditRole}
+                            onDelete={onDeleteRole}
+                            onDuplicate={onDuplicateRole}
+                        />
+                    </Box>
+                </CollectionPage.Content>
+            </CollectionPage>
+        );
+    }
+
     return (
         <Page maxWidth={9999} className='roles-wrapper-page'>
             <Page.Header title="Roles & Permissions" actionsBar={actionsBar} />
@@ -131,9 +158,6 @@ const RolesWrapper = ({
                     )}
                     {planAccess === 'allowed' && !isError && state === 'create-manage-role' && (
                         <CreateManageRole data={selectedRole} onDataChange={onRoleEdited} isLoadingRole={isLoadingRole} />
-                    )}
-                    {planAccess === 'allowed' && !isError && state === 'list-roles' && (
-                        <ListRoles isLoading={isLoading} canCreateRole={canCreateRole} onCreateRole={onCreateRole} data={tableData} onEditRole={onEditRole} onDelete={onDeleteRole} onDuplicate={onDuplicateRole} />
                     )}
                 </Box>
             </Page.Content>

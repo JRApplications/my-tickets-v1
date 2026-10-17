@@ -14,13 +14,13 @@ import {
     Card,
     IconButton,
     TimeInput,
-    Table,
     SectionHelper,
     Page,
     SkeletonLine,
     SkeletonRectangle,
 } from '@wix/design-system';
 import { ChevronDown, ChevronUp, InfoCircle } from '@wix/wix-ui-icons-common/lazy';
+import { Table, useTableCollection, type OffsetQuery } from '@wix/patterns';
 import { useEffect, useMemo, useState } from 'react';
 import { fetchTeams as fetchTeamsApi } from './chat-widget-config';
 import type { TeamOption, Config, ChatWidgetConfigWrapperProps } from './chat-widget-config.types';
@@ -46,6 +46,7 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
     const [businessSupportHours, setBusinessSupportHours] = useState<BusinessSupportHoursItem[]>(
         config?.businessSupportHours?.length ? config.businessSupportHours : defaultBusinessSupportHours
     );
+    const [businessHoursTableRevision, setBusinessHoursTableRevision] = useState(0);
     const [isBusinessSupportHoursStateOpen, setIsBusinessSupportHoursStateOpen] = useState(false);
     const [questionDraft, setQuestionDraft] = useState('');
     const [questions, setQuestions] = useState<string[]>(config?.chatQuestions || []);
@@ -65,6 +66,7 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
             setBusinessSupportHours(
                 config.businessSupportHours?.length ? config.businessSupportHours : defaultBusinessSupportHours
             );
+            setBusinessHoursTableRevision((revision) => revision + 1);
             setSelectedAiTeamIds(config.availableTeams?.map(team => team._id) || []);
             const keywordsByTeamId: Record<string, string[]> = {};
             config.availableTeams?.forEach(team => {
@@ -73,6 +75,19 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
             setTagsByTeamId(keywordsByTeamId);
         }
     }, [config]);
+
+    const businessHoursTableState = useTableCollection<BusinessSupportHoursItem>({
+        queryName: `my-tickets.business-support-hours.${businessHoursTableRevision}`,
+        paginationMode: 'offset',
+        queryOptions: { staleTime: 0 },
+        itemKey: (item) => item.day,
+        itemName: (item) => item.day,
+        filters: {},
+        fetchData: async ({ limit, offset }: OffsetQuery) => ({
+            items: businessSupportHours.slice(offset, offset + limit),
+            total: businessSupportHours.length,
+        }),
+    });
 
     useEffect(() => {
         const loadTeams = async () => {
@@ -207,24 +222,29 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
                 item.day === day ? { ...item, [field]: field === 'startTime' || field === 'endTime' ? value.date : value } : item
             )
         );
+        setBusinessHoursTableRevision((revision) => revision + 1);
     };
 
     const businessHourColumns = [
         {
+            id: 'day',
             title: 'Day',
-            render: (row: any) => <Text>{row.day}</Text>,
+            render: (row: BusinessSupportHoursItem) => <Text>{row.day}</Text>,
         },
         {
+            id: 'closed',
             title: 'Closed',
-            render: (row: any) => <ToggleSwitch checked={row.closed} onChange={() => handleBusinessSupportHoursChange(row.day, 'closed', !row.closed)} />,
+            render: (row: BusinessSupportHoursItem) => <ToggleSwitch checked={row.closed} onChange={() => handleBusinessSupportHoursChange(row.day, 'closed', !row.closed)} />,
         },
         {
+            id: 'startTime',
             title: 'Start Time',
-            render: (row: any) => <TimeInput step={5} value={row.startTime} onChange={(value) => handleBusinessSupportHoursChange(row.day, 'startTime', value as any)} />,
+            render: (row: BusinessSupportHoursItem) => <TimeInput step={5} value={row.startTime} onChange={(value) => handleBusinessSupportHoursChange(row.day, 'startTime', value as any)} />,
         },
         {
+            id: 'endTime',
             title: 'End Time',
-            render: (row: any) => <TimeInput step={5} value={row.endTime} onChange={(value) => handleBusinessSupportHoursChange(row.day, 'endTime', value as any)} />,
+            render: (row: BusinessSupportHoursItem) => <TimeInput step={5} value={row.endTime} onChange={(value) => handleBusinessSupportHoursChange(row.day, 'endTime', value as any)} />,
         },
     ]
 
@@ -399,13 +419,12 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
                                     <Card.Content>
                                         <Box direction='vertical' gap={3}>
                                             <Table
+                                                state={businessHoursTableState}
+                                                search={false}
                                                 skin="neutral"
-                                                data={businessSupportHours}
                                                 columns={businessHourColumns}
                                                 rowVerticalPadding="medium"
-                                            >
-                                                <Table.Content />
-                                            </Table>
+                                            />
                                             <SectionHelper size="medium" showPrefixIcon prefixIcon={<InfoCircle />} skin="standard"><Text>Customers will only be able to start a chat during your business hours.</Text></SectionHelper>
                                         </Box>
                                     </Card.Content>
