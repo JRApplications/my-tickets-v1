@@ -50,7 +50,6 @@ export const GET: APIRoute = async ({ request, locals }) => {
         const filters = readTicketListFilters(url);
         const query = createScopedTicketQuery(identity, filters)
             .fields(...TICKET_FIELDS)
-            .descending('primaryTicketNumber');
         const tickets: SidebarTicket[] = [];
         let hasMore = false;
 

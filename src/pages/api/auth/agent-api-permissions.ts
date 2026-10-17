@@ -54,6 +54,7 @@ const exactRules: PermissionRule[] = [
     { path: '/api/tickets/presence', permission: 'my-tickets-view-single-ticket' },
     { path: '/api/tickets/sidebar/get', permission: 'my-tickets-view-all-tickets' },
     { path: '/api/tickets/sidebar/search', permission: 'my-tickets-view-all-tickets' },
+    { path: '/api/tickets/sidebar/assignees', permission: 'my-tickets-view-all-tickets' },
     { path: '/api/tickets/analytics', permission: 'my-tickets-view-all-tickets' },
     { path: '/api/tickets/queryTickets', permission: 'my-tickets-view-all-tickets' },
 

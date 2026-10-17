@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
+import { useEffect, useMemo, type ChangeEvent } from 'react';
 import {
     Badge,
     Box,
@@ -26,11 +26,12 @@ import {
 } from '@jrapps/my_tickets_common_types';
 import * as Icons from '@wix/wix-ui-icons-common/odeditor';
 import SlaBadge from '../../common-components/sla-badge/sla-badge';
-import type { TicketListFilters, TicketsListItem } from './tickets-list';
+import type { TicketAssigneeOption, TicketListFilters, TicketsListItem } from './tickets-list';
 import './tickets-list.css';
 
 type TicketsListWrapperProps = {
     tickets: TicketsListItem[];
+    assigneeOptions: TicketAssigneeOption[];
     filters: TicketListFilters;
     setFilter: (filter: keyof TicketListFilters, value: string) => void;
     isLoading: boolean;
@@ -61,10 +62,8 @@ const formatCreatedDate = (createdDate?: string) => {
     };
 };
 
-const TicketsListWrapper = ({ tickets, filters, setFilter, isLoading, isError, searchTerm, handleSearch, handleClear, loadMore, hasMore, isLoadingMore, permissions, onTicketClick, onCreateTicket, isTicketLimitReached = false, onVisibleTicketsChange }: TicketsListWrapperProps) => {
-    const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
-
-    const { status: statusFilter, priority: priorityFilter, assignee: assigneeFilter, sla: slaFilter } = filters;
+const TicketsListWrapper = ({ tickets, assigneeOptions: availableAssignees, filters, setFilter, isLoading, isError, searchTerm, handleSearch, handleClear, loadMore, hasMore, isLoadingMore, permissions, onTicketClick, onCreateTicket, isTicketLimitReached = false, onVisibleTicketsChange }: TicketsListWrapperProps) => {
+    const { status: statusFilter, priority: priorityFilter, assignee: assigneeFilter, sla: slaFilter, sortOrder } = filters;
     const canViewTickets = permissions.includes('my-tickets-view-all-tickets');
     const canCreateTicket = permissions.includes('my-tickets-create-ticket');
 
@@ -79,10 +78,7 @@ const TicketsListWrapper = ({ tickets, filters, setFilter, isLoading, isError, s
     const assigneeOptions = [
         { id: ALL, value: 'All assignees' },
         { id: 'unassigned', value: 'Unassigned' },
-        ...Array.from(new Map(tickets.filter((ticket) => ticket.assignedAgent?.id).map((ticket) => [
-            ticket.assignedAgent!.id!,
-            { id: ticket.assignedAgent!.id!, value: ticket.assignedAgent!.name || 'Agent' },
-        ])).values()),
+        ...availableAssignees,
     ];
     const slaOptions = [
         { id: ALL, value: 'All' },
@@ -107,7 +103,7 @@ const TicketsListWrapper = ({ tickets, filters, setFilter, isLoading, isError, s
             (assigneeFilter === ALL || (assigneeFilter === 'unassigned' ? !ticket.assignedAgent?.id : ticket.assignedAgent?.id === assigneeFilter)) &&
             (slaFilter === ALL || getSlaSummary(ticket.sla)?.state === slaFilter),
         );
-        return sortOrder === 'newest' ? filtered : [...filtered].reverse();
+        return filtered;
     }, [tickets, statusFilter, priorityFilter, assigneeFilter, slaFilter, sortOrder]);
 
     useEffect(() => {
@@ -196,7 +192,7 @@ const TicketsListWrapper = ({ tickets, filters, setFilter, isLoading, isError, s
                             <Dropdown options={priorityOptions} selectedId={priorityFilter} onSelect={(option) => setFilter('priority', String(option.id))} />
                             <Dropdown options={assigneeOptions} selectedId={assigneeFilter} onSelect={(option) => setFilter('assignee', String(option.id))} />
                             <Dropdown options={slaOptions} selectedId={slaFilter} onSelect={(option) => setFilter('sla', String(option.id))} />
-                            <Dropdown options={[{ id: 'newest', value: 'Newest first' }, { id: 'oldest', value: 'Oldest first' }]} selectedId={sortOrder} onSelect={(option) => setSortOrder(option.id as 'newest' | 'oldest')} />
+                            <Dropdown options={[{ id: 'newest', value: 'Newest first' }, { id: 'oldest', value: 'Oldest first' }]} selectedId={sortOrder} onSelect={(option) => setFilter('sortOrder', String(option.id) === 'oldest' ? 'oldest' : 'newest')} />
                         </Box>
                         {isLoading ? (
                             <Box padding="SP6" align="center"><Text>Loading tickets…</Text></Box>

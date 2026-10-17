@@ -1,6 +1,6 @@
 import { items } from '@wix/data';
 import { auth } from '@wix/essentials';
-import { CollectionIds, getSlaSummary, type TicketSla } from '@jrapps/my_tickets_common_types';
+import { CollectionIds, getSlaSummary, type Ticket, type TicketSla } from '@jrapps/my_tickets_common_types';
 import type { MyTicketsIdentity } from '../../my-tickets-auth/token';
 import { isSystemAdmin } from '../../auth/system-admin';
 
@@ -9,6 +9,7 @@ export interface TicketListFilters {
     priority?: string;
     assignee?: string;
     sla?: string;
+    sortOrder?: 'newest' | 'oldest';
 }
 
 export interface SidebarTicket {
@@ -34,6 +35,7 @@ export const readTicketListFilters = (url: URL): TicketListFilters => ({
     priority: url.searchParams.get('priority') || undefined,
     assignee: url.searchParams.get('assignee') || undefined,
     sla: url.searchParams.get('sla') || undefined,
+    sortOrder: url.searchParams.get('sortOrder') === 'oldest' ? 'oldest' : 'newest',
 });
 
 export const createScopedTicketQuery = (
@@ -51,7 +53,28 @@ export const createScopedTicketQuery = (
     if (filters.priority) query = query.eq('priority', filters.priority);
     if (filters.assignee === 'unassigned') query = query.isEmpty('assignedAgent.id');
     else if (filters.assignee) query = query.eq('assignedAgent.id', filters.assignee);
-    return query;
+    return filters.sortOrder === 'oldest'
+        ? query.ascending('_createdDate', 'primaryTicketNumber')
+        : query.descending('_createdDate', 'primaryTicketNumber');
+};
+
+export const findScopedTicketById = async (
+    identity: MyTicketsIdentity,
+    ticketId: string,
+): Promise<Ticket | null> => {
+    const result = await createScopedTicketQuery(identity, {})
+        .eq('_id', ticketId)
+        .limit(1)
+        .find();
+    return (result.items[0] as Ticket | undefined) ?? null;
+};
+
+export const findScopedTicketNumberById = async (
+    identity: MyTicketsIdentity,
+    ticketId: string,
+): Promise<string> => {
+    const ticket = await findScopedTicketById(identity, ticketId);
+    return ticket?.primaryTicketNumber ?? '';
 };
 
 export const mapSidebarTicket = (item: object): SidebarTicket => {

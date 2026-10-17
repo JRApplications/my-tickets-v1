@@ -54,20 +54,28 @@ export const GET: APIRoute = async ({ request, locals }) => {
             throw new Error('Query is required');
         }
 
-        const memberSearch = await members.queryMembers({
-            fieldsets: [members.Set.FULL],
-            search: {
-                expression: boundedQuery,
-                fields: ['loginEmail', 'contact.firstName', 'contact.lastName', 'profile.nickname'],
-            },
-        }).find();
+        let memberIds: string[] = [];
+        try {
+            const memberSearch = await members.queryMembers({
+                fieldsets: [members.Set.FULL],
+                search: {
+                    expression: boundedQuery,
+                    fields: ['loginEmail', 'contact.firstName', 'contact.lastName', 'profile.nickname'],
+                },
+            }).find();
+            memberIds = memberSearch.items.flatMap((member) =>
+                typeof member._id === 'string' ? [member._id] : [],
+            );
+        } catch (error) {
+            console.error('Member lookup failed during ticket search; continuing with ticket fields', error);
+        }
 
         let searchFilter = items.filter()
             .eq('primaryTicketNumber', boundedQuery)
             .or(items.filter().contains('memberName', boundedQuery))
             .or(items.filter().contains('subject', boundedQuery));
-        for (const member of memberSearch.items) {
-            searchFilter = searchFilter.or(items.filter().eq('memberId', member._id));
+        for (const memberId of memberIds) {
+            searchFilter = searchFilter.or(items.filter().eq('memberId', memberId));
         }
 
         const filters = readTicketListFilters(url);
@@ -75,7 +83,6 @@ export const GET: APIRoute = async ({ request, locals }) => {
         let results = await ticketSearch
             .fields(...TICKET_FIELDS)
             .limit(SEARCH_PAGE_SIZE)
-            .descending('primaryTicketNumber')
             .find({ returnTotalCount: false });
         const allItems: SidebarTicket[] = results.items
             .map(mapSidebarTicket)

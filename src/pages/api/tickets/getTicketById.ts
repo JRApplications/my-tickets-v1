@@ -4,11 +4,11 @@ import { captureError } from '../reportError';
 import { type Ticket, type MergeSummaryObject, CollectionIds } from '@jrapps/my_tickets_common_types';
 
 import { SYSTEM_ADMIN_NAME, isSystemAdmin } from '../auth/system-admin';
+import { findScopedTicketById, findScopedTicketNumberById } from './sidebar/query';
 
-const getTicketPrimaryTicketNumberById = async (ticketId: string): Promise<string> => {
+const getTicketPrimaryTicketNumberById = async (identity: NonNullable<App.Locals['myTicketsIdentity']>, ticketId: string): Promise<string> => {
     try {
-        const ticket = await items.get(CollectionIds.TICKETS, ticketId);
-        return ticket?.primaryTicketNumber;
+        return await findScopedTicketNumberById(identity, ticketId);
     } catch (error) {
         throw new Error(`Error fetching ticket primary ticket number: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
@@ -27,21 +27,28 @@ const getAssigneeNameById = async (assignee: string): Promise<string> => {
 export const GET: APIRoute = async ({ request, locals }) => {
     let status = 500;
     try {
+        const identity = locals.myTicketsIdentity;
+        if (!identity) {
+            status = 401;
+            throw new Error('My Tickets agent authentication is required');
+        }
         const url = new URL(request.url);
         const id = url.searchParams.get('id');
         if (id) {
-            const ticketResponse = await items.get(CollectionIds.TICKETS, id, { consistentRead: true, });
+            const ticketResponse = await findScopedTicketById(identity, id);
             if (!ticketResponse) {
                 status = 404;
-                throw new Error(`Ticket with ID ${id} not found`);
+                throw new Error(`Ticket with ID ${id} not found or is outside your team scope`);
             }
 
             if (ticketResponse.mergeSummary) {
-                ticketResponse.mergeSummary = await formatMergeSummary(ticketResponse.mergeSummary);
+                ticketResponse.mergeSummary = await formatMergeSummary(identity, ticketResponse.mergeSummary);
             }
 
             if (ticketResponse.relatedTickets) {
-                ticketResponse.relatedTickets = await Promise.all(ticketResponse.relatedTickets.map(getTicketPrimaryTicketNumberById));
+                ticketResponse.relatedTickets = await Promise.all(ticketResponse.relatedTickets.map((relatedId) =>
+                    getTicketPrimaryTicketNumberById(identity, relatedId),
+                ));
             }
             return new Response(JSON.stringify({ success: true, ticket: ticketResponse as Ticket }), {
                 status: 200,
@@ -62,11 +69,16 @@ export const GET: APIRoute = async ({ request, locals }) => {
     }
 };
 
-const formatMergeSummary = async (mergeSummary: MergeSummaryObject) => {
+const formatMergeSummary = async (
+    identity: NonNullable<App.Locals['myTicketsIdentity']>,
+    mergeSummary: MergeSummaryObject,
+) => {
     // convert Id's into ticket numbers or team names if needed
     return {
-        mergedIntoTicketId: await getTicketPrimaryTicketNumberById(mergeSummary.mergedIntoTicketId),
-        originalTicketIds: await Promise.all(mergeSummary.originalTicketIds.map(getTicketPrimaryTicketNumberById)),
+        mergedIntoTicketId: await getTicketPrimaryTicketNumberById(identity, mergeSummary.mergedIntoTicketId),
+        originalTicketIds: await Promise.all(mergeSummary.originalTicketIds.map((ticketId) =>
+            getTicketPrimaryTicketNumberById(identity, ticketId),
+        )),
         mergedAt: mergeSummary.mergedAt,
         mergedBy: await getAssigneeNameById(mergeSummary.mergedBy),
         reason: mergeSummary.reason,

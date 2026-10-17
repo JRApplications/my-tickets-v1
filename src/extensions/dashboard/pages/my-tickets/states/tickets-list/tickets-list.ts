@@ -24,9 +24,14 @@ export interface TicketListFilters {
     priority: string;
     assignee: string;
     sla: string;
+    sortOrder: 'newest' | 'oldest';
 }
 
 type TicketListFilter = keyof TicketListFilters;
+export interface TicketAssigneeOption {
+    id: string;
+    value: string;
+}
 
 const ALL = 'all';
 const baseApiUrl = new URL(import.meta.url).origin;
@@ -57,7 +62,9 @@ export const useTicketsList = (teamId: string, initialSlaFilter: string) => {
         priority: ALL,
         assignee: ALL,
         sla: initialSlaFilter,
+        sortOrder: 'newest',
     });
+    const [assigneeOptions, setAssigneeOptions] = useState<TicketAssigneeOption[]>([]);
     const [nextCursor, setNextCursor] = useState<string | null>(null);
     const [isLoadingMore, setIsLoadingMore] = useState(false);
     const requestId = useRef(0);
@@ -111,6 +118,28 @@ export const useTicketsList = (teamId: string, initialSlaFilter: string) => {
         };
     }, [teamId, filters, searchTerm]);
 
+    useEffect(() => {
+        let isCurrent = true;
+        setAssigneeOptions([]);
+        const loadAssignees = async () => {
+            try {
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/sidebar/assignees`);
+                const data = await response.json();
+                if (!response.ok || !data.success || !Array.isArray(data.assignees)) {
+                    throw new Error(data.error || `Failed to load assignees (${response.status})`);
+                }
+                if (isCurrent) setAssigneeOptions(data.assignees);
+            } catch (error) {
+                if (!isCurrent) return;
+                console.error('Failed to load ticket assignees', error);
+                const message = error instanceof Error ? error.message : 'Failed to load ticket assignees';
+                ShowToast({ message, type: 'error' });
+            }
+        };
+        void loadAssignees();
+        return () => { isCurrent = false; };
+    }, [teamId]);
+
     const loadMore = async () => {
         if (!nextCursor || isLoadingMore || searchTerm.trim()) return;
         const currentRequestId = requestId.current;
@@ -161,6 +190,7 @@ export const useTicketsList = (teamId: string, initialSlaFilter: string) => {
 
     return {
         tickets,
+        assigneeOptions,
         filters,
         setFilter,
         isLoading,
