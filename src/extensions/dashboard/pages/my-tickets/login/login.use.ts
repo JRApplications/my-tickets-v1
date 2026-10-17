@@ -109,8 +109,8 @@ export const useLogin = ({
             return;
         }
 
-        if (newPassword.length < 6) {
-            ShowToast({ message: 'Password must be at least 6 characters', type: 'error' });
+        if (newPassword.length < 8) {
+            ShowToast({ message: 'Password must be at least 8 characters', type: 'error' });
             return;
         }
 

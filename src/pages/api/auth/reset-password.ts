@@ -25,9 +25,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
             status = 400;
             throw new Error('Valid code is required');
         }
-        if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 6) {
+        if (!newPassword || typeof newPassword !== 'string' || newPassword.length < 8) {
             status = 400;
-            throw new Error('New password must be at least 6 characters');
+            throw new Error('New password must be at least 8 characters');
         }
 
         const result = await verifyResetChallenge(challengeId, code);
