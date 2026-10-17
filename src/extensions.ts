@@ -15,6 +15,10 @@ import dataCollections from './extensions/backend/data-collections/data-collecti
 import resetPasswordTopic from './extensions/backend/notifications/topics/reset-password.extension.ts';
 import resetPasswordUserNotification from './extensions/backend/notifications/user-notifications/reset-password.extension.ts';
 
+import appLifecycle from './extensions/backend/events/app-lifecycle/app-lifecycle.extension.ts';
+
+import appRemoved from './extensions/backend/events/app-removed/app-removed.extension.ts';
+
 export default app()
   .use(myTickets)
   // .use(myTicketsRtPro)
@@ -23,4 +27,6 @@ export default app()
   .use(memberTickets)
   .use(dataCollections)
   .use(resetPasswordTopic)
-  .use(resetPasswordUserNotification);
+  .use(resetPasswordUserNotification)
+  .use(appLifecycle)
+  .use(appRemoved);
