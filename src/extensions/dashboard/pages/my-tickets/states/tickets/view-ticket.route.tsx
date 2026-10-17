@@ -196,10 +196,8 @@ const ViewTicket: FC<ViewTicketProps> = ({ ticketId, ticketDisplayId, agentId, t
                 setTeamsFollowing(ticket.teamsFollowing || []);
                 setAgentsFollowing(ticket.agentsFollowing || []);
 
-
-
-                setTicketCreatedDate(ticket._createdDate || 'Error getting created date');
-                setTicketUpdatedDate(ticket._updatedDate || 'Error getting updated date');
+                setTicketCreatedDate(ticket._createdDate?.$date || 'Error getting created date');
+                setTicketUpdatedDate(ticket._updatedDate?.$date || 'Error getting updated date');
                 setPrimaryTicketNumber(ticket.primaryTicketNumber || 'Error getting ticket number');
                 setAgentName(name);
                 setIsFollowingTicket(ticket.agentsFollowing?.some(agent => agent.id === agentId) || false);
