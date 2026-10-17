@@ -1,7 +1,7 @@
 import React from 'react';
 import { Avatar, Box, IconButton, TableListItem, Text, CounterBadge } from '@wix/design-system';
-import { FlagFilled } from '@wix/wix-ui-icons-common';
-import { Delete, Flag } from '@wix/wix-ui-icons-common/odeditor';
+import { FlagFilled } from '@wix/wix-ui-icons-common/lazy';
+import { Delete, Flag } from '@wix/wix-ui-icons-common/lazy';
 import { formatTimestamp } from './formatTimestamp';
 
 interface SidebarContentItemProps {

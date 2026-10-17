@@ -1,5 +1,5 @@
 import { Button, Card, IconButton, Tabs } from '@wix/design-system';
-import { X } from '@wix/wix-ui-icons-common';
+import { X } from '@wix/wix-ui-icons-common/lazy';
 import './ticket-tabs.css';
 import { useTicketTabs } from './ticket-tabs';
 

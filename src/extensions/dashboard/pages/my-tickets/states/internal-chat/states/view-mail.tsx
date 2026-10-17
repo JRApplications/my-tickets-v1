@@ -1,6 +1,6 @@
 import { Avatar, Box, Heading, IconButton, Text, Card, SkeletonRectangle, SkeletonCircle, SkeletonLine } from '@wix/design-system';
-import { FlagFilled } from '@wix/wix-ui-icons-common';
-import { Delete, Flag } from '@wix/wix-ui-icons-common/odeditor';
+import { FlagFilled } from '@wix/wix-ui-icons-common/lazy';
+import { Delete, Flag } from '@wix/wix-ui-icons-common/lazy';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import MessageInput from '../../../common-components/message-input/message-input.route';
 import MessageWrapper from '../message-wrapper/message.wrapper';

@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import styles from './components.module.css';
-import { ChevronLeft } from '@wix/wix-ui-icons-common';
+import { ChevronLeft } from '@wix/wix-ui-icons-common/lazy';
 
 interface BackButtonProps {
     onClick?: () => void;

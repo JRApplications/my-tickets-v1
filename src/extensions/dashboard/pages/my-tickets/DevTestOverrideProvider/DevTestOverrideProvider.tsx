@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { dashboard } from '@wix/dashboard';
 import { Box, Text, IconButton } from '@wix/design-system';
-import { ChevronUp, ChevronDown } from '@wix/wix-ui-icons-common/odeditor';
+import { ChevronUp, ChevronDown } from '@wix/wix-ui-icons-common/lazy';
 
 const DevTestOverrideProvider = ({ children, agentIdOverride, loggedInAgent }: { children: React.ReactNode, agentIdOverride: (any: any) => void, loggedInAgent: any }) => {
     const [isExpanded, setIsExpanded] = useState(false);

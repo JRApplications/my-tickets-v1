@@ -11,7 +11,7 @@ import {
     type OffsetQuery,
 } from '@wix/patterns';
 import { CollectionPage } from '@wix/patterns/page';
-import { Add, Edit } from '@wix/wix-ui-icons-common/odeditor';
+import { Add, Edit } from '@wix/wix-ui-icons-common/lazy';
 import { PermissionDeniedState } from '@jrapps/my_tickets_dashboard_ui';
 import { fetchTeams } from './view-teams';
 import type { TeamData, ViewTeamsWrapperProps } from './teams.types';

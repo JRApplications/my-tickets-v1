@@ -23,7 +23,7 @@ import {
     Hidden,
     Visible,
     InfoCircle,
-} from '@wix/wix-ui-icons-common/odeditor';
+} from '@wix/wix-ui-icons-common/lazy';
 
 import { useLogin } from './login.use';
 import type {

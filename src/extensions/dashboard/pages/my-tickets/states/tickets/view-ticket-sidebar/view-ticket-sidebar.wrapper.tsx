@@ -28,7 +28,7 @@ import {
     Edit as EditIcon,
     Page as PageIcon,
     Tag as TagIcon
-} from '@wix/wix-ui-icons-common/odeditor';
+} from '@wix/wix-ui-icons-common/lazy';
 
 const formatDate = (dateStr: string): string => {
     const date = new Date(dateStr);

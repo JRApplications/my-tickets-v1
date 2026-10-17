@@ -8,7 +8,7 @@ import {
     WixBooking as WixBookingIcon,
     Order as OrderIcon,
     WixForum as WixForumIcon
-} from '@wix/wix-ui-icons-common/odeditor';
+} from '@wix/wix-ui-icons-common/lazy';
 import { dashboard } from '@wix/dashboard';
 import { useState } from 'react';
 const ComponentsSize = 'medium';

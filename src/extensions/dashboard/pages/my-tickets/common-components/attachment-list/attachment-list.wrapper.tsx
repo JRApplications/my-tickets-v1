@@ -4,7 +4,7 @@ import { IconButton, Box, Text } from '@wix/design-system';
 import {
     Page as PageSmallIcon,
     DismissSmall as DismissIcon
-} from '@wix/wix-ui-icons-common/odeditor';
+} from '@wix/wix-ui-icons-common/lazy';
 import './attachment-list.css';
 
 interface AttachmentListWrapperProps {

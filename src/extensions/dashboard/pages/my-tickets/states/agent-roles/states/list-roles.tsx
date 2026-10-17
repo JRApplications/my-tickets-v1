@@ -9,7 +9,7 @@ import {
     SkeletonRectangle,
     SkeletonLine
 } from '@wix/design-system';
-import { Duplicate, Delete } from '@wix/wix-ui-icons-common/odeditor';
+import { Duplicate, Delete } from '@wix/wix-ui-icons-common/lazy';
 
 interface Props {
     isLoading: boolean;

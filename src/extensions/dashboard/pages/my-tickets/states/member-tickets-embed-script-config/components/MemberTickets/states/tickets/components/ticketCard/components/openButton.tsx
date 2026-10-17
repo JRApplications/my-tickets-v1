@@ -1,6 +1,6 @@
 import classNames from "classnames";
 import styles from "./components.module.css";
-import { ChevronRight } from '@wix/wix-ui-icons-common';
+import { ChevronRight } from '@wix/wix-ui-icons-common/lazy';
 
 export const OpenButton = ({ onClick }: { onClick: () => void }) => {
     return (

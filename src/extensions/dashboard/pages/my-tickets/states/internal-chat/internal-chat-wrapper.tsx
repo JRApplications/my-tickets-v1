@@ -1,5 +1,5 @@
 import { Box, Text, Button, Divider, SegmentedToggle, Card, CounterBadge, Search, Loader } from '@wix/design-system';
-import { Add } from '@wix/wix-ui-icons-common/odeditor';
+import { Add } from '@wix/wix-ui-icons-common/lazy';
 import { useCallback, useMemo, useState } from 'react';
 import './internal-chat.css';
 import CreateMail from './states/create-mail';

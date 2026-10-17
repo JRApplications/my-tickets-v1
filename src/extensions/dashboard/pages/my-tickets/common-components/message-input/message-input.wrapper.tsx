@@ -1,12 +1,12 @@
 import { type FC, useEffect, useRef } from 'react';
 import { useState } from 'react';
-import * as Icons from '@wix/wix-ui-icons-common';
+import * as Icons from '@wix/wix-ui-icons-common/lazy';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import './message-input.css';
 import { Button, Box, IconButton, InputShell, SkeletonRectangle, Loader, Text } from '@wix/design-system';
 import {
     Send as SendIcon,
-} from '@wix/wix-ui-icons-common/odeditor';
+} from '@wix/wix-ui-icons-common/lazy';
 import AttachmentList from '../attachment-list/attachment-list.route';
 import { dashboard } from '@wix/dashboard';
 import { MentionEditor } from './MentionEditor';

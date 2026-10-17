@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Badge, Box, Button, Card, Page, SkeletonRectangle, Table, TableActionCell, Text } from '@wix/design-system';
 import { PermissionDeniedState } from '@jrapps/my_tickets_dashboard_ui';
-import { Checkmark, StatusComplete, Undo } from '@wix/wix-ui-icons-common/odeditor';
+import { Checkmark, StatusComplete, Undo } from '@wix/wix-ui-icons-common/lazy';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import './offline-form-submissions.css';
 

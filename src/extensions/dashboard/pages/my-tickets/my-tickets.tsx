@@ -1,12 +1,11 @@
-import { WixDesignSystemProvider, Box } from '@wix/design-system';
+import { Box } from '@wix/design-system';
 import { WixPatternsProvider } from '@wix/patterns/provider';
+import { BusinessManagerTheme } from '../../BusinessManagerTheme';
 import { ExtensionIds, StateId } from '@jrapps/my_tickets_common_types';
 import { StateContainerProvider } from './StateContainerProvider';
 import { StateProvider } from './StateProvider';
 import type { FC } from 'react';
 import { useEffect, useState, useRef, useCallback } from 'react';
-import '@wix/design-system/styles.global.css';
-import '@wix/design-system/themes/odeditor.global.css';
 import './my-page.css';
 import { SidebarProvider } from './SidebarProvider/SidebarProvider';
 import { StateOverrideProvider } from './StateOverrideProvider';
@@ -457,7 +456,7 @@ const DashboardPage: FC = () => {
 
   if (!loggedInAgent.agentId) {
     return (
-      <WixDesignSystemProvider>
+      <BusinessManagerTheme>
         <LoginPage handleLoginSuccess={handleLoginSuccess} isGettingReady={!isAccessReady && !needsOnboarding} />
         <MainAdminOnboardingModal
           isOpen={needsOnboarding}
@@ -466,12 +465,12 @@ const DashboardPage: FC = () => {
             handleLoginSuccess(user);
           }}
         />
-      </WixDesignSystemProvider>
+      </BusinessManagerTheme>
     );
   }
 
   return (
-    <WixDesignSystemProvider>
+    <BusinessManagerTheme>
       <StateOverrideProvider onStateOverride={handleStateOverride} viewTicketOverrideTicketId={setViewTicketOverrideTicketId}>
         <DevTestOverrideProvider agentIdOverride={setLoggedInAgent} loggedInAgent={loggedInAgent}>
           <div className='app'>
@@ -680,7 +679,7 @@ const DashboardPage: FC = () => {
           agentId: loggedInAgent.agentId
         }}
       />
-    </WixDesignSystemProvider>
+    </BusinessManagerTheme>
   );
 };
 

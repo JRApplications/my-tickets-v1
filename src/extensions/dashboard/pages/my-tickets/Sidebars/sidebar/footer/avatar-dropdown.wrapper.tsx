@@ -12,7 +12,7 @@ import {
     SkeletonLine
 } from '@wix/design-system';
 import StatusDots from './status-dots.wrapper';
-import { ChevronDown } from '@wix/wix-ui-icons-common/odeditor';
+import { ChevronDown } from '@wix/wix-ui-icons-common/lazy';
 
 type Status = 'online' | 'busy' | 'offline';
 

@@ -3,9 +3,9 @@ import { type FC } from 'react';
 import { TextButton, Box, Text } from '@wix/design-system';
 import {
     Page as PageSmallIcon
-} from '@wix/wix-ui-icons-common/odeditor';
+} from '@wix/wix-ui-icons-common/lazy';
 import './attachment.css';
-import { ArrowTopRight as ArrowTopRightIcon, } from '@wix/wix-ui-icons-common/odeditor';
+import { ArrowTopRight as ArrowTopRightIcon, } from '@wix/wix-ui-icons-common/lazy';
 
 interface AttachmentWrapperProps {
     items: Array<{

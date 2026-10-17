@@ -27,7 +27,7 @@ import {
     SkeletonRectangle,
     SkeletonCircle
 } from '@wix/design-system';
-import { SparklesFilled as SparklesIcon, ViewExternal as EyeIcon } from '@wix/wix-ui-icons-common/odeditor'
+import { SparklesFilled as SparklesIcon, ViewExternal as EyeIcon } from '@wix/wix-ui-icons-common/lazy'
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import { 
@@ -46,7 +46,7 @@ import { useState } from 'react';
 import {
     Phone as PhoneIcon,
     Location as LocationIcon,
-} from '@wix/wix-ui-icons-common/odeditor';
+} from '@wix/wix-ui-icons-common/lazy';
 
 import './CreateTicketModal.css';
 

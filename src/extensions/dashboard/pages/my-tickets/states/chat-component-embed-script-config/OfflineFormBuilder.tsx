@@ -1,5 +1,5 @@
 import { Box, Button, Card, Checkbox, Dropdown, FormField, IconButton, Input, Text } from '@wix/design-system';
-import { Add, ChevronDown, ChevronUp, Delete } from '@wix/wix-ui-icons-common';
+import { Add, ChevronDown, ChevronUp, Delete } from '@wix/wix-ui-icons-common/lazy';
 import type { OfflineField, OfflineFormSchema } from './chat-component-embed-script-config.types';
 import { buildThemeVars } from './utils/theme';
 

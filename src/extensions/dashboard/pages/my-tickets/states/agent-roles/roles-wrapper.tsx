@@ -6,7 +6,7 @@ import {
     Page,
     SkeletonRectangle
 } from '@wix/design-system';
-import { Add, Confirm } from '@wix/wix-ui-icons-common/odeditor';
+import { Add, Confirm } from '@wix/wix-ui-icons-common/lazy';
 
 import './roles.css';
 import ListRoles from './states/list-roles';

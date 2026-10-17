@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { AreaChart, Badge, Box, Button, Card, Cell, Heading, Layout, LinearProgressBar, Page, SkeletonRectangle, TableListItem, Text, Tooltip } from '@wix/design-system';
-import { Add, Inbox } from '@wix/wix-ui-icons-common/odeditor';
+import { Add, Inbox } from '@wix/wix-ui-icons-common/lazy';
 import { httpClient } from '@wix/essentials';
 import {
     getPrioritySkin,

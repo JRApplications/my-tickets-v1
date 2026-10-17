@@ -17,7 +17,7 @@ import {
     type OffsetQuery,
 } from '@wix/patterns';
 import { CollectionPage } from '@wix/patterns/page';
-import * as Icons from '@wix/wix-ui-icons-common/odeditor';
+import * as Icons from '@wix/wix-ui-icons-common/lazy';
 import { PermissionDeniedState, ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import type { Agent } from '@jrapps/my_tickets_common_types';
 import { fetchAgents } from './view-accounts';

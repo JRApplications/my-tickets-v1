@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Box, SidebarNext, SidebarItemNext, SidebarTitleItemNext, SidebarDividerNext, SidebarSubMenuNext, Button, IconButton, Tooltip, Heading, CounterBadge, SkeletonRectangle, Text } from '@wix/design-system';
-import * as Icons from '@wix/wix-ui-icons-common/odeditor';
+import * as Icons from '@wix/wix-ui-icons-common/lazy';
 import { Notifications } from './Notifications';
 import AvatarDropdown from './footer/avatar-dropdown.wrapper';
 import { StateId } from '@jrapps/my_tickets_common_types';

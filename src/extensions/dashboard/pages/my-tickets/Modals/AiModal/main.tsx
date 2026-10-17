@@ -15,11 +15,11 @@ import {
     SparklesFilled,
     NewChat,
     Copy,
-} from '@wix/wix-ui-icons-common/odeditor';
+} from '@wix/wix-ui-icons-common/lazy';
 import {
     X,
     Check
-} from '@wix/wix-ui-icons-common';
+} from '@wix/wix-ui-icons-common/lazy';
 import './main.css';
 import { MessageWrapper } from './messageWrapper';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';

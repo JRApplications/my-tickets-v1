@@ -1,6 +1,6 @@
 import { type FC } from 'react';
 import { DropdownBase, Button, listItemActionBuilder } from '@wix/design-system';
-import { ChevronDown, Visible } from '@wix/wix-ui-icons-common/odeditor';
+import { ChevronDown, Visible } from '@wix/wix-ui-icons-common/lazy';
 import type { ChatActionsButtonWrapperProps } from './chats.types';
 
 const ActionsButtonWrapper: FC<ChatActionsButtonWrapperProps> = ({ memberId, onViewMemberClicked, joinedChat, userType, onConvertToTicket, onTransferChat }) => {

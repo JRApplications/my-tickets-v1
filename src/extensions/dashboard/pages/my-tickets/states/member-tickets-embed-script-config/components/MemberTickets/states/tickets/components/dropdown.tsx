@@ -1,7 +1,7 @@
 import classNames from "classnames"
 import { useEffect, useRef, useState } from "react"
 import styles from "./components.module.css";
-import { ChevronDown } from '@wix/wix-ui-icons-common';
+import { ChevronDown } from '@wix/wix-ui-icons-common/lazy';
 import { STATUS_OPTIONS } from '@jrapps/my_tickets_common_types';
 
 const OPTIONS = [

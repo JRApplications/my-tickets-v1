@@ -1,10 +1,10 @@
 import { type FC, useState } from 'react';
 import { DropdownBase, Button, listItemActionBuilder } from '@wix/design-system';
-import { ChevronDown, Replace, Redo, Badge, Visible, Add } from '@wix/wix-ui-icons-common/odeditor';
+import { ChevronDown, Replace, Redo, Badge, Visible, Add } from '@wix/wix-ui-icons-common/lazy';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import type { TicketActionsButtonWrapperProps as ActionsButtonWrapperProps } from './tickets.types';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
-import { DataConnect, Merge } from '@wix/wix-ui-icons-common';
+import { DataConnect, Merge } from '@wix/wix-ui-icons-common/lazy';
 
 const ActionsButtonWrapper: FC<ActionsButtonWrapperProps> = ({ ticketStatus, permissions, memberId, onTicketStatusChangeButtonClicked, onTransferButtonClicked, onChangePriorityButtonClicked, onMergeTicketClicked, onViewMemberClicked, onAssignToMeClicked, isFollowingTicket, ticketId, agentId, isAssignedToTicket }) => {
     const [isFollowActionLoading, setIsFollowActionLoading] = useState(false);

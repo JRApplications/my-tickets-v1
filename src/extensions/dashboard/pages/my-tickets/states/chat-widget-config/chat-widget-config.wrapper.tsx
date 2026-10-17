@@ -20,7 +20,7 @@ import {
     SkeletonLine,
     SkeletonRectangle,
 } from '@wix/design-system';
-import { ChevronDown, ChevronUp, InfoCircle } from '@wix/wix-ui-icons-common';
+import { ChevronDown, ChevronUp, InfoCircle } from '@wix/wix-ui-icons-common/lazy';
 import { useEffect, useMemo, useState } from 'react';
 import { fetchTeams as fetchTeamsApi } from './chat-widget-config';
 import type { TeamOption, Config, ChatWidgetConfigWrapperProps } from './chat-widget-config.types';

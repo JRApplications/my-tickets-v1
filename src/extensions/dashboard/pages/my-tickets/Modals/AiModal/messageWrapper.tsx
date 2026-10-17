@@ -12,7 +12,7 @@ import {
     StatusComplete,
     ThumbsDownFilled,
     ThumbsUpFilled,
-} from '@wix/wix-ui-icons-common/odeditor';
+} from '@wix/wix-ui-icons-common/lazy';
 import MarkdownPreview from '@uiw/react-markdown-preview';
 import {
     ToolForm,

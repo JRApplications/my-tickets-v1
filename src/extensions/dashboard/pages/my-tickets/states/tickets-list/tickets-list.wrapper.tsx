@@ -33,7 +33,7 @@ import {
     type TicketStatus,
     getSlaSummary,
 } from '@jrapps/my_tickets_common_types';
-import * as Icons from '@wix/wix-ui-icons-common/odeditor';
+import * as Icons from '@wix/wix-ui-icons-common/lazy';
 import SlaBadge from '../../common-components/sla-badge/sla-badge';
 import { fetchTicketPage, type TicketAssigneeOption, type TicketPageFilters, type TicketsListItem } from './tickets-list';
 
