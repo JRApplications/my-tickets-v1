@@ -218,7 +218,7 @@ const LoginWrapper: FC<LoginWrapperProps> = ({
                                                     </IconButton>
                                                 </Box>
                                             }
-                                            placeholder="User ID"
+                                            placeholder="Password"
                                             type={
                                                 viewPassword
                                                     ? 'text'
