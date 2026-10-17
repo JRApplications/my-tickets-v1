@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
-import { items } from '@wix/data';
 import { auth } from '@wix/essentials';
+import { items } from '@wix/data';
 import { verifyResetChallenge } from './forgot-password';
 import { hashPassword, generateSalt } from './password-utils';
 import { captureError } from '../reportError';
