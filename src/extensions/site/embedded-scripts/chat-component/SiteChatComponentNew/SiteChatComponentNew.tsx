@@ -82,6 +82,9 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
   const { open = true, openWidget, closeWidget } = useSiteChatComponentNew(defaultOpen);
   const { messages, handleCreateConversation, endConversation } = useConversation(conversationId ?? '');
   const { config, loading: isChatConfigLoading, sendQuestionMessage, sendWaitingForAgentMessage } = useChatConfig();
+  const dialogRef = React.useRef<HTMLDivElement>(null);
+  const launcherRef = React.useRef<HTMLButtonElement>(null);
+  const wasOpenRef = React.useRef(open);
   const [businessHoursClock, setBusinessHoursClock] = React.useState(() => new Date());
   React.useEffect(() => {
     const timer = window.setInterval(() => setBusinessHoursClock(new Date()), 60_000);
@@ -176,10 +179,76 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
     (message) => message.senderType === 'system' && message.message === 'CHAT_ENDED'
   );
 
-  const handleClose = () => {
+  const handleClose = React.useCallback(() => {
     closeWidget();
     onClose?.();
-  };
+  }, [closeWidget, onClose]);
+
+  React.useEffect(() => {
+    if (!open) {
+      if (wasOpenRef.current) launcherRef.current?.focus();
+      wasOpenRef.current = false;
+      return;
+    }
+    wasOpenRef.current = true;
+
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    const focusableSelector = [
+      'a[href]',
+      'button:not([disabled])',
+      'input:not([disabled])',
+      'select:not([disabled])',
+      'textarea:not([disabled])',
+      'iframe',
+      '[contenteditable="true"]',
+      '[tabindex]:not([tabindex="-1"])',
+    ].join(', ');
+    const getFocusableElements = () => Array.from(dialog.querySelectorAll<HTMLElement>(focusableSelector))
+      .filter((element) => element.getClientRects().length > 0
+        && window.getComputedStyle(element).visibility !== 'hidden'
+        && element.getAttribute('aria-hidden') !== 'true');
+
+    dialog.querySelector<HTMLElement>('button[aria-label="Close chat"]')?.focus();
+    if (!dialog.contains(document.activeElement)) dialog.focus();
+
+    const handleDialogKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        handleClose();
+        return;
+      }
+      if (event.key !== 'Tab') return;
+
+      const focusableElements = getFocusableElements();
+      const first = focusableElements[0];
+      const last = focusableElements[focusableElements.length - 1];
+      if (!first || !last) {
+        event.preventDefault();
+        dialog.focus();
+      } else if (event.shiftKey && (document.activeElement === first || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (document.activeElement === last || !dialog.contains(document.activeElement))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    const handleFocusIn = (event: FocusEvent) => {
+      if (event.target instanceof Node && !dialog.contains(event.target)) {
+        (getFocusableElements()[0] ?? dialog).focus();
+      }
+    };
+
+    document.addEventListener('keydown', handleDialogKeyDown);
+    document.addEventListener('focusin', handleFocusIn);
+    return () => {
+      document.removeEventListener('keydown', handleDialogKeyDown);
+      document.removeEventListener('focusin', handleFocusIn);
+    };
+  }, [open, handleClose]);
 
   const handleEndChat = async () => {
     if (!conversationId || isEndingChat) return;
@@ -398,11 +467,13 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
       {/* Chat panel */}
       {open && (
         <div
+          ref={dialogRef}
           className={classNames("cw__widget", styles.cw__widget)}
           data-element="cw__root"
           role="dialog"
           aria-modal="true"
           aria-label={`${title} chat widget`}
+          tabIndex={-1}
           style={{
             width: 'var(--cw-width)',
             height: 'var(--cw-height)',
@@ -427,6 +498,7 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
 
       {!open && (
         <button
+          ref={launcherRef}
           className={classNames("cw_launcher", styles.cw_launcher)}
           onClick={openWidget}
           aria-label="Open chat"

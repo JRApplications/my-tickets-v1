@@ -114,8 +114,8 @@ const ChatComponentEmbedScriptConfigWrapper: FC<{ permissions: string[] }> = ({ 
                     : defaultOfflineForm;
 
                 const newSettings = {
-                    enabled: parameters?.enabled ? true : false,
-                    demoData: parameters?.demoData ? true : false,
+                    enabled: parameters?.enabled === 'true',
+                    demoData: parameters?.demoData === 'true',
                     theme,
                     offlineForm,
                 };
