@@ -103,6 +103,24 @@ export default {
       "displayName": "Password Reset Requested At",
       "type": "NUMBER",
       "description": "Private timestamp used to limit password reset email frequency",
+    },
+    {
+      "key": "loginFailedAttempts",
+      "displayName": "Login Failed Attempts",
+      "type": "NUMBER",
+      "description": "Private failed login count for the current time window",
+    },
+    {
+      "key": "loginFailureWindow",
+      "displayName": "Login Failure Window",
+      "type": "NUMBER",
+      "description": "Private time window identifier for login throttling",
+    },
+    {
+      "key": "loginLockedUntil",
+      "displayName": "Login Locked Until",
+      "type": "NUMBER",
+      "description": "Private time after which login attempts are allowed again",
     }
   ],
   dataPermissions: {
