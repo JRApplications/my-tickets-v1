@@ -148,7 +148,7 @@ const ViewTicketWrapper: FC<ViewTicketWrapperProps> = ({
         setHasFailedSend(false);
     }, [ticketId]);
 
-    if (!ticketPermissions.includes('my-tickets-view-single-ticket')) {
+    if (!ticketPermissions.includes('my-tickets-view-single-ticket') && !ticketPermissions.includes('my-tickets-view-all-tickets')) {
         return (
             <PermissionDeniedState />
         );

@@ -1,6 +1,18 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTicketsList } from './tickets-list';
 import TicketsListWrapper from './tickets-list.wrapper';
+
+const ALL = 'all';
+const FILTERS_STORAGE_KEY = 'my-tickets:sidebar-filters';
+
+const readSavedSlaFilter = () => {
+    try {
+        const saved = JSON.parse(window.localStorage.getItem(FILTERS_STORAGE_KEY) ?? '{}');
+        return typeof saved.sla === 'string' ? saved.sla : ALL;
+    } catch {
+        return ALL;
+    }
+};
 
 interface TicketsListProps {
     teamId: string;
@@ -13,7 +25,8 @@ interface TicketsListProps {
 }
 
 const TicketsList = ({ teamId, permissions, onTicketClick, onCreateTicket, isTicketLimitReached, onVisibleTicketsChange, onGetTicketUpdateFn }: TicketsListProps) => {
-    const ticketsState = useTicketsList(teamId);
+    const [initialSlaFilter] = useState(readSavedSlaFilter);
+    const ticketsState = useTicketsList(teamId, initialSlaFilter);
     const { updateTicket, ...listProps } = ticketsState;
 
     useEffect(() => {

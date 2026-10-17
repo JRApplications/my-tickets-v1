@@ -34,7 +34,7 @@ const MemberTickets: FC<MemberTicketsProps> = ({
   const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase();
   const visibleDemoTickets = demoTickets.filter((ticket) => {
     const matchesStatus = !statusFilter || normalizeTicketStatus(ticket.status) === statusFilter;
-    const searchableText = [ticket.subject, ticket.ticketId, ticket.primaryTicketNumber, ticket.status]
+    const searchableText = [ticket.subject, ticket.ticketId, ticket.status]
       .filter((value) => value != null)
       .join(' ')
       .toLocaleLowerCase();

@@ -18,6 +18,7 @@ import {
     formatStatus,
     getPrioritySkin,
     getStatusSkin,
+    PRIORITY_OPTIONS,
     STATUS_OPTIONS,
     type TicketPriority,
     type TicketStatus,
@@ -25,11 +26,13 @@ import {
 } from '@jrapps/my_tickets_common_types';
 import * as Icons from '@wix/wix-ui-icons-common/odeditor';
 import SlaBadge from '../../common-components/sla-badge/sla-badge';
-import type { TicketsListItem } from './tickets-list';
+import type { TicketListFilters, TicketsListItem } from './tickets-list';
 import './tickets-list.css';
 
 type TicketsListWrapperProps = {
     tickets: TicketsListItem[];
+    filters: TicketListFilters;
+    setFilter: (filter: keyof TicketListFilters, value: string) => void;
     isLoading: boolean;
     isError: boolean;
     searchTerm: string;
@@ -48,15 +51,6 @@ type TicketsListWrapperProps = {
 const ALL = 'all';
 const FILTERS_STORAGE_KEY = 'my-tickets:sidebar-filters';
 
-const readSavedSlaFilter = () => {
-    try {
-        const saved = JSON.parse(window.localStorage.getItem(FILTERS_STORAGE_KEY) ?? '{}');
-        return typeof saved.sla === 'string' ? saved.sla : ALL;
-    } catch {
-        return ALL;
-    }
-};
-
 const formatCreatedDate = (createdDate?: string) => {
     if (!createdDate) return null;
     const date = new Date(createdDate);
@@ -67,14 +61,11 @@ const formatCreatedDate = (createdDate?: string) => {
     };
 };
 
-const TicketsListWrapper = ({ tickets, isLoading, isError, searchTerm, handleSearch, handleClear, loadMore, hasMore, isLoadingMore, permissions, onTicketClick, onCreateTicket, isTicketLimitReached = false, onVisibleTicketsChange }: TicketsListWrapperProps) => {
-    const [statusFilter, setStatusFilter] = useState<string>(ALL);
-    const [priorityFilter, setPriorityFilter] = useState<string>(ALL);
-    const [assigneeFilter, setAssigneeFilter] = useState<string>(ALL);
-    const [slaFilter, setSlaFilter] = useState<string>(readSavedSlaFilter);
+const TicketsListWrapper = ({ tickets, filters, setFilter, isLoading, isError, searchTerm, handleSearch, handleClear, loadMore, hasMore, isLoadingMore, permissions, onTicketClick, onCreateTicket, isTicketLimitReached = false, onVisibleTicketsChange }: TicketsListWrapperProps) => {
     const [sortOrder, setSortOrder] = useState<'newest' | 'oldest'>('newest');
 
-    const canViewTickets = permissions.includes('my-tickets-view-single-ticket');
+    const { status: statusFilter, priority: priorityFilter, assignee: assigneeFilter, sla: slaFilter } = filters;
+    const canViewTickets = permissions.includes('my-tickets-view-all-tickets');
     const canCreateTicket = permissions.includes('my-tickets-create-ticket');
 
     const statusOptions = [
@@ -83,10 +74,7 @@ const TicketsListWrapper = ({ tickets, isLoading, isError, searchTerm, handleSea
     ];
     const priorityOptions = [
         { id: ALL, value: 'All priorities' },
-        ...Array.from(new Set(tickets.map((ticket) => ticket.priority).filter(Boolean))).map((priority) => ({
-            id: priority,
-            value: formatPriority(priority as TicketPriority),
-        })),
+        ...PRIORITY_OPTIONS.map((option) => ({ id: option.id, value: option.value })),
     ];
     const assigneeOptions = [
         { id: ALL, value: 'All assignees' },
@@ -204,10 +192,10 @@ const TicketsListWrapper = ({ tickets, isLoading, isError, searchTerm, handleSea
                     <Card>
                         <Box className="tickets-list-toolbar" gap="SP2" verticalAlign="middle" style={{ flexWrap: 'wrap' }}>
                             <Box className="tickets-list-search"><Search value={searchTerm} placeholder="Search tickets or keywords" onChange={handleSearch} onClear={handleClear} clearButton /></Box>
-                            <Dropdown options={statusOptions} selectedId={statusFilter} onSelect={(option) => setStatusFilter(String(option.id))} />
-                            <Dropdown options={priorityOptions} selectedId={priorityFilter} onSelect={(option) => setPriorityFilter(String(option.id))} />
-                            <Dropdown options={assigneeOptions} selectedId={assigneeFilter} onSelect={(option) => setAssigneeFilter(String(option.id))} />
-                            <Dropdown options={slaOptions} selectedId={slaFilter} onSelect={(option) => setSlaFilter(String(option.id))} />
+                            <Dropdown options={statusOptions} selectedId={statusFilter} onSelect={(option) => setFilter('status', String(option.id))} />
+                            <Dropdown options={priorityOptions} selectedId={priorityFilter} onSelect={(option) => setFilter('priority', String(option.id))} />
+                            <Dropdown options={assigneeOptions} selectedId={assigneeFilter} onSelect={(option) => setFilter('assignee', String(option.id))} />
+                            <Dropdown options={slaOptions} selectedId={slaFilter} onSelect={(option) => setFilter('sla', String(option.id))} />
                             <Dropdown options={[{ id: 'newest', value: 'Newest first' }, { id: 'oldest', value: 'Oldest first' }]} selectedId={sortOrder} onSelect={(option) => setSortOrder(option.id as 'newest' | 'oldest')} />
                         </Box>
                         {isLoading ? (

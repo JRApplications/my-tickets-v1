@@ -157,5 +157,8 @@ export async function agentHasRequestPermission(
     request: Request,
 ): Promise<boolean> {
     const permission = await getRequiredAgentPermission(request);
-    return permission === null || checkAgentPermission(identity.agentId, permission);
+    if (permission === null) return true;
+    if (await checkAgentPermission(identity.agentId, permission)) return true;
+    return permission === 'my-tickets-view-single-ticket'
+        && checkAgentPermission(identity.agentId, 'my-tickets-view-all-tickets');
 }
