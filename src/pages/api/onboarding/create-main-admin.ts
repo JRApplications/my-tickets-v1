@@ -36,6 +36,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
             description: 'Default team for the main administrator.',
             email: 'mainteam@mytickets.internal',
         });
+        if (!team._id) throw new Error('Main team was created without an ID');
+
+        await setGeneralChatTeam(team._id);
 
         const salt = await generateSalt();
         const userId = await hashPassword(password, salt);
@@ -79,6 +82,25 @@ async function findOrCreate<T extends { _id?: string }>(collection: string, fiel
     const result = await items.query(collection).eq(field, value).limit(1).find();
     if (result.items[0]) return result.items[0] as T;
     return await items.insert<T>(collection, data) as unknown as T;
+}
+
+async function setGeneralChatTeam(teamId: string): Promise<void> {
+    const result = await auth.elevate(items.query)(CollectionIds.CHAT_WIDGET_CONFIG)
+        .fields('_id')
+        .limit(1)
+        .find();
+    const configId = result.items[0]?._id;
+
+    if (configId) {
+        await auth.elevate(items.patch)(CollectionIds.CHAT_WIDGET_CONFIG, configId)
+            .setField('generalTeamId', teamId)
+            .run();
+        return;
+    }
+
+    await auth.elevate(items.insert)(CollectionIds.CHAT_WIDGET_CONFIG, {
+        generalTeamId: teamId,
+    });
 }
 
 const json = (body: Record<string, unknown>, status: number) => new Response(JSON.stringify(body), {
