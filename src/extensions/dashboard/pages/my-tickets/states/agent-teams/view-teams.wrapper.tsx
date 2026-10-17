@@ -1,233 +1,152 @@
-import React, { useState } from 'react';
+import { useRef } from 'react';
+import { Avatar, Text } from '@wix/design-system';
 import {
-    Box,
-    Button,
-    Search,
-    Text,
+    CollectionEmptyState,
+    CollectionErrorState,
+    CollectionNoResultsState,
+    CollectionSearch,
+    PrimaryActions,
     Table,
-    TableToolbar,
-    Page,
-    Avatar,
-    Card,
-    SkeletonRectangle,
-    SkeletonLine,
-    Tooltip
-} from '@wix/design-system';
+    useTableCollection,
+    type OffsetQuery,
+} from '@wix/patterns';
+import { CollectionPage } from '@wix/patterns/page';
 import { Add, Edit } from '@wix/wix-ui-icons-common/odeditor';
-import { LoadingState } from '@jrapps/my_tickets_dashboard_ui';
 import { PermissionDeniedState } from '@jrapps/my_tickets_dashboard_ui';
+import { fetchTeams } from './view-teams';
+import type { TeamData, ViewTeamsWrapperProps } from './teams.types';
 
-import './view-teams.css';
-
-interface TeamData {
-    _id: string;
-    name?: string;
-    description?: string;
-    department?: string;
-    teamPictureUrl?: string;
-}
-
-import type { ViewTeamsWrapperProps } from './teams.types';
-
-const ViewTeamsWrapper = ({ data = [], permissions, isLoading = true, isError = false, onModalOpen, isTeamLimitReached = false }: ViewTeamsWrapperProps) => {
-
-    const [searchQuery, setSearchQuery] = useState('');
-
-    const handleCreateTeam = () => {
-        onModalOpen && onModalOpen('create');
-    }
-
-    const handleEditTeam = (id: string | undefined) => {
-        if (!id) return;
-        onModalOpen && onModalOpen('edit', id);
-    }
-
+const ViewTeamsWrapper = ({
+    agentId,
+    teamId,
+    permissions,
+    onModalOpen,
+    isTeamLimitReached = false,
+}: ViewTeamsWrapperProps) => {
+    const teamsRef = useRef<TeamData[]>();
     const canEditTeam = permissions.includes('my-tickets-edit-teams');
     const canCreateTeam = permissions.includes('my-tickets-create-teams');
 
+    const tableState = useTableCollection<TeamData>({
+        queryName: `com.jrapps.my-tickets.teams.${agentId}.${teamId}`,
+        paginationMode: 'offset',
+        queryOptions: { staleTime: 0 },
+        itemKey: (team) => team._id,
+        itemName: (team) => team.name ?? 'Team',
+        filters: {},
+        fetchData: async ({ limit, offset, search }: OffsetQuery) => {
+            if (!teamsRef.current) {
+                teamsRef.current = await fetchTeams();
+            }
+
+            const term = search?.trim().toLowerCase();
+            const filteredTeams = term
+                ? teamsRef.current.filter((team) =>
+                    team.name?.toLowerCase().includes(term) ||
+                    team.description?.toLowerCase().includes(term) ||
+                    team.department?.toLowerCase().includes(term),
+                )
+                : teamsRef.current;
+
+            return {
+                items: filteredTeams.slice(offset, offset + limit),
+                total: filteredTeams.length,
+            };
+        },
+    });
+
     if (!permissions.includes('my-tickets-view-teams')) {
-        return (<PermissionDeniedState />);
+        return <PermissionDeniedState />;
     }
-
-    if (isError) {
-        return (
-            <LoadingState
-                state={'error'}
-                errorText='Failed to load teams. Please try again later.'
-            />
-        );
-    }
-
-    const normalizedQuery = searchQuery.trim().toLowerCase();
-    const filteredData = normalizedQuery
-        ? data.filter((team) => {
-            const nameMatch = team.name?.toLowerCase().includes(normalizedQuery) ?? false;
-            const descMatch = team.description?.toLowerCase().includes(normalizedQuery) ?? false;
-            const departmentMatch = team.department?.toLowerCase().includes(normalizedQuery) ?? false;
-            return nameMatch || descMatch || departmentMatch;
-        })
-        : data;
-
-    const columns = [
-        {
-            title: '',
-            width: '56px',
-            render: (row: TeamData) => (
-                <Avatar
-                    size='size36'
-                    imgProps={row.teamPictureUrl ? { src: row.teamPictureUrl } : undefined}
-                    name={row.name}
-                />
-            ),
-        },
-        {
-            title: 'Name',
-            render: (row: TeamData) => (
-                <Text weight='normal'>{row.name}</Text>
-            ),
-        },
-        {
-            title: 'Department',
-            render: (row: TeamData) => (
-                <Text weight='normal'>{row.department || '—'}</Text>
-            ),
-        },
-        {
-            title: 'Description',
-            render: (row: TeamData) => (
-                <Text weight='normal' secondary>{row.description}</Text>
-            ),
-        },
-        {
-            title: '',
-            width: '80px',
-            render: (row: TeamData) => (
-                <Tooltip disabled={canEditTeam} content="You don't have permission to edit teams">
-                    <Button
-                        size='small'
-                        priority='secondary'
-                        prefixIcon={<Edit />}
-                        disabled={!canEditTeam}
-                        onClick={() => handleEditTeam(row._id)}
-                    >
-                        Edit
-                    </Button>
-                </Tooltip>
-            ),
-        },
-    ];
-
-    const renderEmptyState = () => {
-        if (normalizedQuery) {
-            return (
-                <Box width='100%' WebkitJustifyContent='center'>
-                    <Table.EmptyState
-                        className='view-teams-empty-state'
-                        skin='page-no-border'
-                        title='No teams found'
-                        subtitle={`No teams match "${searchQuery}". Try a different search term.`}
-                    />
-                </Box>
-            );
-        }
-        return (
-            <Box width='100%' WebkitJustifyContent='center'>
-                <Table.EmptyState
-                    className='view-teams-empty-state'
-                    skin='page-no-border'
-                    title="Create your first team"
-                    subtitle="Once you create teams, you'll be able to see and manage them here."
-                >
-                    <Tooltip disabled={canCreateTeam && !isTeamLimitReached} content={isTeamLimitReached ? 'Upgrade required to add more teams' : "You don't have permission to create teams"}>
-                        <Button
-                            size='large'
-                            prefixIcon={<Add />}
-                            onClick={handleCreateTeam}
-                            disabled={!canCreateTeam || isTeamLimitReached}>
-                            Create Team
-                        </Button>
-                    </Tooltip>
-                </Table.EmptyState>
-            </Box>
-        );
-    };
 
     return (
-        <Page maxWidth={9999} className="view-teams-page">
-            <Page.Header
-                title="Teams"
-                actionsBar={isLoading ? <SkeletonRectangle width="130px" height="40px" /> : (
-                    <Tooltip disabled={canCreateTeam && !isTeamLimitReached} content={isTeamLimitReached ? 'Upgrade required to add more teams' : "You don't have permission to create teams"}>
-                        <Button size="medium" prefixIcon={<Add />} onClick={handleCreateTeam} disabled={!canCreateTeam || isTeamLimitReached}>
-                            Create Team
-                        </Button>
-                    </Tooltip>
-                )}
+        <CollectionPage height="100%">
+            <CollectionPage.Header
+                title={{ text: 'Teams', hideTotal: true }}
+                primaryAction={
+                    <PrimaryActions
+                        label="Create Team"
+                        prefixIcon={<Add />}
+                        onClick={() => onModalOpen?.('create')}
+                        disabled={!canCreateTeam || isTeamLimitReached}
+                        tooltip={isTeamLimitReached
+                            ? 'Upgrade required to add more teams'
+                            : "You don't have permission to create teams"}
+                    />
+                }
             />
-            <Page.Content>
-                {isLoading && (
-                    <Card>
-                        <Table
-                            showHeaderWhenEmpty
-                            columns={[
-                                { title: <SkeletonLine width="100px" />, render: () => <SkeletonRectangle width="100px" height="20px" /> },
-                                { title: <SkeletonLine width="100px" />, render: () => <SkeletonRectangle width="100px" height="20px" /> },
-                                { title: <SkeletonLine width="100px" />, render: () => <SkeletonRectangle width="100px" height="20px" /> },
-                                {
-                                    title: '',
-                                    width: '100px',
-                                    render: () =>
-                                        <SkeletonRectangle width="50px" height="30px" />
-                                },
-                            ]}
-                            data={[{}, {}, {}]}
-                        >
-                            <TableToolbar>
-                                <TableToolbar.ItemGroup position="end">
-                                    <TableToolbar.Item>
-                                        <SkeletonRectangle width="200px" height="35px" />
-                                    </TableToolbar.Item>
-                                </TableToolbar.ItemGroup>
-                            </TableToolbar>
-                            <Table.Content />
-                        </Table>
-                    </Card>
-                )}
-
-                {!isLoading && (
-                    <Card>
-                        <Table
-                            data={filteredData}
-                            columns={columns}
-                        >
-                            <Table.ToolbarContainer>
-                                {() => (
-                                    <TableToolbar>
-                                        <TableToolbar.ItemGroup position="end">
-                                            <TableToolbar.Item>
-                                                <Search
-                                                    value={searchQuery}
-                                                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchQuery(e.target.value)}
-                                                    onClear={() => setSearchQuery('')}
-                                                    placeholder='Search teams'
-                                                    clearButton
-                                                />
-                                            </TableToolbar.Item>
-                                        </TableToolbar.ItemGroup>
-                                    </TableToolbar>
-                                )}
-                            </Table.ToolbarContainer>
-                            <Table.Titlebar />
-                            {filteredData.length > 0 ? (
-                                <Table.Content titleBarVisible={false} />
-                            ) : (
-                                renderEmptyState()
-                            )}
-                        </Table>
-                    </Card>
-                )}
-            </Page.Content>
-        </Page>
+            <CollectionPage.Content>
+                <Table
+                    state={tableState}
+                    search={<CollectionSearch placeholder="Search teams" />}
+                    emptyState={
+                        <CollectionEmptyState
+                            title="Create your first team"
+                            subtitle="Once you create teams, you'll be able to see and manage them here."
+                            {...(canCreateTeam && !isTeamLimitReached
+                                ? { addNewCta: { text: 'Create Team', onClick: () => onModalOpen?.('create') } }
+                                : {})}
+                        />
+                    }
+                    noResultsState={
+                        <CollectionNoResultsState
+                            title="No teams found"
+                            subtitle="No teams match your search. Try a different search term."
+                        />
+                    }
+                    errorState={(error, { retry }) => (
+                        <CollectionErrorState
+                            title="Failed to load teams"
+                            subtitle={String(error)}
+                            action={{ text: 'Retry', onClick: retry }}
+                        />
+                    )}
+                    onRowClick={(team) => {
+                        if (canEditTeam) onModalOpen?.('edit', team._id);
+                    }}
+                    actionCell={(team) => ({
+                        secondaryActions: [
+                            {
+                                text: 'Edit',
+                                icon: <Edit />,
+                                disabled: !canEditTeam,
+                                tooltip: "You don't have permission to edit teams",
+                                onClick: () => onModalOpen?.('edit', team._id),
+                            },
+                        ],
+                    })}
+                    columns={[
+                        {
+                            id: 'avatar',
+                            title: '',
+                            width: '56px',
+                            render: (team) => (
+                                <Avatar
+                                    size="size36"
+                                    name={team.name}
+                                    imgProps={team.teamPictureUrl ? { src: team.teamPictureUrl } : undefined}
+                                />
+                            ),
+                        },
+                        {
+                            id: 'name',
+                            title: 'Name',
+                            render: (team) => <Text>{team.name}</Text>,
+                        },
+                        {
+                            id: 'department',
+                            title: 'Department',
+                            render: (team) => <Text>{team.department || '—'}</Text>,
+                        },
+                        {
+                            id: 'description',
+                            title: 'Description',
+                            render: (team) => <Text secondary>{team.description}</Text>,
+                        },
+                    ]}
+                />
+            </CollectionPage.Content>
+        </CollectionPage>
     );
 };
 

@@ -1,5 +1,4 @@
-// import type { TeamData } from '../../../my-tickets.types';
-interface TeamData {
+export interface TeamData {
     _id: string;
     name?: string;
     description?: string;
@@ -9,15 +8,16 @@ interface TeamData {
 
 export interface ViewTeamsProps {
     permissions: string[];
+    agentId: string;
+    teamId: string;
     isTeamLimitReached?: boolean;
     onModalOpen?: (modalState: 'create' | 'edit', teamId?: string) => void;
 }
 
 export interface ViewTeamsWrapperProps {
-    data?: TeamData[];
+    agentId: string;
+    teamId: string;
     permissions: string[];
     isTeamLimitReached?: boolean;
-    isLoading?: boolean;
-    isError?: boolean;
     onModalOpen?: (modalState: 'create' | 'edit', teamId?: string) => void;
 }

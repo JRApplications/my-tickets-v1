@@ -1,11 +1,5 @@
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
-interface TeamData {
-    _id: string;
-    name?: string;
-    description?: string;
-    department?: string;
-    teamPictureUrl?: string;
-}
+import type { TeamData } from './teams.types';
 
 const baseApiUrl = new URL(import.meta.url).origin;
 

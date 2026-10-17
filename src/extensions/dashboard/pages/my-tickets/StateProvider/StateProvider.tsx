@@ -98,13 +98,19 @@ const StateProvider = ({
             />;
         case StateId.ManageAgents:
             return <ViewAccounts
+                key={`${agentId}:${teamId}`}
                 permissions={permissions}
+                agentId={agentId}
+                teamId={teamId}
                 onModalOpen={agentProps.onModalOpen}
                 isAgentLimitReached={isAgentLimitReached}
             />;
         case StateId.ManageTeams:
             return <ViewTeams
+                key={`${agentId}:${teamId}`}
                 permissions={permissions}
+                agentId={agentId}
+                teamId={teamId}
                 onModalOpen={teamProps.onModalOpen}
                 isTeamLimitReached={isTeamLimitReached}
             />;
