@@ -58,16 +58,24 @@ export const GET: APIRoute = async ({ request, locals }) => {
             throw new Error('Invalid ticket cursor');
         }
 
+        const rawLimit = url.searchParams.get('limit');
+        const requestedLimit = rawLimit === null ? PAGE_SIZE : Number(rawLimit);
+        if (!Number.isSafeInteger(requestedLimit) || requestedLimit < 1) {
+            status = 400;
+            throw new Error('Invalid ticket page size');
+        }
+        const pageSize = Math.min(requestedLimit, PAGE_SIZE);
+
         const filters = readTicketListFilters(url);
         const query = createScopedTicketQuery(identity, filters, teamId)
             .fields(...TICKET_FIELDS)
         const tickets: SidebarTicket[] = [];
         let hasMore = false;
 
-        while (tickets.length < PAGE_SIZE) {
+        while (tickets.length < pageSize) {
             const result = await query
                 .skip(offset)
-                .limit(PAGE_SIZE - tickets.length)
+                .limit(pageSize - tickets.length)
                 .find({ returnTotalCount: false });
             const records = result.items;
             tickets.push(...records.map(mapSidebarTicket).filter((ticket) => isVisibleSidebarTicket(ticket, filters)));

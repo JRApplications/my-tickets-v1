@@ -1,18 +1,27 @@
-import { useEffect, useMemo, type ChangeEvent } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
     Badge,
     Box,
-    Button,
-    Card,
-    Dropdown,
-    Page,
-    Search,
-    Table,
     TableActionCell,
     Text,
     TextButton,
-    Tooltip,
 } from '@wix/design-system';
+import {
+    CollectionEmptyState,
+    CollectionErrorState,
+    CollectionNoResultsState,
+    CollectionSearch,
+    CollectionToolbarFilters,
+    idNameArrayFilter,
+    PrimaryActions,
+    SingleSelectFilter,
+    stringsArrayFilter,
+    Table,
+    useSelector,
+    useStaticListFilterCollection,
+    useTableCollection,
+} from '@wix/patterns';
+import { CollectionPage } from '@wix/patterns/page';
 import {
     formatPriority,
     formatStatus,
@@ -26,31 +35,41 @@ import {
 } from '@jrapps/my_tickets_common_types';
 import * as Icons from '@wix/wix-ui-icons-common/odeditor';
 import SlaBadge from '../../common-components/sla-badge/sla-badge';
-import type { TicketAssigneeOption, TicketListFilters, TicketsListItem } from './tickets-list';
-import './tickets-list.css';
+import { fetchTicketPage, type TicketAssigneeOption, type TicketPageFilters, type TicketsListItem } from './tickets-list';
 
 type TicketsListWrapperProps = {
-    tickets: TicketsListItem[];
+    teamId: string;
     assigneeOptions: TicketAssigneeOption[];
-    filters: TicketListFilters;
-    setFilter: (filter: keyof TicketListFilters, value: string) => void;
-    isLoading: boolean;
-    isError: boolean;
-    searchTerm: string;
-    handleSearch: (event: ChangeEvent<HTMLInputElement>) => void;
-    handleClear: () => void;
-    loadMore: () => Promise<void>;
-    hasMore: boolean;
-    isLoadingMore: boolean;
     permissions: string[];
     onTicketClick: (ticketId: string) => void;
     onCreateTicket: () => void;
     isTicketLimitReached?: boolean;
     onVisibleTicketsChange?: (ticketIds: string[]) => void;
+    onGetTicketUpdateFn?: (updateFn: (ticketId: string, updates: {
+        status?: string;
+        priority?: string;
+        isSpam?: boolean;
+        isDeleted?: boolean;
+        assignedAgent?: { id?: string; name?: string };
+        assignedTeam?: { id?: string; name?: string };
+    }) => void) => void;
 };
 
 const ALL = 'all';
 const FILTERS_STORAGE_KEY = 'my-tickets:sidebar-filters';
+type SlaFilter = 'breached' | 'at_risk';
+type SortOrder = 'newest' | 'oldest';
+
+const readSavedSlaFilter = (): SlaFilter | undefined => {
+    try {
+        const saved: unknown = JSON.parse(window.localStorage.getItem(FILTERS_STORAGE_KEY) ?? '{}');
+        if (typeof saved !== 'object' || saved === null || !('sla' in saved)) return undefined;
+        return saved.sla === 'breached' || saved.sla === 'at_risk' ? saved.sla : undefined;
+    } catch (error) {
+        console.error('Failed to read the saved ticket SLA filter', error);
+        return undefined;
+    }
+};
 
 const formatCreatedDate = (createdDate?: string) => {
     if (!createdDate) return null;
@@ -62,155 +81,275 @@ const formatCreatedDate = (createdDate?: string) => {
     };
 };
 
-const TicketsListWrapper = ({ tickets, assigneeOptions: availableAssignees, filters, setFilter, isLoading, isError, searchTerm, handleSearch, handleClear, loadMore, hasMore, isLoadingMore, permissions, onTicketClick, onCreateTicket, isTicketLimitReached = false, onVisibleTicketsChange }: TicketsListWrapperProps) => {
-    const { status: statusFilter, priority: priorityFilter, assignee: assigneeFilter, sla: slaFilter, sortOrder } = filters;
+const TicketsListWrapper = ({ teamId, assigneeOptions: availableAssignees, permissions, onTicketClick, onCreateTicket, isTicketLimitReached = false, onVisibleTicketsChange, onGetTicketUpdateFn }: TicketsListWrapperProps) => {
     const canViewTickets = permissions.includes('my-tickets-view-all-tickets');
     const canCreateTicket = permissions.includes('my-tickets-create-ticket');
+    const [filterConfig] = useState(() => {
+        const initialSla = readSavedSlaFilter();
+        return {
+            status: stringsArrayFilter<string>({
+                name: 'Status',
+                itemKey: (value) => value,
+                itemName: (value) => formatStatus(value as TicketStatus),
+            }),
+            priority: stringsArrayFilter<string>({
+                name: 'Priority',
+                itemKey: (value) => value,
+                itemName: (value) => formatPriority(value as TicketPriority),
+            }),
+            assignee: idNameArrayFilter<{ id: string; name: string }>({ name: 'Assignee' }),
+            sla: stringsArrayFilter<SlaFilter>({
+                name: 'SLA',
+                itemKey: (value) => value,
+                itemName: (value) => value === 'at_risk' ? 'At risk' : 'Breached',
+                ...(initialSla ? { initialValue: [initialSla] } : {}),
+            }),
+            sortOrder: stringsArrayFilter<SortOrder>({
+                name: 'Sort order',
+                itemKey: (value) => value,
+                itemName: (value) => value === 'oldest' ? 'Oldest first' : 'Newest first',
+            }),
+        };
+    });
+    const tableState = useTableCollection<TicketsListItem, typeof filterConfig>({
+        queryName: `com.jrapps.my-tickets.ticket-sidebar.${teamId}`,
+        paginationMode: 'cursor',
+        queryOptions: { staleTime: 0 },
+        itemKey: (ticket) => ticket._id,
+        itemName: (ticket) => `#${ticket.primaryTicketId} ${ticket.subject}`,
+        filters: filterConfig,
+        fetchData: async (query) => {
+            const filters: TicketPageFilters = {
+                status: query.filters.status?.[0],
+                priority: query.filters.priority?.[0],
+                assignee: query.filters.assignee?.[0]?.id,
+                sla: query.filters.sla?.[0],
+                sortOrder: query.filters.sortOrder?.[0],
+            };
+            return fetchTicketPage({
+                teamId,
+                limit: query.limit,
+                cursor: query.cursor ?? undefined,
+                search: query.search,
+                filters,
+            });
+        },
+        fetchErrorMessage: ({ err }) => err instanceof Error ? err.message : 'Failed to load tickets',
+    });
 
-    const statusOptions = [
-        { id: ALL, value: 'All statuses' },
-        ...STATUS_OPTIONS.map((option) => ({ id: String(option.id), value: String(option.value) })),
-    ];
-    const priorityOptions = [
-        { id: ALL, value: 'All priorities' },
-        ...PRIORITY_OPTIONS.map((option) => ({ id: option.id, value: option.value })),
-    ];
-    const assigneeOptions = [
-        { id: ALL, value: 'All assignees' },
-        { id: 'unassigned', value: 'Unassigned' },
-        ...availableAssignees,
-    ];
-    const slaOptions = [
-        { id: ALL, value: 'All' },
-        { id: 'breached', value: 'Breached' },
-        { id: 'at_risk', value: 'At risk' },
-    ];
+    const statusOptions = useStaticListFilterCollection(
+        filterConfig.status,
+        STATUS_OPTIONS.map((option) => String(option.id)),
+    );
+    const priorityOptions = useStaticListFilterCollection(
+        filterConfig.priority,
+        PRIORITY_OPTIONS.map((option) => option.id),
+    );
+    const assigneeFilterOptions = useStaticListFilterCollection(
+        filterConfig.assignee,
+        [
+            { id: 'unassigned', name: 'Unassigned' },
+            ...availableAssignees.map((option) => ({ id: option.id, name: option.value })),
+        ],
+    );
+    const slaOptions = useStaticListFilterCollection(filterConfig.sla, ['breached', 'at_risk']);
+    const sortOptions = useStaticListFilterCollection(filterConfig.sortOrder, ['newest', 'oldest']);
+    const visibleTicketIdsKey = useSelector(() =>
+        tableState.keyedItems.map(({ key }) => key).join('\u0000'),
+    );
+    const hasSlaData = useSelector(() =>
+        tableState.keyedItems.some(({ item }) => Boolean(getSlaSummary(item.sla))),
+    );
+    const visibleTicketIds = useMemo(
+        () => visibleTicketIdsKey ? visibleTicketIdsKey.split('\u0000') : [],
+        [visibleTicketIdsKey],
+    );
+    const [ticketUpdates, setTicketUpdates] = useState<Record<string, Partial<TicketsListItem>>>({});
 
+    const updateTicket = useCallback((ticketId: string, updates: Partial<TicketsListItem>) => {
+        setTicketUpdates((current) => ({
+            ...current,
+            [ticketId]: { ...current[ticketId], ...updates },
+        }));
+    }, []);
+    const getDisplayTicket = useCallback((ticket: TicketsListItem) => ({
+        ...ticket,
+        ...ticketUpdates[ticket._id],
+    }), [ticketUpdates]);
+
+    const slaFilterValue = useSelector(() => filterConfig.sla.value[0] ?? ALL);
     useEffect(() => {
         try {
             const saved = JSON.parse(window.localStorage.getItem(FILTERS_STORAGE_KEY) ?? '{}');
-            window.localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify({ ...saved, sla: slaFilter }));
-        } catch {
-            // SLA filtering still works if storage is unavailable.
+            window.localStorage.setItem(FILTERS_STORAGE_KEY, JSON.stringify({ ...saved, sla: slaFilterValue }));
+        } catch (error) {
+            console.error('Failed to persist the ticket SLA filter', error);
         }
-    }, [slaFilter]);
-
-    const rows = useMemo(() => {
-        const filtered = tickets.filter((ticket) =>
-            !ticket.isSpam && !ticket.isDeleted &&
-            (statusFilter === ALL || ticket.status === statusFilter) &&
-            (priorityFilter === ALL || ticket.priority === priorityFilter) &&
-            (assigneeFilter === ALL || (assigneeFilter === 'unassigned' ? !ticket.assignedAgent?.id : ticket.assignedAgent?.id === assigneeFilter)) &&
-            (slaFilter === ALL || getSlaSummary(ticket.sla)?.state === slaFilter),
-        );
-        return filtered;
-    }, [tickets, statusFilter, priorityFilter, assigneeFilter, slaFilter, sortOrder]);
+    }, [slaFilterValue]);
 
     useEffect(() => {
-        onVisibleTicketsChange?.(rows.map((ticket) => ticket._id));
-    }, [rows, onVisibleTicketsChange]);
-
-    const hasSlaData = tickets.some((ticket) => Boolean(getSlaSummary(ticket.sla)));
-
-    const columns = [
-        {
-            title: 'Ticket',
-            width: '130px',
-            render: (ticket: TicketsListItem) => <TextButton size="small" onClick={() => onTicketClick(ticket._id)}>#{ticket.primaryTicketId}</TextButton>,
-        },
-        {
-            title: 'Assignee',
-            width: '190px',
-            render: (ticket: TicketsListItem) => <Text size="small" secondary>{ticket.assignedAgent?.name || ticket.assignedTeam?.name || 'Unassigned'}</Text>,
-        },
-        {
-            title: 'Subject',
-            render: (ticket: TicketsListItem) => <Text size="small" weight="bold" ellipsis>{ticket.subject || 'No subject'}</Text>,
-        },
-        {
-            title: 'Status',
-            width: '150px',
-            render: (ticket: TicketsListItem) => <Badge size="small" skin={getStatusSkin(ticket.status as TicketStatus)}>{formatStatus(ticket.status as TicketStatus)}</Badge>,
-        },
-        {
-            title: 'Priority',
-            width: '120px',
-            render: (ticket: TicketsListItem) => <Badge size="small" skin={getPrioritySkin(ticket.priority as TicketPriority)}>{formatPriority(ticket.priority as TicketPriority)}</Badge>,
-        },
-        ...(hasSlaData ? [{
-            title: 'SLA',
-            width: '170px',
-            render: (ticket: TicketsListItem) => <SlaBadge sla={ticket.sla} compact />,
-        }] : []),
-        {
-            title: 'Created',
-            width: '180px',
-            render: (ticket: TicketsListItem) => {
-                const created = formatCreatedDate(ticket.createdDate);
-                return created ? (
-                    <Box direction="vertical">
-                        <Text size="small">{created.date}</Text>
-                        <Text size="small" secondary>{created.time}</Text>
-                    </Box>
-                ) : <Text size="small" secondary>—</Text>;
-            },
-        },
-        {
-            title: '',
-            width: '56px',
-            render: (ticket: TicketsListItem) => (
-                <TableActionCell
-                    // moreActionsTooltipText="Ticket actions"
-                    // secondaryActions={[{ text: 'Open ticket', icon: <Icons.Visible />, onClick: () => onTicketClick(ticket._id) }]}
-                    primaryAction={{ text: 'Open ticket', icon: <Icons.Visible />, onClick: () => onTicketClick(ticket._id) }}
-                />
-            ),
-        },
-    ];
+        onVisibleTicketsChange?.(visibleTicketIds);
+    }, [visibleTicketIds, onVisibleTicketsChange]);
+    useEffect(() => {
+        onGetTicketUpdateFn?.(updateTicket);
+    }, [onGetTicketUpdateFn, updateTicket]);
 
     return (
-        <Page maxWidth={9999} className="tickets-list-page">
-            <Page.Header
-                title="Tickets"
-                subtitle="Manage and respond to customer support tickets."
-                actionsBar={(
-                    <Tooltip disabled={canCreateTicket && !isTicketLimitReached} content={isTicketLimitReached ? 'Upgrade required to create more tickets this month' : "You don't have permission to create tickets"}>
-                        <Button prefixIcon={<Icons.Add />} onClick={onCreateTicket} disabled={!canCreateTicket || isTicketLimitReached}>Create Ticket</Button>
-                    </Tooltip>
-                )}
+        <CollectionPage height="100%">
+            <CollectionPage.Header
+                title={{ text: 'Tickets', hideTotal: true }}
+                subtitle={{ text: 'Manage and respond to customer support tickets.' }}
+                primaryAction={
+                    <PrimaryActions
+                        label="Create Ticket"
+                        prefixIcon={<Icons.Add />}
+                        onClick={onCreateTicket}
+                        disabled={!canCreateTicket || isTicketLimitReached}
+                        tooltip={isTicketLimitReached ? 'Upgrade required to create more tickets this month' : "You don't have permission to create tickets"}
+                    />
+                }
             />
-            <Page.Content>
+            <CollectionPage.Content>
                 {!canViewTickets ? (
-                    <Card><Card.Content><Text>You don't have permission to view tickets.</Text></Card.Content></Card>
-                ) : isError ? (
-                    <Table.EmptyState title="Tickets couldn't be loaded" subtitle="Refresh the page and try again." />
+                    <Text>You don't have permission to view tickets.</Text>
                 ) : (
-                    <Card>
-                        <Box className="tickets-list-toolbar" gap="SP2" verticalAlign="middle" style={{ flexWrap: 'wrap' }}>
-                            <Box className="tickets-list-search"><Search value={searchTerm} placeholder="Search tickets or keywords" onChange={handleSearch} onClear={handleClear} clearButton /></Box>
-                            <Dropdown options={statusOptions} selectedId={statusFilter} onSelect={(option) => setFilter('status', String(option.id))} />
-                            <Dropdown options={priorityOptions} selectedId={priorityFilter} onSelect={(option) => setFilter('priority', String(option.id))} />
-                            <Dropdown options={assigneeOptions} selectedId={assigneeFilter} onSelect={(option) => setFilter('assignee', String(option.id))} />
-                            <Dropdown options={slaOptions} selectedId={slaFilter} onSelect={(option) => setFilter('sla', String(option.id))} />
-                            <Dropdown options={[{ id: 'newest', value: 'Newest first' }, { id: 'oldest', value: 'Oldest first' }]} selectedId={sortOrder} onSelect={(option) => setFilter('sortOrder', String(option.id) === 'oldest' ? 'oldest' : 'newest')} />
-                        </Box>
-                        {isLoading ? (
-                            <Box padding="SP6" align="center"><Text>Loading tickets…</Text></Box>
-                        ) : rows.length ? (
-                            <Table data={rows} columns={columns} rowVerticalPadding="medium" />
-                        ) : (
-                            <Table.EmptyState
-                                title={searchTerm || statusFilter !== ALL || priorityFilter !== ALL || assigneeFilter !== ALL || slaFilter !== ALL ? 'No tickets match these filters' : 'No tickets yet'}
-                                subtitle={searchTerm || statusFilter !== ALL || priorityFilter !== ALL || assigneeFilter !== ALL || slaFilter !== ALL ? 'Try changing your search or filters.' : 'Create a ticket to start helping your customers.'}
-                            >
-                                {!searchTerm && statusFilter === ALL && priorityFilter === ALL && assigneeFilter === ALL && slaFilter === ALL && canCreateTicket && <Tooltip disabled={!isTicketLimitReached} content="Upgrade required to create more tickets this month"><Button onClick={onCreateTicket} disabled={isTicketLimitReached} prefixIcon={<Icons.Add />}>Create Ticket</Button></Tooltip>}
-                            </Table.EmptyState>
+                    <Table
+                        state={tableState}
+                        search={<CollectionSearch placeholder="Search tickets or keywords" maxLength={100} />}
+                        filters={
+                            <CollectionToolbarFilters inline={2} panelTitle="Filter tickets">
+                                <SingleSelectFilter
+                                    filter={filterConfig.status}
+                                    collection={statusOptions}
+                                    placeholder="All statuses"
+                                    accordionItemProps={{ label: 'Status' }}
+                                />
+                                <SingleSelectFilter
+                                    filter={filterConfig.priority}
+                                    collection={priorityOptions}
+                                    placeholder="All priorities"
+                                    accordionItemProps={{ label: 'Priority' }}
+                                />
+                                <SingleSelectFilter
+                                    filter={filterConfig.assignee}
+                                    collection={assigneeFilterOptions}
+                                    placeholder="All assignees"
+                                    accordionItemProps={{ label: 'Assignee' }}
+                                />
+                                <SingleSelectFilter
+                                    filter={filterConfig.sla}
+                                    collection={slaOptions}
+                                    placeholder="All SLA states"
+                                    accordionItemProps={{ label: 'SLA' }}
+                                />
+                                <SingleSelectFilter
+                                    filter={filterConfig.sortOrder}
+                                    collection={sortOptions}
+                                    placeholder="Newest first"
+                                    accordionItemProps={{ label: 'Sort order' }}
+                                />
+                            </CollectionToolbarFilters>
+                        }
+                        emptyState={
+                            <CollectionEmptyState
+                                title="No tickets yet"
+                                subtitle="Create a ticket to start helping your customers."
+                                {...(canCreateTicket && !isTicketLimitReached
+                                    ? { addNewCta: { text: 'Create Ticket', onClick: onCreateTicket } }
+                                    : {})}
+                            />
+                        }
+                        noResultsState={
+                            <CollectionNoResultsState
+                                title="No tickets match these filters"
+                                subtitle="Try changing your search or filters."
+                            />
+                        }
+                        errorState={(error, { retry }) => (
+                            <CollectionErrorState
+                                title="Tickets couldn't be loaded"
+                                subtitle={String(error)}
+                                action={{ text: 'Retry', onClick: retry }}
+                            />
                         )}
-                        {hasMore && <Box className="tickets-list-load-more" align="center" padding="SP3"><Button priority="secondary" onClick={loadMore} disabled={isLoadingMore}>{isLoadingMore ? 'Loading…' : 'Load more tickets'}</Button></Box>}
-                    </Card>
+                        onRowClick={(ticket) => onTicketClick(ticket._id)}
+                        columns={[
+                            {
+                                id: 'ticket',
+                                title: 'Ticket',
+                                width: '130px',
+                                render: (ticket) => {
+                                    const displayTicket = getDisplayTicket(ticket);
+                                    return <TextButton size="small" onClick={() => onTicketClick(ticket._id)}>#{displayTicket.primaryTicketId}</TextButton>;
+                                },
+                            },
+                            {
+                                id: 'assignee',
+                                title: 'Assignee',
+                                width: '190px',
+                                render: (ticket) => {
+                                    const displayTicket = getDisplayTicket(ticket);
+                                    return <Text size="small" secondary>{displayTicket.assignedAgent?.name || displayTicket.assignedTeam?.name || 'Unassigned'}</Text>;
+                                },
+                            },
+                            {
+                                id: 'subject',
+                                title: 'Subject',
+                                render: (ticket) => <Text size="small" weight="bold" ellipsis>{getDisplayTicket(ticket).subject || 'No subject'}</Text>,
+                            },
+                            {
+                                id: 'status',
+                                title: 'Status',
+                                width: '150px',
+                                render: (ticket) => {
+                                    const status = getDisplayTicket(ticket).status as TicketStatus;
+                                    return <Badge size="small" skin={getStatusSkin(status)}>{formatStatus(status)}</Badge>;
+                                },
+                            },
+                            {
+                                id: 'priority',
+                                title: 'Priority',
+                                width: '120px',
+                                render: (ticket) => {
+                                    const priority = getDisplayTicket(ticket).priority as TicketPriority;
+                                    return <Badge size="small" skin={getPrioritySkin(priority)}>{formatPriority(priority)}</Badge>;
+                                },
+                            },
+                            ...(hasSlaData ? [{
+                                id: 'sla',
+                                title: 'SLA',
+                                width: '170px',
+                                render: (ticket: TicketsListItem) => <SlaBadge sla={getDisplayTicket(ticket).sla} compact />,
+                            }] : []),
+                            {
+                                id: 'created',
+                                title: 'Created',
+                                width: '180px',
+                                render: (ticket) => {
+                                    const created = formatCreatedDate(getDisplayTicket(ticket).createdDate);
+                                    return created ? (
+                                        <Box direction="vertical">
+                                            <Text size="small">{created.date}</Text>
+                                            <Text size="small" secondary>{created.time}</Text>
+                                        </Box>
+                                    ) : <Text size="small" secondary>—</Text>;
+                                },
+                            },
+                            {
+                                id: 'actions',
+                                title: '',
+                                width: '56px',
+                                render: (ticket) => (
+                                    <TableActionCell
+                                        primaryAction={{ text: 'Open ticket', icon: <Icons.Visible />, onClick: () => onTicketClick(ticket._id) }}
+                                    />
+                                ),
+                            },
+                        ]}
+                    />
                 )}
-            </Page.Content>
-        </Page>
+            </CollectionPage.Content>
+        </CollectionPage>
     );
 };
 

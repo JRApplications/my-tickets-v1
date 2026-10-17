@@ -1,4 +1,5 @@
 import { WixDesignSystemProvider, Box } from '@wix/design-system';
+import { WixPatternsProvider } from '@wix/patterns/provider';
 import { ExtensionIds, StateId } from '@jrapps/my_tickets_common_types';
 import { StateContainerProvider } from './StateContainerProvider';
 import { StateProvider } from './StateProvider';
@@ -489,8 +490,9 @@ const DashboardPage: FC = () => {
                 sidebarIsLoading={false}
                 showUserFooter={!isEssentialsPlan}
               />
-              <StateContainerProvider>
-                <StateProvider
+              <WixPatternsProvider>
+                <StateContainerProvider>
+                  <StateProvider
                   onCreateTicket={() => { if (!planLimitsReached.tickets) setIsCreateTicketModalOpen(true); }}
                   isTicketLimitReached={planLimitsReached.tickets}
                   isAgentLimitReached={planLimitsReached.agents}
@@ -579,8 +581,9 @@ const DashboardPage: FC = () => {
                       setIsViewMemberModalOpen(true);
                     },
                   }}
-                />
-              </StateContainerProvider>
+                  />
+                </StateContainerProvider>
+              </WixPatternsProvider>
 
             </Box>
           </div>

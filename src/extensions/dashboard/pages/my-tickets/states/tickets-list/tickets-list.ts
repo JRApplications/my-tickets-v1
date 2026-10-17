@@ -1,9 +1,7 @@
-import { useState, useEffect, useRef, useCallback, type ChangeEvent } from "react";
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
-import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import type { TicketSla } from '@jrapps/my_tickets_common_types';
 
-interface Ticket {
+export interface TicketsListItem {
     primaryTicketId: string;
     _id: string;
     subject: string;
@@ -19,195 +17,90 @@ interface Ticket {
     sla?: TicketSla;
 }
 
-export interface TicketListFilters {
-    status: string;
-    priority: string;
-    assignee: string;
-    sla: string;
-    sortOrder: 'newest' | 'oldest';
-}
-
-type TicketListFilter = keyof TicketListFilters;
 export interface TicketAssigneeOption {
     id: string;
     value: string;
 }
 
-const ALL = 'all';
-const baseApiUrl = new URL(import.meta.url).origin;
+export interface TicketPageFilters {
+    status?: string;
+    priority?: string;
+    assignee?: string;
+    sla?: string;
+    sortOrder?: 'newest' | 'oldest';
+}
 
-const createFilterParams = (filters: TicketListFilters) => {
+export interface TicketPageQuery {
+    teamId: string;
+    limit: number;
+    cursor?: string;
+    search?: string;
+    filters: TicketPageFilters;
+}
+
+interface TicketPageResponse {
+    success?: unknown;
+    tickets?: unknown;
+    nextCursor?: unknown;
+    error?: unknown;
+}
+
+const baseApiUrl = new URL(import.meta.url).origin;
+const ALL = 'all';
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+    typeof value === 'object' && value !== null;
+
+const isTicketListItem = (value: unknown): value is TicketsListItem =>
+    isRecord(value) &&
+    typeof value._id === 'string' &&
+    typeof value.primaryTicketId === 'string' &&
+    typeof value.subject === 'string' &&
+    typeof value.status === 'string' &&
+    typeof value.priority === 'string';
+
+export const fetchTicketPage = async (query: TicketPageQuery): Promise<{
+    items: TicketsListItem[];
+    cursor: string | undefined;
+}> => {
+    if (!query.teamId) {
+        throw new Error('Ticket team context is unavailable');
+    }
+
     const params = new URLSearchParams();
-    for (const [key, value] of Object.entries(filters)) {
+    params.set('limit', String(query.limit));
+    if (query.cursor) params.set('cursor', query.cursor);
+
+    for (const [key, value] of Object.entries(query.filters)) {
         if (value && value !== ALL) params.set(key, value);
     }
-    return params;
-};
 
-const readTicketResponse = async (response: Response): Promise<{ tickets: Ticket[]; nextCursor: string | null }> => {
-    const data = await response.json();
-    if (!response.ok || !data.success || !Array.isArray(data.tickets)) {
-        throw new Error(data.error || `Failed to load tickets (${response.status})`);
+    const search = query.search?.trim();
+    const endpoint = search ? 'search' : 'get';
+    if (search) {
+        params.set('query', search);
+    } else {
+        params.set('teamId', query.teamId);
     }
-    return { tickets: data.tickets, nextCursor: data.nextCursor || null };
-};
 
-export const useTicketsList = (teamId: string, initialSlaFilter: string) => {
-    const [tickets, setTickets] = useState<Ticket[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isError, setIsError] = useState(false);
-    const [searchTerm, setSearchTerm] = useState("");
-    const [filters, setFilters] = useState<TicketListFilters>({
-        status: ALL,
-        priority: ALL,
-        assignee: ALL,
-        sla: initialSlaFilter,
-        sortOrder: 'newest',
-    });
-    const [assigneeOptions, setAssigneeOptions] = useState<TicketAssigneeOption[]>([]);
-    const [nextCursor, setNextCursor] = useState<string | null>(null);
-    const [isLoadingMore, setIsLoadingMore] = useState(false);
-    const requestId = useRef(0);
-
-    useEffect(() => {
-        const currentRequestId = ++requestId.current;
-        let timer: ReturnType<typeof setTimeout> | undefined;
-
-        const fetchTickets = async () => {
-            setIsLoading(true);
-            setIsLoadingMore(false);
-            setIsError(false);
-            setNextCursor(null);
-            if (!teamId) {
-                setIsLoading(false);
-                setIsError(true);
-                return;
-            }
-
-            try {
-                const params = createFilterParams(filters);
-                const normalizedSearch = searchTerm.trim();
-                const endpoint = normalizedSearch ? 'search' : 'get';
-                if (normalizedSearch) {
-                    params.set('query', normalizedSearch);
-                } else {
-                    params.set('teamId', teamId);
-                }
-                const response = await myTicketsFetchWithAuth(
-                    `${baseApiUrl}/api/tickets/sidebar/${endpoint}?${params.toString()}`,
-                );
-                const result = await readTicketResponse(response);
-                if (requestId.current !== currentRequestId) return;
-                setTickets(result.tickets);
-                setNextCursor(normalizedSearch ? null : result.nextCursor);
-            } catch (error) {
-                if (requestId.current !== currentRequestId) return;
-                console.error("Failed to fetch tickets", error);
-                setTickets([]);
-                setIsError(true);
-            } finally {
-                if (requestId.current === currentRequestId) setIsLoading(false);
-            }
-        };
-
-        if (searchTerm.trim()) {
-            setIsLoading(true);
-            timer = setTimeout(() => { void fetchTickets(); }, 250);
-        } else {
-            void fetchTickets();
-        }
-
-        return () => {
-            if (timer) clearTimeout(timer);
-        };
-    }, [teamId, filters, searchTerm]);
-
-    useEffect(() => {
-        let isCurrent = true;
-        setAssigneeOptions([]);
-        const loadAssignees = async () => {
-            try {
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/sidebar/assignees`);
-                const data = await response.json();
-                if (!response.ok || !data.success || !Array.isArray(data.assignees)) {
-                    throw new Error(data.error || `Failed to load assignees (${response.status})`);
-                }
-                if (isCurrent) setAssigneeOptions(data.assignees);
-            } catch (error) {
-                if (!isCurrent) return;
-                console.error('Failed to load ticket assignees', error);
-                const message = error instanceof Error ? error.message : 'Failed to load ticket assignees';
-                ShowToast({ message, type: 'error' });
-            }
-        };
-        void loadAssignees();
-        return () => { isCurrent = false; };
-    }, [teamId]);
-
-    const loadMore = async () => {
-        if (!nextCursor || isLoadingMore || searchTerm.trim()) return;
-        const currentRequestId = requestId.current;
-        setIsLoadingMore(true);
-        try {
-            const params = createFilterParams(filters);
-            params.set('teamId', teamId);
-            params.set('cursor', nextCursor);
-            const response = await myTicketsFetchWithAuth(
-                `${baseApiUrl}/api/tickets/sidebar/get?${params.toString()}`,
-            );
-            const page = await readTicketResponse(response);
-            if (requestId.current !== currentRequestId) return;
-            setTickets((current) => [...current, ...page.tickets]);
-            setNextCursor(page.nextCursor);
-        } catch (error) {
-            const message = error instanceof Error ? error.message : 'Failed to load more tickets';
-            ShowToast({ message, type: 'error' });
-        } finally {
-            if (requestId.current === currentRequestId) setIsLoadingMore(false);
-        }
-    };
-
-    const handleSearch = (event: ChangeEvent<HTMLInputElement>) => {
-        setSearchTerm(event.target.value);
-    };
-
-    const handleClear = () => {
-        setSearchTerm('');
-        setIsError(false);
-    };
-
-    const setFilter = useCallback((filter: TicketListFilter, value: string) => {
-        setFilters((current) => ({ ...current, [filter]: value }));
-    }, []);
-
-    const updateTicket = useCallback((ticketId: string, updates: {
-        status?: string;
-        priority?: string;
-        isSpam?: boolean;
-        isDeleted?: boolean;
-        assignedAgent?: { id?: string; name?: string };
-        assignedTeam?: { id?: string; name?: string };
-    }) => {
-        setTickets((current) => current.map((ticket) =>
-            ticket._id === ticketId ? { ...ticket, ...updates } : ticket,
-        ));
-    }, []);
+    const response = await myTicketsFetchWithAuth(
+        `${baseApiUrl}/api/tickets/sidebar/${endpoint}?${params.toString()}`,
+    );
+    const payload: TicketPageResponse = await response.json();
+    if (
+        !response.ok ||
+        payload.success !== true ||
+        !Array.isArray(payload.tickets) ||
+        !payload.tickets.every(isTicketListItem)
+    ) {
+        const message = typeof payload.error === 'string'
+            ? payload.error
+            : `Failed to load tickets (${response.status})`;
+        throw new Error(message);
+    }
 
     return {
-        tickets,
-        assigneeOptions,
-        filters,
-        setFilter,
-        isLoading,
-        isError,
-        searchTerm,
-        handleSearch,
-        handleClear,
-        updateTicket,
-        loadMore,
-        hasMore: Boolean(nextCursor),
-        isLoadingMore,
+        items: payload.tickets,
+        cursor: typeof payload.nextCursor === 'string' ? payload.nextCursor : undefined,
     };
 };
-
-export type TicketsListItem = Ticket;

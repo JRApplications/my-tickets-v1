@@ -11,7 +11,7 @@ import {
 import { checkPermission } from '../../auth/checkPermission';
 import { members } from '@wix/members';
 
-const SEARCH_PAGE_SIZE = 1000;
+const PAGE_SIZE = 100;
 const TICKET_FIELDS = [
     '_id',
     'primaryTicketNumber',
@@ -54,6 +54,20 @@ export const GET: APIRoute = async ({ request, locals }) => {
             throw new Error('Query is required');
         }
 
+        const rawCursor = url.searchParams.get('cursor') ?? '0';
+        let offset = Number(rawCursor);
+        if (!Number.isSafeInteger(offset) || offset < 0) {
+            status = 400;
+            throw new Error('Invalid ticket cursor');
+        }
+        const rawLimit = url.searchParams.get('limit');
+        const requestedLimit = rawLimit === null ? PAGE_SIZE : Number(rawLimit);
+        if (!Number.isSafeInteger(requestedLimit) || requestedLimit < 1) {
+            status = 400;
+            throw new Error('Invalid ticket page size');
+        }
+        const pageSize = Math.min(requestedLimit, PAGE_SIZE);
+
         let memberIds: string[] = [];
         try {
             const memberSearch = await members.queryMembers({
@@ -80,24 +94,28 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
         const filters = readTicketListFilters(url);
         const ticketSearch = createScopedTicketQuery(identity, filters, null).and(searchFilter);
-        let results = await ticketSearch
-            .fields(...TICKET_FIELDS)
-            .limit(SEARCH_PAGE_SIZE)
-            .find({ returnTotalCount: false });
-        const allItems: SidebarTicket[] = results.items
-            .map(mapSidebarTicket)
-            .filter((ticket) => isVisibleSidebarTicket(ticket, filters));
+        const tickets: SidebarTicket[] = [];
+        let hasMore = false;
 
-        while (results.hasNext()) {
-            results = await results.next();
-            allItems.push(...results.items
+        while (tickets.length < pageSize) {
+            const results = await ticketSearch
+                .skip(offset)
+                .limit(pageSize - tickets.length)
+                .find({ returnTotalCount: false });
+            const records = results.items;
+            tickets.push(...records
                 .map(mapSidebarTicket)
                 .filter((ticket) => isVisibleSidebarTicket(ticket, filters)));
+            offset += records.length;
+            hasMore = results.hasNext();
+            if (!hasMore || records.length === 0) break;
         }
 
         return new Response(JSON.stringify({
             success: true,
-            tickets: allItems,
+            tickets,
+            hasMore,
+            nextCursor: hasMore ? String(offset) : null,
         }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
