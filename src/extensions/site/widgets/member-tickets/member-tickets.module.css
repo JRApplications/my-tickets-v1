@@ -198,6 +198,12 @@
   text-align: center;
 }
 
+.MessageSendError {
+  margin: 0 0 8px;
+  color: #b00020;
+  font-size: 14px;
+}
+
 .TicketsFilteredEmpty {
   padding: 24px 16px;
   color: var(--MemberTickets-color-text-secondary);

@@ -1,10 +1,8 @@
 import type { APIRoute } from "astro";
 import { members } from "@wix/members";
 import { checkPermission } from './../auth/checkPermission';
-import { generateElevatedAuthToken } from './../auth/generateElevatedAuthToken';
 import { captureError } from './../reportError';
-import type { MemberTicket, FetchMemberTicketsPageResult, MemberTicketDataItem, CacheEntry } from './types';
-import { PAGE_SIZE, CACHE_TTL_MS } from './types';
+import type { MemberTicket } from './types';
 import { formatDate, formatStatus, formatTicketNumber } from './helpers';
 import { items } from '@wix/data';
 import { auth } from '@wix/essentials';
@@ -12,21 +10,7 @@ import { CollectionIds } from "@jrapps/my_tickets_common_types";
 import type { TicketStatus } from '@jrapps/my_tickets_common_types';
 import { getCustomerExpectedResponseBy } from '../utils/slaServer';
 
-const ticketCache = new Map<string, CacheEntry>();
-
-function getCached(memberId: string): MemberTicket[] | null {
-    const entry = ticketCache.get(memberId);
-    if (!entry) return null;
-    if (Date.now() > entry.expiresAt) {
-        ticketCache.delete(memberId);
-        return null;
-    }
-    return entry.tickets;
-}
-
-function setCache(memberId: string, tickets: MemberTicket[]): void {
-    ticketCache.set(memberId, { tickets, expiresAt: Date.now() + CACHE_TTL_MS });
-}
+const PAGE_SIZE = 10;
 
 export const GET: APIRoute = async ({ request, locals }) => {
     let status = 500;
@@ -41,11 +25,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
         const url = new URL(request.url);
         const ticketId = url.searchParams.get('ticketId');
         const page = Number(url.searchParams.get('page') || '1');
-        const searchQuery = (url.searchParams.get('search') || '').trim().toLocaleLowerCase();
+        const searchQuery = (url.searchParams.get('search') || '').trim();
         const statusFilter = normalizeStatus(url.searchParams.get('status') || '');
-        if (!Number.isInteger(page) || page < 1) {
+        if (!Number.isSafeInteger(page) || page < 1) {
             status = 400;
-            throw new Error('Page must be a positive integer');
+            throw new Error('Page must be a positive safe integer');
         }
         if (searchQuery.length > 200) {
             status = 400;
@@ -57,13 +41,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
             status = 400;
             throw new Error('Member ID is required');
         }
-        const pageSize = 10;
-        const offset = (page - 1) * pageSize;
+        const offset = (page - 1) * PAGE_SIZE;
         const authToken = request.headers.get('Authorization');
 
-        // Permission check must happen on every request regardless of cache state.
         const permitted = await checkPermission(authToken, ["MEMBER"]);
-
         if (!permitted) {
             status = 403;
             throw new Error('Insufficient Permissions');
@@ -71,37 +52,47 @@ export const GET: APIRoute = async ({ request, locals }) => {
 
         if (ticketId) {
             const ticket = await getTicketById(ticketId);
-            return new Response(JSON.stringify({ticket}), {
+            return new Response(JSON.stringify({ ticket }), {
                 status: 200,
                 headers: { "Content-Type": "application/json" },
             });
         }
 
-
-
-        // FIX: actually read the cache before hitting Wix again.
-        let tickets = getCached(memberId);
-
-        if (!tickets) {
-            // Only pay for elevated-token generation when we actually need to fetch.
-            const elevatedAuthToken = await generateElevatedAuthToken(authToken);
-            tickets = await fetchAllTickets(elevatedAuthToken, memberId);
-            setCache(memberId, tickets);
+        const elevatedQuery = auth.elevate(items.query)(CollectionIds.TICKETS);
+        let ticketQuery = elevatedQuery.eq('memberId', memberId);
+        if (statusFilter) {
+            ticketQuery = ticketQuery.eq('status', statusFilter);
+        }
+        if (searchQuery && searchQuery !== '#') {
+            const numberSearch = searchQuery.replace(/^#/, '');
+            const statusSearch = normalizeStatus(searchQuery);
+            let searchFilter = items.filter()
+                .contains('subject', searchQuery)
+                .or(items.filter().contains('status', statusSearch));
+            if (numberSearch) {
+                searchFilter = searchFilter.or(items.filter().contains('primaryTicketNumber', numberSearch));
+            }
+            ticketQuery = ticketQuery.and(searchFilter);
         }
 
-        const filteredTickets = tickets.filter((ticket) => {
-            const normalizedStatus = normalizeStatus(ticket.status);
-            const searchableText = [ticket.subject, ticket.ticketId, ticket.primaryTicketNumber, ticket.status]
-                .filter((value): value is string => typeof value === 'string')
-                .join(' ')
-                .toLocaleLowerCase();
-            return (!statusFilter || normalizedStatus === statusFilter) &&
-                (!searchQuery || searchableText.includes(searchQuery));
-        });
-        const paginatedTickets = filteredTickets.slice(offset, offset + pageSize);
-        const totalPages = Math.ceil(filteredTickets.length / pageSize);
+        const result = await ticketQuery
+            .fields('_id', 'primaryTicketNumber', 'subject', 'status', '_createdDate')
+            .descending('primaryTicketNumber')
+            .skip(offset)
+            .limit(PAGE_SIZE)
+            .find({ returnTotalCount: true });
+        const totalTickets = result.totalCount ?? result.items.length;
+        const tickets: MemberTicket[] = result.items.map((ticket) => ({
+            _id: ticket._id,
+            ticketId: formatTicketNumber(ticket.primaryTicketNumber),
+            primaryTicketNumber: ticket.primaryTicketNumber,
+            subject: ticket.subject,
+            status: formatStatus(ticket.status as TicketStatus),
+            submittedDate: formatDate(ticket._createdDate),
+        }));
+        const totalPages = Math.ceil(totalTickets / PAGE_SIZE);
 
-        return new Response(JSON.stringify({ success: true, tickets: paginatedTickets, totalPages, totalTickets: filteredTickets.length }), {
+        return new Response(JSON.stringify({ success: true, tickets, totalPages, totalTickets }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
         });
@@ -114,128 +105,30 @@ export const GET: APIRoute = async ({ request, locals }) => {
     }
 }
 
-function normalizeStatus(status: string): string {
-    return status.trim().toLocaleLowerCase().replace(/[\s-]+/g, '_');
+function normalizeStatus(value: string): string {
+    return value.trim().toLocaleLowerCase().replace(/[\s-]+/g, '_');
 }
 
 async function getTicketById(ticketId: string): Promise<MemberTicket> {
-    
-        if (!ticketId) {
-            throw new Error('ticketId query parameter is required');
-        }
-        
-        try {
-    
-            const member = await members.getCurrentMember();
-            const memberId = member?.member?._id;
-            if (!memberId) {
-                throw new Error('Member ID is required');
-            }
-    
-            const elevatedGetTicket = auth.elevate(items.get)
-            const ticket: any = await elevatedGetTicket(CollectionIds.TICKETS, ticketId, { fields: ['memberName', 'priority', 'subject', 'description', '_id', '_createdDate', 'status', 'primaryTicketNumber', 'memberId', 'communication', 'sla'] });
-    
-            if (ticket?.memberId !== memberId) {
-                throw new Error('You do not have permission to view this ticket');
-            }
-            // Internal SLA data is not for customers; only the derived ETA is returned.
-            const expectedResponseBy = await getCustomerExpectedResponseBy(ticket).catch(() => null);
-            const { sla: _internalSla, ...customerTicket } = ticket;
-            return expectedResponseBy ? { ...customerTicket, expectedResponseBy } : customerTicket;
-        } catch (error: any) {
-            throw error;
-        }
-}
+    if (!ticketId) {
+        throw new Error('ticketId query parameter is required');
+    }
 
-async function fetchAllTicketPage(
-    accessToken: string | null,
-    cursor: string | null,
-    memberId: string
-): Promise<FetchMemberTicketsPageResult> {
-    const endpoint = "https://www.wixapis.com/graphql/alpha";
+    const member = await members.getCurrentMember();
+    const memberId = member?.member?._id;
+    if (!memberId) {
+        throw new Error('Member ID is required');
+    }
 
-    const query = `
-        query GetTeams($dataCollectionId: String!, $filter: JSON, $sort: [CloudDataDataUpstreamCommonSortingInput]) {
-            dataItemsV2DataItems(queryInput: {
-                dataCollectionId: $dataCollectionId,
-                query: {
-                    fields: ["primaryTicketNumber", "subject", "priority", "status"],
-                    sort: $sort,
-                    filter: $filter,
-                    cursorPaging: {
-                        limit: ${PAGE_SIZE}
-                        ${cursor ? `, cursor: "${cursor}"` : ""}
-                    }
-                }
-            }) {
-                items {
-                    id
-                    data
-                }
-                pageInfo {
-                    hasNext
-                    nextCursor
-                }
-            }
-        }
-    `;
-
-    const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${accessToken}`
-        },
-        body: JSON.stringify({
-            query,
-            variables: {
-                dataCollectionId: CollectionIds.TICKETS,
-                ...(memberId ? { filter: { "memberId": { $eq: memberId } } } : {}),
-                sort: [{ fieldName: "primaryTicketNumber", order: "DESC" }]
-            }
-        })
+    const elevatedGetTicket = auth.elevate(items.get);
+    const ticket: any = await elevatedGetTicket(CollectionIds.TICKETS, ticketId, {
+        fields: ['memberName', 'priority', 'subject', 'description', '_id', '_createdDate', 'status', 'primaryTicketNumber', 'memberId', 'communication', 'sla'],
     });
 
-    if (!response.ok) {
-        throw new Error(`HTTP error: ${response.status} ${response.statusText}`);
+    if (ticket?.memberId !== memberId) {
+        throw new Error('You do not have permission to view this ticket');
     }
-
-    const result = await response.json();
-
-    if (result.errors) {
-        throw new Error(`GraphQL errors: ${JSON.stringify(result.errors)}`);
-    }
-
-    const { items, pageInfo } = result.data.dataItemsV2DataItems;
-
-    const mapped: MemberTicket[] = items.map((item: MemberTicketDataItem) => ({
-        _id: item.id,
-        ticketId: formatTicketNumber(item.data.primaryTicketNumber),
-        subject: item.data.subject,
-        status: formatStatus(item.data.status as TicketStatus),
-        submittedDate: formatDate(item.data._createdDate)
-    }));
-
-    return { items: mapped, pageInfo };
-}
-
-async function fetchAllTickets(accessToken: string | null, memberId: string): Promise<MemberTicket[]> {
-    const firstPage = await fetchAllTicketPage(accessToken, null, memberId);
-
-    if (!firstPage.pageInfo.hasNext) {
-        return firstPage.items;
-    }
-
-    const allItems: MemberTicket[] = [...firstPage.items];
-    let cursor: string | null = firstPage.pageInfo.nextCursor;
-
-    // Sequential is required here: each cursor depends on the previous response,
-    // so this can't be parallelized with Promise.all.
-    while (cursor !== null) {
-        const { items, pageInfo } = await fetchAllTicketPage(accessToken, cursor, memberId);
-        allItems.push(...items);
-        cursor = pageInfo.hasNext ? pageInfo.nextCursor : null;
-    }
-
-    return allItems;
+    const expectedResponseBy = await getCustomerExpectedResponseBy(ticket).catch(() => null);
+    const { sla: _internalSla, ...customerTicket } = ticket;
+    return expectedResponseBy ? { ...customerTicket, expectedResponseBy } : customerTicket;
 }

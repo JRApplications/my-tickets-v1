@@ -26,7 +26,9 @@ const MemberTickets: FC<MemberTicketsProps> = ({
   const {
     state,
     selectedTicket,
+    selectedTicketError,
     selectTicket,
+    retrySelectedTicket,
     clearSelectedTicket,
     tickets,
     hasMoreTickets,
@@ -40,6 +42,8 @@ const MemberTickets: FC<MemberTicketsProps> = ({
   } = useMemberTickets();
   // @ts-nocheck
   const [message, setMessage] = React.useState('');
+  const [isSendingMessage, setIsSendingMessage] = React.useState(false);
+  const [messageError, setMessageError] = React.useState<string | null>(null);
   const [statusFilter, setStatusFilter] = React.useState('');
   const [searchQuery, setSearchQuery] = React.useState('');
   const previousFiltersRef = useRef({ search: searchQuery, status: statusFilter });
@@ -59,6 +63,21 @@ const MemberTickets: FC<MemberTicketsProps> = ({
   useEffect(() => {
     injectEditorStyles();
   }, []);
+
+  const handleSendMessage = async () => {
+    if (!message.trim() || isSendingMessage) return;
+    setIsSendingMessage(true);
+    setMessageError(null);
+    try {
+      await sendMessage(message);
+      setMessage('');
+    } catch (error) {
+      console.error('Failed to send ticket reply:', error);
+      setMessageError('Unable to send your reply. Please try again.');
+    } finally {
+      setIsSendingMessage(false);
+    }
+  };
 
   return (
     <div
@@ -124,6 +143,20 @@ const MemberTickets: FC<MemberTicketsProps> = ({
 
       )}
 
+      {state === 'selectedTicketError' && (
+        <div className={classNames('SelectedTicketContainer', styles.SelectedTicketContainer)}>
+          <div className={classNames('__Header', styles.__Header)}>
+            <BackButton onClick={() => clearSelectedTicket()} />
+          </div>
+          <div className={classNames('__Content', styles.__Content)}>
+            <div className={styles.TicketsLoadError} role="alert">
+              <p>{selectedTicketError}</p>
+              <button type="button" onClick={retrySelectedTicket}>Try again</button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {state === 'selectedTicket' && (
 
         <div className={classNames('SelectedTicketContainer', styles.SelectedTicketContainer)}>
@@ -138,9 +171,21 @@ const MemberTickets: FC<MemberTicketsProps> = ({
               </p>
             )}
             <MessagesWrapper messages={selectedTicket?.communication || []} />
+            {messageError && <p className={styles.MessageSendError} role="alert">{messageError}</p>}
             <div className={classNames('__ReplyContainer', styles.__ReplyContainer)}>
-              <ReplyInput value={message} onChange={(e) => setMessage(e)} />
-              <SendButton onClick={() => sendMessage(message).then(() => setMessage(''))} />
+              <ReplyInput
+                value={message}
+                disabled={isSendingMessage}
+                onChange={(value) => {
+                  setMessage(value);
+                  if (messageError) setMessageError(null);
+                }}
+              />
+              <SendButton
+                onClick={handleSendMessage}
+                disabled={isSendingMessage || !message.trim()}
+                isSending={isSendingMessage}
+              />
             </div>
           </div>
           <div className={classNames('__Footer', styles.__Footer)}>

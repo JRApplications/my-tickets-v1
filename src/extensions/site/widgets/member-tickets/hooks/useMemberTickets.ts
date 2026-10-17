@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { httpClient } from '@wix/essentials';
+import type { Communication } from '@jrapps/my_tickets_common_types';
 
 interface TicketListFilters {
     search?: string;
@@ -7,9 +8,11 @@ interface TicketListFilters {
 }
 
 export const useMemberTickets = () => {
-    const [state, setState] = useState<'loading' | 'error' | 'noTickets' | 'selectedTicketLoading' | 'selectedTicket' | 'tickets'>('loading');
+    const [state, setState] = useState<'loading' | 'error' | 'noTickets' | 'selectedTicketLoading' | 'selectedTicketError' | 'selectedTicket' | 'tickets'>('loading');
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
     const [selectedTicket, setSelectedTicket] = useState<any>(null);
+    const [selectedTicketError, setSelectedTicketError] = useState<string | null>(null);
+    const [selectedTicketRetryCount, setSelectedTicketRetryCount] = useState(0);
     const [tickets, setTickets] = useState<any[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalPages, setTotalPages] = useState(1);
@@ -22,28 +25,44 @@ export const useMemberTickets = () => {
 
     // Fetch a single ticket's full details whenever a ticket is selected
     useEffect(() => {
+        let isActive = true;
         const fetchSelectedTicket = async () => {
             if (!selectedTicketId) {
                 return;
             }
 
             setState('selectedTicketLoading');
+            setSelectedTicketError(null);
 
             try {
                 const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/memberTickets/get?ticketId=${selectedTicketId}`);
-                const data = await response.json();
+                const response = await httpClient.fetchWithAuth(
+                    `${baseApiUrl}/api/memberTickets/get?ticketId=${encodeURIComponent(selectedTicketId)}`
+                );
+                const data: { ticket?: any; error?: string } = await response.json();
+                if (!response.ok || !data.ticket) {
+                    throw new Error(data.error || 'Unable to load ticket details');
+                }
+                if (!isActive) return;
                 setSelectedTicket(data.ticket);
                 setState('selectedTicket');
             } catch (error) {
+                if (!isActive) return;
                 console.error('Failed to fetch selected ticket:', error);
-                // fall back to the tickets list rather than getting stuck loading
-                setState('tickets');
+                setSelectedTicketError('Unable to load this ticket. Please try again.');
+                setState('selectedTicketError');
             }
         };
 
         fetchSelectedTicket();
-    }, [selectedTicketId]);
+        return () => {
+            isActive = false;
+        };
+    }, [selectedTicketId, selectedTicketRetryCount]);
+
+    const retrySelectedTicket = useCallback(() => {
+        setSelectedTicketRetryCount((count) => count + 1);
+    }, []);
 
     const fetchTicketPage = useCallback(async (page: number, filters: TicketListFilters, append: boolean) => {
         const requestId = ++requestSequenceRef.current;
@@ -122,32 +141,34 @@ export const useMemberTickets = () => {
     };
 
     const sendMessage = async (message: string) => {
+        if (!selectedTicketId) {
+            throw new Error('No ticket is selected');
+        }
         const baseApiUrl = new URL(import.meta.url).origin;
         const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/memberTickets/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ticketId: selectedTicketId, message }),
         });
-        const data = await response.json();
-        if (!data.success) {
-            console.error('Failed to send message:', data.error);
+        const data: { success?: boolean; error?: string; message?: Communication } = await response.json();
+        if (!response.ok || !data.success || !data.message) {
+            throw new Error(data.error || `Unable to send reply (HTTP ${response.status})`);
         }
-        if (data.success) {
-            setSelectedTicket((prev: any) => ({
-                ...prev,
-                communication: [...(prev?.communication || []), data.message],
-            }));
-        }
-        return data;
+        setSelectedTicket((prev: any) => prev ? ({
+            ...prev,
+            communication: [...(prev.communication || []), data.message],
+        }) : prev);
     };
 
     return {
         state,
         setState,
         selectedTicket,
+        selectedTicketError,
         selectedTicketId,
         setSelectedTicketId,
         selectTicket,
+        retrySelectedTicket,
         clearSelectedTicket,
         tickets,
         setTickets,
