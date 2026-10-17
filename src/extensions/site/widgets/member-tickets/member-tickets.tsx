@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { injectEditorStyles } from './helpers/injectEditorStyles';
 import { useMemberTickets } from './hooks/useMemberTickets';
 import type { FC } from 'react';
@@ -19,9 +19,6 @@ const {
 import { BackButton, TicketNumber, ReplyInput, SendButton, PoweredBy, LoadingState as SelectedTicketLoadingState } from './states/selectedTicket/components';
 import { MessagesWrapper } from './states/selectedTicket/messagesWrapper/wrapper';
 
-const normalizeTicketStatus = (status: unknown) =>
-  String(status ?? '').trim().toLowerCase().replace(/[\s-]+/g, '_');
-
 const MemberTickets: FC<MemberTicketsProps> = ({
   id,
   className,
@@ -34,6 +31,10 @@ const MemberTickets: FC<MemberTicketsProps> = ({
     tickets,
     hasMoreTickets,
     isLoadingMoreTickets,
+    ticketListError,
+    loadMoreError,
+    loadTickets,
+    retryTickets,
     loadMoreTickets,
     sendMessage,
   } = useMemberTickets();
@@ -41,15 +42,19 @@ const MemberTickets: FC<MemberTicketsProps> = ({
   const [message, setMessage] = React.useState('');
   const [statusFilter, setStatusFilter] = React.useState('');
   const [searchQuery, setSearchQuery] = React.useState('');
-  const normalizedSearchQuery = searchQuery.trim().toLocaleLowerCase();
-  const visibleTickets = tickets.filter((ticket: any) => {
-    const matchesStatus = !statusFilter || normalizeTicketStatus(ticket.status) === statusFilter;
-    const searchableText = [ticket.subject, ticket.ticketId, ticket.primaryTicketNumber, ticket.status]
-      .filter((value) => value != null)
-      .join(' ')
-      .toLocaleLowerCase();
-    return matchesStatus && (!normalizedSearchQuery || searchableText.includes(normalizedSearchQuery));
-  });
+  const previousFiltersRef = useRef({ search: searchQuery, status: statusFilter });
+
+  useEffect(() => {
+    if (state !== 'tickets' && state !== 'noTickets') return;
+    const filters = { search: searchQuery, status: statusFilter };
+    if (filters.search === previousFiltersRef.current.search && filters.status === previousFiltersRef.current.status) return;
+
+    const timeoutId = window.setTimeout(() => {
+      previousFiltersRef.current = filters;
+      loadTickets({ search: searchQuery.trim(), status: statusFilter });
+    }, 250);
+    return () => window.clearTimeout(timeoutId);
+  }, [loadTickets, searchQuery, state, statusFilter]);
 
   useEffect(() => {
     injectEditorStyles();
@@ -66,36 +71,46 @@ const MemberTickets: FC<MemberTicketsProps> = ({
 
       )}
 
+      {state === 'error' && (
+        <div className={styles.TicketsLoadError} role="alert">
+          <p>{ticketListError}</p>
+          <button type="button" onClick={retryTickets}>Try again</button>
+        </div>
+      )}
+
       {state === 'tickets' && (
         <div className={classNames('TicketsWrapper', styles.TicketsWrapper)}>
           <div className={classNames('__TicketsActionsHeader', styles.__TicketsActionsHeader)}>
             <Dropdown value={statusFilter} onChange={setStatusFilter} />
             <SearchInput value={searchQuery} onInput={(e) => setSearchQuery(e.currentTarget.value)} />
           </div>
-          {visibleTickets.length > 0 ? (
-            <TicketCardListProvider>
-              {visibleTickets.map((ticket: any, index) => (
-                <TicketCard
-                  key={ticket?._id}
-                  className={index === 0 ? styles.ticketCardFirst : index === visibleTickets.length - 1 ? styles.ticketCardLast : ""}
-                  ticket={ticket}
-                  onOpen={() => selectTicket(ticket?._id)}
-                />
-              ))}
-            </TicketCardListProvider>
-          ) : (
-            <div className={styles.TicketsFilteredEmpty} role="status">No tickets match your filters.</div>
-          )}
-          {hasMoreTickets && (
-            <button
-              type="button"
-              className={styles.LoadMoreTickets}
-              onClick={loadMoreTickets}
-              disabled={isLoadingMoreTickets}
-            >
-              {isLoadingMoreTickets ? 'Loading tickets…' : 'Load more tickets'}
-            </button>
-          )}
+          <div className={styles.TicketsListRegion}>
+            {tickets.length > 0 ? (
+              <TicketCardListProvider>
+                {tickets.map((ticket: any, index) => (
+                  <TicketCard
+                    key={ticket?._id}
+                    className={index === 0 ? styles.ticketCardFirst : index === tickets.length - 1 ? styles.ticketCardLast : ""}
+                    ticket={ticket}
+                    onOpen={() => selectTicket(ticket?._id)}
+                  />
+                ))}
+              </TicketCardListProvider>
+            ) : (
+              <div className={styles.TicketsFilteredEmpty} role="status">No tickets match your filters.</div>
+            )}
+            {loadMoreError && <div className={styles.TicketsLoadError} role="alert">{loadMoreError}</div>}
+            {hasMoreTickets && (
+              <button
+                type="button"
+                className={styles.LoadMoreTickets}
+                onClick={loadMoreTickets}
+                disabled={isLoadingMoreTickets}
+              >
+                {isLoadingMoreTickets ? 'Loading tickets…' : loadMoreError ? 'Retry loading tickets' : 'Load more tickets'}
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -112,7 +127,6 @@ const MemberTickets: FC<MemberTicketsProps> = ({
       {state === 'selectedTicket' && (
 
         <div className={classNames('SelectedTicketContainer', styles.SelectedTicketContainer)}>
-          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" />
           <div className={classNames('__Header', styles.__Header)}>
             <BackButton onClick={() => clearSelectedTicket()} />
             <TicketNumber ticketNumber={selectedTicket?.primaryTicketNumber || ''} />

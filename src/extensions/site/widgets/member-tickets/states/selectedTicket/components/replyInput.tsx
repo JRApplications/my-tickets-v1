@@ -10,6 +10,7 @@ export const ReplyInput = ({ onChange, value }: ReplyInputProps) => {
     return (
         <textarea
             className={classNames("replyInput", styles.replyInput)}
+            aria-label="Type your reply"
             placeholder="Type your reply here..."
             value={value}
             onChange={(e) => onChange?.(e.target.value)}

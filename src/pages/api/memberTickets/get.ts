@@ -41,9 +41,15 @@ export const GET: APIRoute = async ({ request, locals }) => {
         const url = new URL(request.url);
         const ticketId = url.searchParams.get('ticketId');
         const page = Number(url.searchParams.get('page') || '1');
+        const searchQuery = (url.searchParams.get('search') || '').trim().toLocaleLowerCase();
+        const statusFilter = normalizeStatus(url.searchParams.get('status') || '');
         if (!Number.isInteger(page) || page < 1) {
             status = 400;
             throw new Error('Page must be a positive integer');
+        }
+        if (searchQuery.length > 200) {
+            status = 400;
+            throw new Error('Search query must be 200 characters or fewer');
         }
         const member = await members.getCurrentMember();
         const memberId = member?.member?._id;
@@ -83,10 +89,19 @@ export const GET: APIRoute = async ({ request, locals }) => {
             setCache(memberId, tickets);
         }
 
-        const paginatedTickets = tickets.slice(offset, offset + pageSize);
-        const totalPages = Math.ceil(tickets.length / pageSize);
+        const filteredTickets = tickets.filter((ticket) => {
+            const normalizedStatus = normalizeStatus(ticket.status);
+            const searchableText = [ticket.subject, ticket.ticketId, ticket.primaryTicketNumber, ticket.status]
+                .filter((value): value is string => typeof value === 'string')
+                .join(' ')
+                .toLocaleLowerCase();
+            return (!statusFilter || normalizedStatus === statusFilter) &&
+                (!searchQuery || searchableText.includes(searchQuery));
+        });
+        const paginatedTickets = filteredTickets.slice(offset, offset + pageSize);
+        const totalPages = Math.ceil(filteredTickets.length / pageSize);
 
-        return new Response(JSON.stringify({ success: true, tickets: paginatedTickets, totalPages }), {
+        return new Response(JSON.stringify({ success: true, tickets: paginatedTickets, totalPages, totalTickets: filteredTickets.length }), {
             status: 200,
             headers: { "Content-Type": "application/json" },
         });
@@ -97,6 +112,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
             headers: { "Content-Type": "application/json", "x-mytickets-request-id": requestId },
         });
     }
+}
+
+function normalizeStatus(status: string): string {
+    return status.trim().toLocaleLowerCase().replace(/[\s-]+/g, '_');
 }
 
 async function getTicketById(ticketId: string): Promise<MemberTicket> {

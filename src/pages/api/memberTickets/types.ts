@@ -2,8 +2,10 @@ export interface MemberTicket {
     _id: string;
     subject: string;
     status: string;
-    primaryTicketNumber: string;
-    _createdDate: string;
+    primaryTicketNumber?: string;
+    ticketId?: string;
+    submittedDate?: string;
+    _createdDate?: string;
     /** Epoch ms of the expected first reply. Present only when the owner enabled customer ETAs. */
     expectedResponseBy?: number;
 }
@@ -20,7 +22,10 @@ export interface FetchMemberTicketsPageResult {
 
 export interface MemberTicketDataItem {
     id: string;
-    data: Pick<MemberTicket, 'subject' | 'status' | 'primaryTicketNumber' | '_createdDate'>;
+    data: Pick<MemberTicket, 'subject' | 'status'> & {
+        primaryTicketNumber: string;
+        _createdDate: string;
+    };
 }
 
 export const PAGE_SIZE = 1000;

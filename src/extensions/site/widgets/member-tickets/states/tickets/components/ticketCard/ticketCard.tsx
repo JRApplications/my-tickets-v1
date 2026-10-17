@@ -10,7 +10,7 @@ import classNames from 'classnames';
 
 export const TicketCard = ({ ticket, onOpen, className }: { ticket: any, onOpen: () => void, className?: string }) => {
   return (
-    <div className={classNames("ticketCard", styles.ticketCard, className)} tabIndex={0}>
+    <div className={classNames("ticketCard", styles.ticketCard, className)}>
       <div className={classNames("ticketCardLeft", styles.ticketCardLeft)}>
         <TicketNumber number={ticket.ticketId} />
         <TicketSubject subject={ticket.subject} />
