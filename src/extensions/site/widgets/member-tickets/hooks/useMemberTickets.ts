@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { httpClient } from '@wix/essentials';
 
 export const useMemberTickets = () => {
@@ -6,6 +6,10 @@ export const useMemberTickets = () => {
     const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
     const [selectedTicket, setSelectedTicket] = useState<any>(null);
     const [tickets, setTickets] = useState<any[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
+    const [isLoadingMoreTickets, setIsLoadingMoreTickets] = useState(false);
+    const loadingMoreRef = useRef(false);
 
     // Fetch a single ticket's full details whenever a ticket is selected
     useEffect(() => {
@@ -38,13 +42,41 @@ export const useMemberTickets = () => {
             const baseApiUrl = new URL(import.meta.url).origin;
             const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/memberTickets/get`);
             const data = await response.json();
-            if (data.success) {
-                setTickets(data.tickets && data.tickets.length > 0 ? data.tickets : []);
+            if (response.ok && data.success && Array.isArray(data.tickets)) {
+                setTickets(data.tickets);
+                setCurrentPage(1);
+                setTotalPages(Number.isInteger(data.totalPages) && data.totalPages > 0 ? data.totalPages : 1);
             }
         };
 
         fetchTickets();
     }, []);
+
+    const loadMoreTickets = useCallback(async () => {
+        if (loadingMoreRef.current || currentPage >= totalPages) return;
+
+        const nextPage = currentPage + 1;
+        loadingMoreRef.current = true;
+        setIsLoadingMoreTickets(true);
+
+        try {
+            const baseApiUrl = new URL(import.meta.url).origin;
+            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/memberTickets/get?page=${nextPage}`);
+            const data = await response.json();
+            if (!response.ok || !data.success || !Array.isArray(data.tickets)) {
+                throw new Error(data.error || 'Unable to load more tickets');
+            }
+
+            setTickets((currentTickets) => [...currentTickets, ...data.tickets]);
+            setCurrentPage(nextPage);
+            setTotalPages(Number.isInteger(data.totalPages) && data.totalPages > 0 ? data.totalPages : nextPage);
+        } catch (error) {
+            console.error('Failed to load more tickets:', error);
+        } finally {
+            loadingMoreRef.current = false;
+            setIsLoadingMoreTickets(false);
+        }
+    }, [currentPage, totalPages]);
 
     // Keep state in sync with whether tickets exist, but don't clobber
     // the selectedTicket / selectedTicketLoading states
@@ -97,6 +129,9 @@ export const useMemberTickets = () => {
         clearSelectedTicket,
         tickets,
         setTickets,
+        hasMoreTickets: currentPage < totalPages,
+        isLoadingMoreTickets,
+        loadMoreTickets,
         sendMessage,
     };
 };

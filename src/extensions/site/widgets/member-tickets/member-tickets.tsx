@@ -32,6 +32,9 @@ const MemberTickets: FC<MemberTicketsProps> = ({
     selectTicket,
     clearSelectedTicket,
     tickets,
+    hasMoreTickets,
+    isLoadingMoreTickets,
+    loadMoreTickets,
     sendMessage,
   } = useMemberTickets();
   // @ts-nocheck
@@ -82,6 +85,16 @@ const MemberTickets: FC<MemberTicketsProps> = ({
             </TicketCardListProvider>
           ) : (
             <div className={styles.TicketsFilteredEmpty} role="status">No tickets match your filters.</div>
+          )}
+          {hasMoreTickets && (
+            <button
+              type="button"
+              className={styles.LoadMoreTickets}
+              onClick={loadMoreTickets}
+              disabled={isLoadingMoreTickets}
+            >
+              {isLoadingMoreTickets ? 'Loading tickets…' : 'Load more tickets'}
+            </button>
           )}
         </div>
       )}

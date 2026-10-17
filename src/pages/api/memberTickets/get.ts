@@ -40,7 +40,11 @@ export const GET: APIRoute = async ({ request, locals }) => {
         }
         const url = new URL(request.url);
         const ticketId = url.searchParams.get('ticketId');
-        const page = parseInt(url.searchParams.get('page') || '1', 10);
+        const page = Number(url.searchParams.get('page') || '1');
+        if (!Number.isInteger(page) || page < 1) {
+            status = 400;
+            throw new Error('Page must be a positive integer');
+        }
         const member = await members.getCurrentMember();
         const memberId = member?.member?._id;
         if (!memberId) {
