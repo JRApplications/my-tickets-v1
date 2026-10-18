@@ -18,6 +18,7 @@ import resetPasswordUserNotification from './extensions/backend/notifications/us
 import appLifecycle from './extensions/backend/events/app-lifecycle/app-lifecycle.extension.ts';
 
 import appRemoved from './extensions/backend/events/app-removed/app-removed.extension.ts';
+import appSkills from './extensions/backend/app-skills/app-skills.extension.ts';
 
 export default app()
   .use(myTickets)
@@ -29,4 +30,5 @@ export default app()
   .use(resetPasswordTopic)
   .use(resetPasswordUserNotification)
   .use(appLifecycle)
-  .use(appRemoved);
+  .use(appRemoved)
+  .use(appSkills);

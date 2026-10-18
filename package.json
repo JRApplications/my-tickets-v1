@@ -21,6 +21,7 @@
     "@types/node": "^26.6.4",
     "@uiw/react-markdown-preview": "^5.2.1",
     "@wix/ai": "^1.13.0",
+    "@wix/app-components": "^1.0.191",
     "@wix/app-management": "^1.0.165",
     "@wix/astro": "^2.75.0",
     "@wix/captcha": "^1.0.44",
