@@ -6,7 +6,6 @@ import { checkPermission } from '../auth/checkPermission';
 import { generateElevatedAuthToken } from '../auth/generateElevatedAuthToken';
 import { isSystemAdmin } from '../auth/system-admin';
 import { HEADER_NAME, verifyToken } from './token';
-import { fetchTicketItemsPage } from '../tickets/graphql';
 import wixConfig from '../../../../wix.config.json';
 
 interface PlanLimits {
@@ -55,28 +54,73 @@ const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringif
     },
 });
 
-async function countDataItems(accessToken: string, collectionId: string, filter: Record<string, unknown> = {}): Promise<number> {
-    let count = 0;
-    let cursor: string | null = null;
-    let hasNext = true;
-    while (hasNext) {
-        const page = await fetchTicketItemsPage({
-            accessToken,
-            dataCollectionId: collectionId,
-            fields: ['_id'],
-            filter,
-            sort: [{ fieldName: '_id', order: 'ASC' }],
-            limit: 1000,
-            cursor,
-        });
-        count += page.items.length;
-        hasNext = page.pageInfo.hasNext;
-        if (hasNext && !page.pageInfo.nextCursor) {
-            throw new Error(`Wix GraphQL did not return a cursor for ${collectionId}`);
+async function fetchAppPlanCounts(accessToken: string, billingPeriod: { start: Date; end: Date } | null) {
+    const periodFields = billingPeriod ? `
+        chatConversations: dataItemsV2CountDataItems(input: $chatConversations) { totalCount }
+        tickets: dataItemsV2CountDataItems(input: $tickets) { totalCount }
+    ` : '';
+    const periodVariableDefinitions = billingPeriod ? `
+        $chatConversations: CloudDataDataCountDataItemsRequestInput,
+        $tickets: CloudDataDataCountDataItemsRequestInput,
+    ` : '';
+    const periodVariables = billingPeriod ? {
+        chatConversations: {
+            dataCollectionId: CollectionIds.CHAT_CONVERSATIONS,
+            filter: { _createdDate: { $gte: billingPeriod.start.toISOString() } },
+        },
+        tickets: {
+            dataCollectionId: CollectionIds.TICKETS,
+            filter: { _createdDate: { $gte: billingPeriod.start.toISOString() } },
+        },
+    } : {};
+    const query = `
+        mutation CountAppPlanDataItems(
+            $agents: CloudDataDataCountDataItemsRequestInput,
+            $teams: CloudDataDataCountDataItemsRequestInput,
+            ${periodVariableDefinitions}
+        ) {
+            agents: dataItemsV2CountDataItems(input: $agents) { totalCount }
+            teams: dataItemsV2CountDataItems(input: $teams) { totalCount }
+            ${periodFields}
         }
-        cursor = page.pageInfo.nextCursor;
+    `;
+
+    const response = await fetch('https://www.wixapis.com/graphql/alpha', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${accessToken}`,
+        },
+        body: JSON.stringify({
+            query,
+            variables: {
+                agents: { dataCollectionId: CollectionIds.AGENTS },
+                teams: { dataCollectionId: CollectionIds.TEAMS },
+                ...periodVariables,
+            },
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Wix GraphQL HTTP error: ${response.status} ${response.statusText}`);
     }
-    return count;
+
+    const result = await response.json();
+    if (result.errors?.length) {
+        throw new Error(`Wix GraphQL errors: ${JSON.stringify(result.errors)}`);
+    }
+
+    const data = result?.data;
+    const agentCount = data?.agents?.totalCount;
+    const teamCount = data?.teams?.totalCount;
+    const chatConversationCount = billingPeriod ? data?.chatConversations?.totalCount : null;
+    const ticketCount = billingPeriod ? data?.tickets?.totalCount : null;
+    if (![agentCount, teamCount, ...(billingPeriod ? [chatConversationCount, ticketCount] : [])]
+        .every((count) => typeof count === 'number' && Number.isFinite(count))) {
+        throw new Error('Wix GraphQL returned invalid app plan counts');
+    }
+
+    return { agentCount, teamCount, chatConversationCount, ticketCount };
 }
 
 export const GET: APIRoute = async ({ request }) => {
@@ -120,24 +164,8 @@ export const GET: APIRoute = async ({ request }) => {
         const hasPlan = systemAdmin || instance?.isFree === false;
         const billingPeriod = getCurrentBillingPeriod(billing?.timeStamp, new Date());
         const accessToken = await generateElevatedAuthToken(authorization);
-        const agentCountPromise = countDataItems(accessToken, CollectionIds.AGENTS);
-        const teamCountPromise = countDataItems(accessToken, CollectionIds.TEAMS);
-        const chatConversationCountPromise: Promise<number | null> = billingPeriod
-            ? countDataItems(accessToken, CollectionIds.CHAT_CONVERSATIONS, {
-                _createdDate: { $gte: billingPeriod.start.toISOString() },
-            })
-            : Promise.resolve(null);
-        const ticketCountPromise: Promise<number | null> = billingPeriod
-            ? countDataItems(accessToken, CollectionIds.TICKETS, {
-                _createdDate: { $gte: billingPeriod.start.toISOString() },
-            })
-            : Promise.resolve(null);
-        const [agentCount, teamCount, chatConversationCount, ticketCount] = await Promise.all([
-            agentCountPromise,
-            teamCountPromise,
-            chatConversationCountPromise,
-            ticketCountPromise,
-        ]);
+        const { agentCount, teamCount, chatConversationCount, ticketCount } =
+            await fetchAppPlanCounts(accessToken, billingPeriod);
 
         const limits: PlanLimits | undefined = normalizedPlanName.includes('essential')
             ? { agents: 1, teams: 1, chatConversations: 100, tickets: 50 }
