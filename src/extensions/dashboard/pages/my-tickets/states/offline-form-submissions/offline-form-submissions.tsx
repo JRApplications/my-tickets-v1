@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Badge, Box, Button, Card, SkeletonRectangle, Text } from '@wix/design-system';
+import { Badge, Box, Button, Card, Text } from '@wix/design-system';
 import {
     CollectionEmptyState,
     CollectionErrorState,

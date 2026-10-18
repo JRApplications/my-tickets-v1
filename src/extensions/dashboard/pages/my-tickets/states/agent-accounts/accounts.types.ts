@@ -1,4 +1,3 @@
-import type { Agent } from '@jrapps/my_tickets_common_types';
 
 export interface ViewAccountsProps {
     permissions: string[];

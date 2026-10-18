@@ -12,22 +12,6 @@ import { checkPermission } from '../../auth/checkPermission';
 import { members } from '@wix/members';
 
 const PAGE_SIZE = 100;
-const TICKET_FIELDS = [
-    '_id',
-    'primaryTicketNumber',
-    'subject',
-    'priority',
-    'status',
-    'memberName',
-    'memberId',
-    'assignedAgent',
-    'assignedTeam',
-    'tags',
-    'isSpam',
-    'isDeleted',
-    'sla',
-    '_createdDate',
-] as const;
 
 export const GET: APIRoute = async ({ request, locals }) => {
     let status = 500;

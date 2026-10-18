@@ -421,7 +421,7 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
                                             <Table
                                                 state={businessHoursTableState}
                                                 search={false}
-                                                skin="neutral"
+                                            
                                                 columns={businessHourColumns}
                                                 rowVerticalPadding="medium"
                                             />
