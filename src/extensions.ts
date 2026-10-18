@@ -20,6 +20,13 @@ import appLifecycle from './extensions/backend/events/app-lifecycle/app-lifecycl
 import appRemoved from './extensions/backend/events/app-removed/app-removed.extension.ts';
 import appSkills from './extensions/backend/app-skills/app-skills.extension.ts';
 
+import appInstancePaidPlanAutoRenewalCancelled from './extensions/backend/events/app-instance-paid-plan-auto-renewal-cancelled/app-instance-paid-plan-auto-renewal-cancelled.extension.ts';
+import appInstancePaidPlanChanged from './extensions/backend/events/app-instance-paid-plan-changed/app-instance-paid-plan-changed.extension.ts';
+import appInstancePaidPlanPurchased from './extensions/backend/events/app-instance-paid-plan-purchased/app-instance-paid-plan-purchased.extension.ts';
+import appInstancePlanConvertedToPaid from './extensions/backend/events/app-instance-plan-converted-to-paid/app-instance-plan-converted-to-paid.extension.ts';
+import appInstancePlanReactivated from './extensions/backend/events/app-instance-plan-reactivated/app-instance-plan-reactivated.extension.ts';
+import appInstancePlanTransferred from './extensions/backend/events/app-instance-plan-transferred/app-instance-plan-transferred.extension.ts';
+
 export default app()
   .use(myTickets)
   // .use(myTicketsRtPro)
@@ -31,4 +38,10 @@ export default app()
   .use(resetPasswordUserNotification)
   .use(appLifecycle)
   .use(appRemoved)
-  .use(appSkills);
+  .use(appSkills)
+  .use(appInstancePaidPlanAutoRenewalCancelled)
+  .use(appInstancePaidPlanChanged)
+  .use(appInstancePaidPlanPurchased)
+  .use(appInstancePlanConvertedToPaid)
+  .use(appInstancePlanReactivated)
+  .use(appInstancePlanTransferred);
