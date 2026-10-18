@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, type FC } from 'react';
-import { info  } from '@wix/editor'
+import { info } from '@wix/editor'
 import {
   SidePanel,
   WixDesignSystemProvider,
@@ -13,12 +13,16 @@ const Panel: FC = () => {
 
   useEffect(() => {
     const fetchDashboardUrl = async () => {
-      const siteId = await info.getMetaSiteId();
-      const appId = "bbc0bfe8-5b30-405a-b400-71cfe51f8ad5"
-      if (siteId && appId) {
-        setDashboardUrl(
-          `https://manage.wix.com/dashboard/${siteId}/app/${appId}?stateOverride=member-tickets-design`
-        );
+      try {
+        const siteId = await info.getMetaSiteId();
+        const appId = "bbc0bfe8-5b30-405a-b400-71cfe51f8ad5"
+        if (siteId && appId) {
+          setDashboardUrl(
+            `https://manage.wix.com/dashboard/${siteId}/app/${appId}?stateOverride=member-tickets-design`
+          );
+        }
+      } catch (error) {
+        console.error('Error fetching dashboard URL:', error);
       }
     };
     fetchDashboardUrl();
