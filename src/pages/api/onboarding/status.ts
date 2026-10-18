@@ -1,9 +1,9 @@
 import type { APIRoute } from 'astro';
-import { items } from '@wix/data';
-import { auth } from '@wix/essentials';
 import { CollectionIds } from '@jrapps/my_tickets_common_types';
 import { checkPermission } from '../auth/checkPermission';
+import { generateElevatedAuthToken } from '../auth/generateElevatedAuthToken';
 import { captureError } from '../reportError';
+import { fetchTicketItemsPage } from '../tickets/graphql';
 
 export const GET: APIRoute = async ({ request, locals }) => {
     let status = 500;
@@ -14,8 +14,13 @@ export const GET: APIRoute = async ({ request, locals }) => {
             throw new Error('Forbidden');
         }
 
-        const elevatedQuery = auth.elevate(items.query);
-        const result = await elevatedQuery(CollectionIds.AGENTS).limit(1).find();
+        const accessToken = await generateElevatedAuthToken(request.headers.get('Authorization'));
+        const result = await fetchTicketItemsPage({
+            accessToken,
+            dataCollectionId: CollectionIds.AGENTS,
+            fields: ['_id'],
+            limit: 1,
+        });
         return new Response(JSON.stringify({ success: true, needsSetup: result.items.length === 0 }), { status: 200 });
     } catch (error) {
         const { requestId } = await captureError(error, { requestId: locals.myTicketsRequestId, request });

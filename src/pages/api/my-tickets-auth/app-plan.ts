@@ -1,11 +1,12 @@
 import type { APIRoute } from 'astro';
-import { items } from '@wix/data';
 import { appInstances } from '@wix/app-management';
 import { auth } from '@wix/essentials';
 import { CollectionIds } from '@jrapps/my_tickets_common_types';
 import { checkPermission } from '../auth/checkPermission';
-import { SYSTEM_ADMIN_ID, isSystemAdmin } from '../auth/system-admin';
+import { generateElevatedAuthToken } from '../auth/generateElevatedAuthToken';
+import { isSystemAdmin } from '../auth/system-admin';
 import { HEADER_NAME, verifyToken } from './token';
+import { fetchTicketItemsPage } from '../tickets/graphql';
 import wixConfig from '../../../../wix.config.json';
 
 interface PlanLimits {
@@ -54,6 +55,30 @@ const jsonResponse = (body: unknown, status = 200) => new Response(JSON.stringif
     },
 });
 
+async function countDataItems(accessToken: string, collectionId: string, filter: Record<string, unknown> = {}): Promise<number> {
+    let count = 0;
+    let cursor: string | null = null;
+    let hasNext = true;
+    while (hasNext) {
+        const page = await fetchTicketItemsPage({
+            accessToken,
+            dataCollectionId: collectionId,
+            fields: ['_id'],
+            filter,
+            sort: [{ fieldName: '_id', order: 'ASC' }],
+            limit: 1000,
+            cursor,
+        });
+        count += page.items.length;
+        hasNext = page.pageInfo.hasNext;
+        if (hasNext && !page.pageInfo.nextCursor) {
+            throw new Error(`Wix GraphQL did not return a cursor for ${collectionId}`);
+        }
+        cursor = page.pageInfo.nextCursor;
+    }
+    return count;
+}
+
 export const GET: APIRoute = async ({ request }) => {
     const authorization = request.headers.get('Authorization');
     if (!authorization) {
@@ -94,18 +119,18 @@ export const GET: APIRoute = async ({ request }) => {
         const freeTrialAvailable = instance?.freeTrialAvailable === true;
         const hasPlan = systemAdmin || instance?.isFree === false;
         const billingPeriod = getCurrentBillingPeriod(billing?.timeStamp, new Date());
-        const queryItems = auth.elevate(items.query);
-        const agentCountPromise = queryItems(CollectionIds.AGENTS).count({ consistentRead: true });
-        const teamCountPromise = queryItems(CollectionIds.TEAMS).count({ consistentRead: true });
+        const accessToken = await generateElevatedAuthToken(authorization);
+        const agentCountPromise = countDataItems(accessToken, CollectionIds.AGENTS);
+        const teamCountPromise = countDataItems(accessToken, CollectionIds.TEAMS);
         const chatConversationCountPromise: Promise<number | null> = billingPeriod
-            ? queryItems(CollectionIds.CHAT_CONVERSATIONS)
-                .ge('_createdDate', billingPeriod.start)
-                .count({ consistentRead: true })
+            ? countDataItems(accessToken, CollectionIds.CHAT_CONVERSATIONS, {
+                _createdDate: { $gte: billingPeriod.start.toISOString() },
+            })
             : Promise.resolve(null);
         const ticketCountPromise: Promise<number | null> = billingPeriod
-            ? queryItems(CollectionIds.TICKETS)
-                .ge('_createdDate', billingPeriod.start)
-                .count({ consistentRead: true })
+            ? countDataItems(accessToken, CollectionIds.TICKETS, {
+                _createdDate: { $gte: billingPeriod.start.toISOString() },
+            })
             : Promise.resolve(null);
         const [agentCount, teamCount, chatConversationCount, ticketCount] = await Promise.all([
             agentCountPromise,

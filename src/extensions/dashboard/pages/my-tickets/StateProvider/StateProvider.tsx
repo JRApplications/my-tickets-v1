@@ -4,9 +4,11 @@ import MemberTicketsEmbedScriptConfig from '../states/member-tickets-embed-scrip
 import ViewChat from '../states/chats/view-chat.route';
 import GetSupport from '../states/get-support/get-support.route';
 import HomeDashboard from '../states/home/home-dashboard';
+import type { CurrentAppPlan } from '../auth/fetchCurrentAppPlan';
 
 const StateProvider = ({
     stateId,
+    appPlan,
     onCreateTicket,
     isTicketLimitReached = false,
     isAgentLimitReached = false,
@@ -25,6 +27,7 @@ const StateProvider = ({
     viewChatStateProps,
 }: {
     stateId: StateId,
+    appPlan: CurrentAppPlan | null,
     onCreateTicket: () => void,
     isTicketLimitReached?: boolean,
     isAgentLimitReached?: boolean,
@@ -74,7 +77,7 @@ const StateProvider = ({
         case StateId.TicketsList:
             return <TicketsList teamId={teamId} permissions={permissions} onTicketClick={onTicketClick} onCreateTicket={onCreateTicket} isTicketLimitReached={isTicketLimitReached} onVisibleTicketsChange={onVisibleTicketsChange} onGetTicketUpdateFn={onGetTicketUpdateFn} />;
         case StateId.Home:
-            return <HomeDashboard teamId={teamId} onCreateTicket={onCreateTicket} isTicketLimitReached={isTicketLimitReached} onNavigate={onNavigate} onTicketClick={onTicketClick} />;
+            return <HomeDashboard appPlan={appPlan} teamId={teamId} onCreateTicket={onCreateTicket} isTicketLimitReached={isTicketLimitReached} onNavigate={onNavigate} onTicketClick={onTicketClick} />;
         case StateId.ViewTickets:
             return <ViewTicket
                 permissions={permissions}
@@ -115,10 +118,11 @@ const StateProvider = ({
                 isTeamLimitReached={isTeamLimitReached}
             />;
         case StateId.Workforce:
-            return <WorkforceDashboard teamId={teamId} agentId={agentId} permissions={permissions} />;
+            return <WorkforceDashboard appPlan={appPlan} teamId={teamId} agentId={agentId} permissions={permissions} />;
         case StateId.ManageRoles:
             return <AgentRoles
                 permissions={permissions}
+                appPlan={appPlan}
             />;
         case StateId.ChatWidgetConfig:
             return <ChatWidgetConfig
@@ -127,6 +131,7 @@ const StateProvider = ({
         case StateId.SlaSettings:
             return <SlaSettings
                 permissions={permissions}
+                appPlan={appPlan}
             />;
         case StateId.Reports:
             return <ReportsDashboard teamId={teamId} permissions={permissions} />;
@@ -143,6 +148,7 @@ const StateProvider = ({
         case StateId.InternalChat:
             return <InternalChat
                 permissions={permissions}
+                appPlan={appPlan}
                 teamId={teamId}
                 agentId={agentId}
                 onAiButtonClicked={internalChatStateProps.onAiButtonClicked}

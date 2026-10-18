@@ -12,20 +12,25 @@ import { Add, Confirm } from '@wix/wix-ui-icons-common/lazy';
 import './roles.css';
 import ListRoles from './states/list-roles';
 import CreateManageRole from './states/create-manage-role';
-import { useEffect, useState } from 'react';
-import { fetchCurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
+import type { CurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import { useRoles } from './useRoles';
 import { LoadingState, PermissionDeniedState } from '@jrapps/my_tickets_dashboard_ui';
 
 interface Props {
     permissions: string[];
+    appPlan: CurrentAppPlan | null;
 }
 
 const RolesWrapper = ({
-    permissions
+    permissions,
+    appPlan,
 }: Props) => {
-    const [planAccess, setPlanAccess] = useState<'loading' | 'allowed' | 'restricted' | 'error'>('loading');
-    const [upgradeUrl, setUpgradeUrl] = useState<string | undefined>();
+    const normalizedPlanName = typeof appPlan?.planName === 'string'
+        ? appPlan.planName.toLowerCase().replace(/[ _-]/g, '')
+        : '';
+    const canManageRoles = normalizedPlanName.includes('team') || normalizedPlanName.includes('advanced');
+    const planAccess: 'allowed' | 'restricted' | 'error' = !appPlan ? 'error' : canManageRoles ? 'allowed' : 'restricted';
+    const upgradeUrl = appPlan?.upgradeUrl;
     const {
         state,
         isLoading,
@@ -44,31 +49,6 @@ const RolesWrapper = ({
         onDuplicateRole,
         isCreating,
     } = useRoles();
-
-    useEffect(() => {
-        let isMounted = true;
-        const loadPlanAccess = async () => {
-            try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await fetchCurrentAppPlan(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
-                const result = await response.json();
-                if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load your plan');
-                const normalizedPlanName = typeof result.planName === 'string'
-                    ? result.planName.toLowerCase().replace(/[ _-]/g, '')
-                    : '';
-                const canManageRoles = normalizedPlanName.includes('team') || normalizedPlanName.includes('advanced');
-                if (isMounted) {
-                    setUpgradeUrl(typeof result.upgradeUrl === 'string' ? result.upgradeUrl : undefined);
-                    setPlanAccess(canManageRoles ? 'allowed' : 'restricted');
-                }
-            } catch (error) {
-                console.error('Failed to load the plan for role access', error);
-                if (isMounted) setPlanAccess('error');
-            }
-        };
-        void loadPlanAccess();
-        return () => { isMounted = false; };
-    }, []);
 
     if (!permissions?.includes('my-tickets-view-roles')) {
         return (<PermissionDeniedState />)
@@ -96,7 +76,7 @@ const RolesWrapper = ({
     const canEditRole = permissions.includes('my-tickets-edit-roles');
     let actionsBar;
 
-    if (planAccess === 'loading' || (planAccess === 'allowed' && isLoading)) {
+    if (planAccess === 'allowed' && isLoading) {
         actionsBar = <SkeletonRectangle width="140px" height="40px" />;
     } else if (planAccess === 'restricted') {
         actionsBar = upgradeUrl
@@ -146,7 +126,6 @@ const RolesWrapper = ({
             <Page.Header title="Roles & Permissions" actionsBar={actionsBar} />
             <Page.Content>
                 <Box width={'100%'} height={'100%'} direction={'vertical'} maxHeight={'100%'} boxSizing='border-box'>
-                    {planAccess === 'loading' && <Box width="100%" height="100%" align="center" verticalAlign="middle"><Loader /></Box>}
                     {planAccess === 'restricted' && (
                         <EmptyState
                             title="Roles & Permissions require a Team or Advanced plan"

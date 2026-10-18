@@ -1,8 +1,9 @@
 import type { APIRoute } from 'astro';
-import { items } from '@wix/data';
 import { checkPermission } from '../auth/checkPermission';
 import { captureError } from '../reportError';
 import { getClockState, SLA_PRIORITIES, toPriorityKey, type SlaPriorityKey, CollectionIds } from '@jrapps/my_tickets_common_types';
+import { generateElevatedAuthToken } from '../auth/generateElevatedAuthToken';
+import { fetchTicketItemsPage, mapGraphQLDataItem } from './graphql';
 
 const CACHE_TTL_MS = 60_000;
 const PAGE_SIZE = 1000;
@@ -18,21 +19,26 @@ const inflight = new Map<string, Promise<unknown>>();
 
 const TICKET_FIELDS = ['_id', 'status', 'priority', '_createdDate', '_updatedDate', 'teamId', 'isSpam', 'isDeleted', 'assignedAgent', 'assignedTeam', 'communication', 'timeline', 'sla'];
 
-/**
- * Fetches every row of a query. The first page also returns the total count, then the
- * remaining pages are fetched in parallel instead of one cursor hop at a time.
- */
-async function fetchAll(build: () => any, fields: string[]): Promise<any[]> {
-    const first = await build().fields(...fields).ascending('_id').limit(PAGE_SIZE).find({ returnTotalCount: true });
-    const total: number = first.totalCount ?? first.items.length;
-    if (first.items.length >= total) return first.items;
-    const extraPages = Math.ceil(total / PAGE_SIZE) - 1;
-    const rest = await Promise.all(
-        Array.from({ length: extraPages }, (_, i) =>
-            build().fields(...fields).ascending('_id').skip((i + 1) * PAGE_SIZE).limit(PAGE_SIZE).find({ returnTotalCount: false })
-        )
-    );
-    return [first.items, ...rest.map((r: any) => r.items)].flat();
+/** Fetches every row of a Wix Data query by following its GraphQL cursor pages. */
+async function fetchAll(accessToken: string, collectionId: string, fields: string[], filter: Record<string, unknown> = {}): Promise<any[]> {
+    const allItems: any[] = [];
+    let cursor: string | null = null;
+    let hasNext = true;
+    while (hasNext) {
+        const page = await fetchTicketItemsPage({
+            accessToken,
+            dataCollectionId: collectionId,
+            fields,
+            filter,
+            sort: [{ fieldName: '_id', order: 'ASC' }],
+            limit: PAGE_SIZE,
+            cursor,
+        });
+        allItems.push(...page.items.map(mapGraphQLDataItem));
+        hasNext = page.pageInfo.hasNext && !!page.pageInfo.nextCursor;
+        cursor = page.pageInfo.nextCursor;
+    }
+    return allItems;
 }
 
 // Earliest agent message at/after createdAt (single pass, no filter+sort).
@@ -60,26 +66,23 @@ function terminalEventAt(timeline: any[] | undefined): number | null {
 
 const average = (values: number[]) => values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : null;
 
-async function buildMetrics(teamId: string, periodDays: number | undefined) {
+async function buildMetrics(accessToken: string, teamId: string, periodDays: number | undefined) {
     const now = Date.now();
     const todayUtc = Date.UTC(new Date(now).getUTCFullYear(), new Date(now).getUTCMonth(), new Date(now).getUTCDate());
     const periodStart = periodDays ? todayUtc - (periodDays - 1) * DAY : 0;
 
-    // Push team + period filtering into the database so we only transfer (and later scan)
-    // tickets that can actually be reported on.
-    const base = () => {
-        let query = items.query(CollectionIds.TICKETS);
-        if (periodStart) query = query.ge('_createdDate', new Date(periodStart));
-        return query;
+    // Push team + period filtering into Wix Data so only reportable tickets are transferred.
+    const ticketFilter: Record<string, unknown> = {
+        ...(periodStart ? { _createdDate: { $gte: new Date(periodStart).toISOString() } } : {}),
+        ...(teamId === 'system_admin' ? {} : {
+            $or: [{ teamId }, { 'assignedTeam.id': teamId }],
+        }),
     };
-    const buildTicketQuery = () => teamId === 'system_admin'
-        ? base()
-        : base().eq('teamId', teamId).or(base().eq('assignedTeam.id', teamId));
 
     // Tickets and teams are independent, so fetch them concurrently.
     const [fetchedTickets, teamRecords] = await Promise.all([
-        fetchAll(buildTicketQuery, TICKET_FIELDS),
-        fetchAll(() => items.query(CollectionIds.TEAMS), ['_id', 'name']),
+        fetchAll(accessToken, CollectionIds.TICKETS, TICKET_FIELDS, ticketFilter),
+        fetchAll(accessToken, CollectionIds.TEAMS, ['name']),
     ]);
 
     // Safety net: identical semantics to the original in-memory filtering.
@@ -314,9 +317,10 @@ export const GET: APIRoute = async ({ request, locals }) => {
             return json({ success: true, metrics: cached.value, fromCache: true });
         }
 
+        const accessToken = await generateElevatedAuthToken(request.headers.get('Authorization'));
         let pending = inflight.get(cacheKey);
         if (!pending) {
-            pending = buildMetrics(teamId, periodDays)
+            pending = buildMetrics(accessToken, teamId, periodDays)
                 .then((metrics) => {
                     const t = Date.now();
                     for (const [key, entry] of analyticsCache) if (entry.expiresAt <= t) analyticsCache.delete(key);

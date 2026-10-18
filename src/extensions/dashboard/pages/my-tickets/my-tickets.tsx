@@ -14,7 +14,7 @@ import { ModalsProvider } from './Modals';
 import { LoginPage } from './login';
 import { DevTestOverrideProvider } from './DevTestOverrideProvider';
 import { clearMyTicketsAgentSession, myTicketsFetchWithAuth, storeMyTicketsAgentSession } from './auth/myTicketsFetchWithAuth';
-import { fetchCurrentAppPlan } from './auth/fetchCurrentAppPlan';
+import { fetchCurrentAppPlan, type CurrentAppPlan } from './auth/fetchCurrentAppPlan';
 import { subscriber } from '@wix/realtime';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import NotificationProvider from './NotificationProvider';
@@ -94,6 +94,7 @@ const DashboardPage: FC = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [isAccessReady, setIsAccessReady] = useState(false);
   const [isEssentialsPlan, setIsEssentialsPlan] = useState(false);
+  const [appPlan, setAppPlan] = useState<CurrentAppPlan | null>(null);
   const [isPlanRequired, setIsPlanRequired] = useState(false);
   const [freeTrialAvailable, setFreeTrialAvailable] = useState(false);
   const [planUpgradeUrl, setPlanUpgradeUrl] = useState<string>();
@@ -155,6 +156,7 @@ const DashboardPage: FC = () => {
         const planResponse = await fetchCurrentAppPlan(`${currentUrl.origin}/api/my-tickets-auth/app-plan`);
         const plan = await planResponse.json();
         if (!planResponse.ok || !plan.success) throw new Error(plan.error || 'Could not check your My Tickets plan');
+        setAppPlan(plan as CurrentAppPlan);
         setIsPlanRequired(!needsSetup && plan.hasPlan !== true);
         setFreeTrialAvailable(plan.freeTrialAvailable === true);
         setPlanUpgradeUrl(typeof plan.upgradeUrl === 'string' ? plan.upgradeUrl : undefined);
@@ -443,7 +445,10 @@ const DashboardPage: FC = () => {
     sessionStorage.setItem('my-tickets-login-override-consumed', 'true');
     const isSystemAdmin = data.agentId === 'system_admin';
     setIsEssentialsPlan((current) => isSystemAdmin ? false : current);
-    if (isSystemAdmin) setPlanLimitsReached({ tickets: false, agents: false, teams: false });
+    if (isSystemAdmin) {
+      setPlanLimitsReached({ tickets: false, agents: false, teams: false });
+      setAppPlan((current) => current ? { ...current, isSystemAdmin: true, planName: 'Advanced', hasMaxTickets: false, hasMaxAgents: false, hasMaxTeams: false, hasMaxChatConversations: false } : current);
+    }
     setLoggedInAgent({
       agentId: data.agentId,
       teamId: data.teamId,
@@ -478,6 +483,7 @@ const DashboardPage: FC = () => {
         <LoginPage handleLoginSuccess={handleLoginSuccess} isGettingReady={!isAccessReady && !needsOnboarding} />
         <MainAdminOnboardingModal
           isOpen={needsOnboarding}
+          appPlan={appPlan}
           onComplete={(user, planStatus: OnboardingPlanStatus) => {
             setNeedsOnboarding(false);
             setIsPlanRequired(planStatus.requiresPlan);
@@ -527,6 +533,7 @@ const DashboardPage: FC = () => {
               <WixPatternsProvider>
                 <StateContainerProvider>
                   <StateProvider
+                  appPlan={appPlan}
                   onCreateTicket={() => { if (!planLimitsReached.tickets) setIsCreateTicketModalOpen(true); }}
                   isTicketLimitReached={planLimitsReached.tickets}
                   isAgentLimitReached={planLimitsReached.agents}

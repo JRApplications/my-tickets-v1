@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, EmptyState, Loader, Page } from '@wix/design-system';
-import { fetchCurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
+import { Box, Button, EmptyState, Page } from '@wix/design-system';
+import type { CurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import { PermissionDeniedState, ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import type { SlaSettings } from '@jrapps/my_tickets_common_types';
 import SlaSettingsWrapper from './sla-settings.wrapper';
@@ -10,36 +10,16 @@ let cachedSettings: SlaSettings | undefined;
 
 interface SlaSettingsProps {
     permissions: string[];
+    appPlan: CurrentAppPlan | null;
 }
 
-const SlaSettingsRoute = ({ permissions }: SlaSettingsProps) => {
-    const [planAccess, setPlanAccess] = useState<'loading' | 'allowed' | 'restricted' | 'error'>('loading');
-    const [upgradeUrl, setUpgradeUrl] = useState<string>();
-
-    useEffect(() => {
-        let isMounted = true;
-        const checkPlan = async () => {
-            try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await fetchCurrentAppPlan(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
-                const result = await response.json();
-                if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load your plan');
-                const normalizedPlanName = typeof result.planName === 'string'
-                    ? result.planName.toLowerCase().replace(/[ _-]/g, '')
-                    : '';
-                const hasSlaPlan = normalizedPlanName.includes('team') || normalizedPlanName.includes('advanced');
-                if (isMounted) {
-                    setUpgradeUrl(typeof result.upgradeUrl === 'string' ? result.upgradeUrl : undefined);
-                    setPlanAccess(hasSlaPlan ? 'allowed' : 'restricted');
-                }
-            } catch (error) {
-                console.error('Failed to check the plan for SLA Settings', error);
-                if (isMounted) setPlanAccess('error');
-            }
-        };
-        void checkPlan();
-        return () => { isMounted = false; };
-    }, []);
+const SlaSettingsRoute = ({ permissions, appPlan }: SlaSettingsProps) => {
+    const normalizedPlanName = typeof appPlan?.planName === 'string'
+        ? appPlan.planName.toLowerCase().replace(/[ _-]/g, '')
+        : '';
+    const hasSlaPlan = normalizedPlanName.includes('team') || normalizedPlanName.includes('advanced');
+    const planAccess: 'allowed' | 'restricted' | 'error' = !appPlan ? 'error' : hasSlaPlan ? 'allowed' : 'restricted';
+    const upgradeUrl = appPlan?.upgradeUrl;
 
     if (!permissions.includes('my-tickets-manage-sla-settings')) return <PermissionDeniedState />;
 
@@ -56,23 +36,19 @@ const SlaSettingsRoute = ({ permissions }: SlaSettingsProps) => {
                 />
                 <Page.Content>
                     <Box width="100%" height="100%" align="center" verticalAlign="middle">
-                        {planAccess === 'loading' ? (
-                            <Loader />
-                        ) : (
-                            <EmptyState
-                                skin="page"
-                                title={planAccess === 'restricted' ? 'SLA Settings require a Team or Advanced plan' : 'Could not check your plan'}
-                                subtitle={planAccess === 'restricted'
-                                    ? 'Upgrade your plan to configure service level targets.'
-                                    : 'Refresh the page and try again.'}
-                            >
-                                {planAccess === 'restricted' && upgradeUrl && (
-                                    <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>
-                                        Upgrade plan
-                                    </Button>
-                                )}
-                            </EmptyState>
-                        )}
+                        <EmptyState
+                            skin="page"
+                            title={planAccess === 'restricted' ? 'SLA Settings require a Team or Advanced plan' : 'Could not check your plan'}
+                            subtitle={planAccess === 'restricted'
+                                ? 'Upgrade your plan to configure service level targets.'
+                                : 'Refresh the page and try again.'}
+                        >
+                            {planAccess === 'restricted' && upgradeUrl && (
+                                <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>
+                                    Upgrade plan
+                                </Button>
+                            )}
+                        </EmptyState>
                     </Box>
                 </Page.Content>
             </Page>
@@ -82,7 +58,7 @@ const SlaSettingsRoute = ({ permissions }: SlaSettingsProps) => {
     return <SlaSettingsContent permissions={permissions} />;
 };
 
-const SlaSettingsContent = ({ permissions }: SlaSettingsProps) => {
+const SlaSettingsContent = ({ permissions }: Pick<SlaSettingsProps, 'permissions'>) => {
     const [settings, setSettings] = useState<SlaSettings | undefined>(cachedSettings);
     const [isLoading, setIsLoading] = useState(!cachedSettings);
     const [isSaving, setIsSaving] = useState(false);

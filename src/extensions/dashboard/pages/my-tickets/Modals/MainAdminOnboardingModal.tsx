@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Box, CustomModalLayout, FormField, Input, Loader, Modal, Text } from '@wix/design-system';
 import { httpClient } from '@wix/essentials';
 import { storeMyTicketsAgentSession } from '../auth/myTicketsFetchWithAuth';
-import { fetchCurrentAppPlan } from '../auth/fetchCurrentAppPlan';
+import type { CurrentAppPlan } from '../auth/fetchCurrentAppPlan';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import type { LoginSuccessData } from '../login';
 
@@ -14,7 +14,7 @@ export interface OnboardingPlanStatus {
     upgradeUrl?: string;
 }
 
-export function MainAdminOnboardingModal({ isOpen, onComplete }: { isOpen: boolean; onComplete: (user: LoginSuccessData, planStatus: OnboardingPlanStatus) => void }) {
+export function MainAdminOnboardingModal({ isOpen, appPlan, onComplete }: { isOpen: boolean; appPlan: CurrentAppPlan | null; onComplete: (user: LoginSuccessData, planStatus: OnboardingPlanStatus) => void }) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -23,13 +23,11 @@ export function MainAdminOnboardingModal({ isOpen, onComplete }: { isOpen: boole
     const [createdUser, setCreatedUser] = useState<LoginSuccessData | null>(null);
 
     const checkPlanAndComplete = async (user: LoginSuccessData) => {
-        const planResponse = await fetchCurrentAppPlan(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
-        const plan = await planResponse.json();
-        if (!planResponse.ok || !plan.success) throw new Error(plan.error || 'Could not check the site plan. Please try again.');
+        if (!appPlan) throw new Error('Could not check the site plan. Please refresh and try again.');
         onComplete(user, {
-            requiresPlan: plan.hasPlan !== true,
-            freeTrialAvailable: plan.freeTrialAvailable === true,
-            upgradeUrl: typeof plan.upgradeUrl === 'string' ? plan.upgradeUrl : undefined,
+            requiresPlan: appPlan.hasPlan !== true,
+            freeTrialAvailable: appPlan.freeTrialAvailable === true,
+            upgradeUrl: typeof appPlan.upgradeUrl === 'string' ? appPlan.upgradeUrl : undefined,
         });
     };
 

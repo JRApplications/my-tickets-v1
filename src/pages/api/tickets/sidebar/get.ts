@@ -1,14 +1,16 @@
 import type { APIRoute } from "astro";
 import { checkPermission } from '../../auth/checkPermission';
+import { generateElevatedAuthToken } from '../../auth/generateElevatedAuthToken';
 import { captureError } from '../../reportError';
 import {
-    createScopedTicketQuery,
     isVisibleSidebarTicket,
     mapSidebarTicket,
     readTicketListFilters,
     type SidebarTicket,
 } from './query';
 import { isSystemAdmin } from '../../auth/system-admin';
+import { fetchTicketItemsPage } from '../graphql';
+import { CollectionIds } from '@jrapps/my_tickets_common_types';
 
 const PAGE_SIZE = 100;
 const TICKET_FIELDS = [
@@ -67,20 +69,38 @@ export const GET: APIRoute = async ({ request, locals }) => {
         const pageSize = Math.min(requestedLimit, PAGE_SIZE);
 
         const filters = readTicketListFilters(url);
-        const query = createScopedTicketQuery(identity, filters, teamId)
-            .fields(...TICKET_FIELDS)
+        const accessToken = await generateElevatedAuthToken(request.headers.get('Authorization'));
+        const filter: Record<string, unknown> = {
+            $or: [
+                { 'assignedTeam.id': teamId },
+                { 'assignedTeam.id': { $exists: false } },
+            ],
+            ...(filters.status ? { status: filters.status } : {}),
+            ...(filters.priority ? { priority: filters.priority } : {}),
+            ...(filters.assignee === 'unassigned'
+                ? { 'assignedAgent.id': { $exists: false } }
+                : filters.assignee ? { 'assignedAgent.id': filters.assignee } : {}),
+        };
+        const sort = filters.sortOrder === 'oldest'
+            ? [{ fieldName: '_createdDate', order: 'ASC' as const }, { fieldName: 'primaryTicketNumber', order: 'ASC' as const }]
+            : [{ fieldName: '_createdDate', order: 'DESC' as const }, { fieldName: 'primaryTicketNumber', order: 'DESC' as const }];
         const tickets: SidebarTicket[] = [];
         let hasMore = false;
 
         while (tickets.length < pageSize) {
-            const result = await query
-                .skip(offset)
-                .limit(pageSize - tickets.length)
-                .find({ returnTotalCount: false });
-            const records = result.items;
+            const result = await fetchTicketItemsPage({
+                accessToken,
+                dataCollectionId: CollectionIds.TICKETS,
+                fields: TICKET_FIELDS,
+                filter,
+                sort,
+                offset,
+                limit: pageSize - tickets.length,
+            });
+            const records = result.items.map((item) => ({ ...item.data, _id: item.id }));
             tickets.push(...records.map(mapSidebarTicket).filter((ticket) => isVisibleSidebarTicket(ticket, filters)));
             offset += records.length;
-            hasMore = result.hasNext();
+            hasMore = result.pageInfo.hasNext;
             if (!hasMore || records.length === 0) break;
         }
 

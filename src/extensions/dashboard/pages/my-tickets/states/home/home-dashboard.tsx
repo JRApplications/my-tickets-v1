@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { AreaChart, Badge, Box, Button, Card, Cell, Heading, Layout, LinearProgressBar, Page, SkeletonRectangle, TableListItem, Text, Tooltip } from '@wix/design-system';
 import { Add, Inbox } from '@wix/wix-ui-icons-common/lazy';
-import { fetchCurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
+import type { CurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import {
     getPrioritySkin,
     formatPriority,
@@ -69,6 +69,7 @@ interface TicketAnalytics {
 }
 
 interface HomeDashboardProps {
+    appPlan: CurrentAppPlan | null;
     teamId: string;
     onCreateTicket: () => void;
     isTicketLimitReached?: boolean;
@@ -85,10 +86,10 @@ interface HomeDashboardCacheEntry {
 
 const homeDashboardCache = new Map<string, HomeDashboardCacheEntry>();
 
-const HomeDashboard = ({ teamId, onCreateTicket, isTicketLimitReached = false, onNavigate, onTicketClick }: HomeDashboardProps) => {
-    const [upgradeUrl, setUpgradeUrl] = useState<string | null>(null);
-    const [planName, setPlanName] = useState<string | null>(null);
-    const [hasLoadedPlan, setHasLoadedPlan] = useState(false);
+const HomeDashboard = ({ appPlan, teamId, onCreateTicket, isTicketLimitReached = false, onNavigate, onTicketClick }: HomeDashboardProps) => {
+    const upgradeUrl = appPlan?.upgradeUrl ?? null;
+    const planName = appPlan?.planName ?? null;
+    const hasLoadedPlan = appPlan !== null;
     const initialCache = homeDashboardCache.get(teamId);
     const [tickets, setTickets] = useState<DashboardTicket[]>(initialCache?.tickets ?? []);
     const [isLoading, setIsLoading] = useState(initialCache?.tickets === undefined);
@@ -96,28 +97,6 @@ const HomeDashboard = ({ teamId, onCreateTicket, isTicketLimitReached = false, o
     const [analytics, setAnalytics] = useState<TicketAnalytics | null>(initialCache?.analytics ?? null);
     const [isAnalyticsLoading, setIsAnalyticsLoading] = useState(initialCache?.analytics === undefined);
     const loadRequestId = useRef(0);
-
-    useEffect(() => {
-        let isMounted = true;
-        const loadPlan = async () => {
-            try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await fetchCurrentAppPlan(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
-                const result = await response.json();
-                if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load app plan');
-                if (isMounted) {
-                    setPlanName(typeof result.planName === 'string' ? result.planName : null);
-                    setUpgradeUrl(typeof result.upgradeUrl === 'string' ? result.upgradeUrl : null);
-                }
-            } catch (error) {
-                console.error('Failed to load app plan for the home dashboard', error);
-            } finally {
-                if (isMounted) setHasLoadedPlan(true);
-            }
-        };
-        void loadPlan();
-        return () => { isMounted = false; };
-    }, []);
 
     const loadTickets = useCallback(async () => {
         const requestId = ++loadRequestId.current;
