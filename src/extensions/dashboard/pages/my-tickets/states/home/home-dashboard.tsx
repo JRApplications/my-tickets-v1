@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { AreaChart, Badge, Box, Button, Card, Cell, Heading, Layout, LinearProgressBar, Page, SkeletonRectangle, TableListItem, Text, Tooltip } from '@wix/design-system';
 import { Add, Inbox } from '@wix/wix-ui-icons-common/lazy';
-import { httpClient } from '@wix/essentials';
+import { fetchCurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import {
     getPrioritySkin,
     formatPriority,
@@ -102,7 +102,7 @@ const HomeDashboard = ({ teamId, onCreateTicket, isTicketLimitReached = false, o
         const loadPlan = async () => {
             try {
                 const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
+                const response = await fetchCurrentAppPlan(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
                 const result = await response.json();
                 if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load app plan');
                 if (isMounted) {

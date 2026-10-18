@@ -34,6 +34,10 @@ export function clearMyTicketsAgentSession(): void {
     window.dispatchEvent(new Event('my-tickets-auth-expired'));
 }
 
+export function hasMyTicketsAgentSession(): boolean {
+    return Boolean(localStorage.getItem(TOKEN_KEY) || inMemoryToken);
+}
+
 async function getAgentAuthToken(): Promise<string> {
     const isRemembered = Boolean(localStorage.getItem(TOKEN_KEY));
     let token = isRemembered ? localStorage.getItem(TOKEN_KEY) : inMemoryToken;

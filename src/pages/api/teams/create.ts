@@ -27,7 +27,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             teamPictureUrl: data.teamPictureUrl || undefined,
         }
         status = 503;
-        const teamLimit = await getPlanLimitStatus('teams');
+        const teamLimit = await getPlanLimitStatus('teams', locals.myTicketsIdentity?.agentId);
         if (teamLimit.reached) {
             status = 409;
             return new Response(JSON.stringify({ success: false, limitReached: true, error: `Team limit reached (${teamLimit.count}/${teamLimit.limit}). Upgrade your plan to add more teams.` }), {

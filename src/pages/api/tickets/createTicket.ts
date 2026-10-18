@@ -79,7 +79,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             relatedTickets: data.relatedTickets || []
         };
         status = 503;
-        const ticketLimit = await getPlanLimitStatus('tickets');
+        const ticketLimit = await getPlanLimitStatus('tickets', authenticatedAgentId);
         if (ticketLimit.reached) {
             status = 409;
             return new Response(JSON.stringify({

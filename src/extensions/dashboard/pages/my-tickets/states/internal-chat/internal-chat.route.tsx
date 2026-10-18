@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import { dashboard } from '@wix/dashboard';
 import { subscriber } from '@wix/realtime';
-import { httpClient } from '@wix/essentials';
+import { fetchCurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import { Box, Button, EmptyState, Loader, Page } from '@wix/design-system';
 
 interface InternalChatProps {
@@ -348,7 +348,7 @@ const InternalChat = (props: InternalChatProps) => {
         const checkPlan = async () => {
             try {
                 const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
+                const response = await fetchCurrentAppPlan(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
                 const result = await response.json();
                 if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load your plan');
                 const normalizedPlanName = typeof result.planName === 'string'

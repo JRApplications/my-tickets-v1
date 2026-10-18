@@ -14,6 +14,7 @@ import { ModalsProvider } from './Modals';
 import { LoginPage } from './login';
 import { DevTestOverrideProvider } from './DevTestOverrideProvider';
 import { clearMyTicketsAgentSession, myTicketsFetchWithAuth, storeMyTicketsAgentSession } from './auth/myTicketsFetchWithAuth';
+import { fetchCurrentAppPlan } from './auth/fetchCurrentAppPlan';
 import { subscriber } from '@wix/realtime';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import NotificationProvider from './NotificationProvider';
@@ -116,6 +117,7 @@ const DashboardPage: FC = () => {
 
     const initializeDashboardAccess = async () => {
       let restoredAgentSession = false;
+      let restoredAgentId = '';
       try {
         if (localStorage.getItem('my-tickets-auth-token')) {
           const response = await myTicketsFetchWithAuth(`${currentUrl.origin}/api/agents/logged-in-agent`);
@@ -133,6 +135,7 @@ const DashboardPage: FC = () => {
             permissions: result.user.permissions,
             agentProfilePictureUrl: result.user.agentProfilePictureUrl,
           });
+          restoredAgentId = result.user._id;
           restoredAgentSession = true;
         }
       } catch (error) {
@@ -144,15 +147,16 @@ const DashboardPage: FC = () => {
       try {
         const needsSetup = await checkNeedsOnboarding();
         setNeedsOnboarding(needsSetup);
-        const planResponse = await httpClient.fetchWithAuth(`${currentUrl.origin}/api/my-tickets-auth/app-plan`);
+        const planResponse = await fetchCurrentAppPlan(`${currentUrl.origin}/api/my-tickets-auth/app-plan`);
         const plan = await planResponse.json();
         if (!planResponse.ok || !plan.success) throw new Error(plan.error || 'Could not check your My Tickets plan');
         const hasEssentialsPlan = typeof plan.planName === 'string' && plan.planName.trim().toLowerCase().includes('essential');
-        setIsEssentialsPlan(hasEssentialsPlan);
+        const isSystemAdmin = restoredAgentSession && restoredAgentId === 'system_admin';
+        setIsEssentialsPlan(hasEssentialsPlan && !isSystemAdmin);
         setPlanLimitsReached({
-          tickets: plan.hasMaxTickets === true,
-          agents: plan.hasMaxAgents === true,
-          teams: plan.hasMaxTeams === true,
+          tickets: !isSystemAdmin && plan.hasMaxTickets === true,
+          agents: !isSystemAdmin && plan.hasMaxAgents === true,
+          teams: !isSystemAdmin && plan.hasMaxTeams === true,
         });
 
         if (!restoredAgentSession && !needsSetup) {
@@ -426,6 +430,12 @@ const DashboardPage: FC = () => {
   };
 
   const handleLoginSuccess = (data: LoginSuccessData) => {
+    // Keep the forced-login override consumed for this browser tab even if Wix
+    // retains the original page URL or the dashboard is refreshed.
+    sessionStorage.setItem('my-tickets-login-override-consumed', 'true');
+    const isSystemAdmin = data.agentId === 'system_admin';
+    setIsEssentialsPlan((current) => isSystemAdmin ? false : current);
+    if (isSystemAdmin) setPlanLimitsReached({ tickets: false, agents: false, teams: false });
     setLoggedInAgent({
       agentId: data.agentId,
       teamId: data.teamId,

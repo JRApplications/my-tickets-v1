@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { httpClient } from '@wix/essentials';
+import { fetchCurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { AreaChart, Badge, Box, Button, Card, Cell, EmptyState, Heading, Layout, LinearProgressBar, Loader, Page, SkeletonRectangle, Text } from '@wix/design-system';
 import { PermissionDeniedState } from '@jrapps/my_tickets_dashboard_ui';
@@ -154,7 +154,7 @@ const WorkforceDashboard = (props: WorkforceDashboardProps) => {
         const loadPlan = async () => {
             try {
                 const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
+                const response = await fetchCurrentAppPlan(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
                 const result = await response.json();
                 if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load your plan');
                 const normalizedPlanName = typeof result.planName === 'string'

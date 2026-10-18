@@ -4,6 +4,8 @@ import { appInstances } from '@wix/app-management';
 import { auth } from '@wix/essentials';
 import { CollectionIds } from '@jrapps/my_tickets_common_types';
 import { checkPermission } from '../auth/checkPermission';
+import { SYSTEM_ADMIN_ID, isSystemAdmin } from '../auth/system-admin';
+import { HEADER_NAME, verifyToken } from './token';
 import wixConfig from '../../../../wix.config.json';
 
 interface PlanLimits {
@@ -74,11 +76,23 @@ export const GET: APIRoute = async ({ request }) => {
         const instance = response.instance;
         const billing = instance?.billing;
         const packageName = billing?.packageName?.trim() || null;
-        const normalizedPlanName = packageName?.toLowerCase() ?? '';
+        let systemAdmin = false;
+        const agentToken = request.headers.get(HEADER_NAME);
+        if (agentToken) {
+            try {
+                const identity = await verifyToken(agentToken);
+                systemAdmin = isSystemAdmin(identity.agentId);
+            } catch {
+                // Wix dashboard authorization still governs this endpoint. An
+                // invalid optional agent token must not grant elevated plan access.
+            }
+        }
+        const effectivePlanName = systemAdmin ? 'Advanced' : packageName;
+        const normalizedPlanName = effectivePlanName?.toLowerCase() ?? '';
         const freeTrialStatus = billing?.freeTrialInfo?.status ?? null;
         const freeTrialActive = freeTrialStatus === 'IN_PROGRESS';
         const freeTrialAvailable = instance?.freeTrialAvailable === true;
-        const hasPlan = instance?.isFree === false;
+        const hasPlan = systemAdmin || instance?.isFree === false;
         const billingPeriod = getCurrentBillingPeriod(billing?.timeStamp, new Date());
         const queryItems = auth.elevate(items.query);
         const agentCountPromise = queryItems(CollectionIds.AGENTS).count({ consistentRead: true });
@@ -123,10 +137,11 @@ export const GET: APIRoute = async ({ request }) => {
 
         return jsonResponse({
             success: true,
+            isSystemAdmin: systemAdmin,
             freeTrialActive,
             freeTrialAvailable,
             hasPlan,
-            planName: packageName ?? undefined,
+            planName: effectivePlanName ?? undefined,
             upgradeUrl,
             counts: {
                 agents: agentCount,

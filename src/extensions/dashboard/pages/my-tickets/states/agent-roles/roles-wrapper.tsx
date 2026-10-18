@@ -13,7 +13,7 @@ import './roles.css';
 import ListRoles from './states/list-roles';
 import CreateManageRole from './states/create-manage-role';
 import { useEffect, useState } from 'react';
-import { httpClient } from '@wix/essentials';
+import { fetchCurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import { useRoles } from './useRoles';
 import { LoadingState, PermissionDeniedState } from '@jrapps/my_tickets_dashboard_ui';
 
@@ -50,7 +50,7 @@ const RolesWrapper = ({
         const loadPlanAccess = async () => {
             try {
                 const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
+                const response = await fetchCurrentAppPlan(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
                 const result = await response.json();
                 if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load your plan');
                 const normalizedPlanName = typeof result.planName === 'string'

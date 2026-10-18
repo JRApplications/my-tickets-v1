@@ -2,6 +2,7 @@ import { appInstances } from '@wix/app-management';
 import { auth } from '@wix/essentials';
 import { items } from '@wix/data';
 import { CollectionIds } from '@jrapps/my_tickets_common_types';
+import { isSystemAdmin } from '../auth/system-admin';
 
 export type PlanLimitedResource = 'tickets' | 'agents' | 'teams';
 
@@ -31,11 +32,13 @@ const getLimit = (packageName: string, resource: PlanLimitedResource): number | 
     return undefined;
 };
 
-export async function getPlanLimitStatus(resource: PlanLimitedResource): Promise<{
+export async function getPlanLimitStatus(resource: PlanLimitedResource, agentId?: string): Promise<{
     limit: number | null | undefined;
     count: number | null;
     reached: boolean;
 }> {
+    if (isSystemAdmin(agentId)) return { limit: null, count: null, reached: false };
+
     const getAppInstance = auth.elevate(appInstances.getAppInstance);
     const { instance } = await getAppInstance();
     const packageName = instance?.billing?.packageName?.trim() ?? '';

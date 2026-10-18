@@ -26,7 +26,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             isAdmin: undefined, // always undefined
         }
         status = 503;
-        const agentLimit = await getPlanLimitStatus('agents');
+        const agentLimit = await getPlanLimitStatus('agents', locals.myTicketsIdentity?.agentId);
         if (agentLimit.reached) {
             status = 409;
             return new Response(JSON.stringify({ success: false, limitReached: true, error: `Agent limit reached (${agentLimit.count}/${agentLimit.limit}). Upgrade your plan to add more agents.` }), {
