@@ -1,6 +1,9 @@
 # wix integration
 .wix/
 
+# skill integration
+.claude/
+
 # build output
 dist/
 
@@ -24,6 +27,3 @@ npm-debug.log*
 .DS_Store
 .idea/
 out
-APP_MARKET_REVIEW.md
-MEMBER_TICKETS_WIDGET_REVIEW.md
-DASHBOARD-APP-MARKET-REVIEW.md
