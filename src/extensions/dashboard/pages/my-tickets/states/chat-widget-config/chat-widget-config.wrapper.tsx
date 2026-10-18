@@ -50,7 +50,7 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
     const [isBusinessSupportHoursStateOpen, setIsBusinessSupportHoursStateOpen] = useState(false);
     const [questionDraft, setQuestionDraft] = useState('');
     const [questions, setQuestions] = useState<string[]>(config?.chatQuestions || []);
-    const [isAiEnabled, setIsAiEnabled] = useState(config?.useAiDirect || false);
+    const [isAiEnabled, setIsAiEnabled] = useState(config?.useAiDirect === true && config?.enableChatQuestions === true);
     const [selectedAiTeamIds, setSelectedAiTeamIds] = useState<string[]>([]);
     const [tagDraftByTeamId, setTagDraftByTeamId] = useState<Record<string, string>>({});
     const [tagsByTeamId, setTagsByTeamId] = useState<Record<string, string[]>>({});
@@ -62,7 +62,7 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
             setGeneralTeamId(config.generalTeamId || '');
             setIsChatQuestionsEnabled(config.enableChatQuestions || false);
             setQuestions(config.chatQuestions || []);
-            setIsAiEnabled(config.useAiDirect || false);
+            setIsAiEnabled(config.useAiDirect && config.enableChatQuestions);
             setBusinessSupportHours(
                 config.businessSupportHours?.length ? config.businessSupportHours : defaultBusinessSupportHours
             );
@@ -180,7 +180,7 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
         const configToSave: Config = {
             chatQuestions: questions,
             enableChatQuestions: isChatQuestionsEnabled,
-            useAiDirect: isAiEnabled,
+            useAiDirect: isChatQuestionsEnabled && isAiEnabled,
             businessSupportHours: businessSupportHours as BusinessSupportHoursItem[],
             availableTeams: teams.filter((team) => selectedAiTeamIds.includes(team._id)).map((team) => ({
                 ...team,
@@ -192,7 +192,9 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
     }
 
     const handleChatQuestionsEnableChange = () => {
-        setIsChatQuestionsEnabled((prev) => !prev);
+        const nextEnabled = !isChatQuestionsEnabled;
+        setIsChatQuestionsEnabled(nextEnabled);
+        if (!nextEnabled) setIsAiEnabled(false);
     }
 
     const handleAiEnableChange = () => {
@@ -329,8 +331,10 @@ const ChatWidgetConfigWrapper = ({ onSave, isSaving, config, isLoading, permissi
                         <Card showShadow>
                             <Card.Header
                                 title={isLoading ? <SkeletonLine width='200px' /> : 'AI routing'}
-                                subtitle={isLoading ? <SkeletonLine width='400px' /> : "This option allows you to enable or disable AI routing to transfer incoming chats to the correct team."}
-                                suffix={isLoading ? <SkeletonRectangle width='60px' height='30px' /> : <ToggleSwitch checked={isAiEnabled} onChange={handleAiEnableChange} />} />
+                                subtitle={isLoading ? <SkeletonLine width='400px' /> : isChatQuestionsEnabled
+                                    ? "This option allows you to enable or disable AI routing to transfer incoming chats to the correct team."
+                                    : 'Enable initial chat questions before configuring AI routing.'}
+                                suffix={isLoading ? <SkeletonRectangle width='60px' height='30px' /> : <ToggleSwitch checked={isAiEnabled} onChange={handleAiEnableChange} disabled={!isChatQuestionsEnabled} />} />
                             {isAiEnabled && !isLoading && (
                                 <>
                                     <Card.Content>

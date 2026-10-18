@@ -118,7 +118,11 @@ export const createOrUpdateConfig = async (incomingConfig: ChatConfig, accessTok
             throw new Error('Invalid configuration provided');
         }
 
-        const configWithoutId = incomingConfig._id ? { ...incomingConfig, _id: undefined } : incomingConfig;
+        const configToSave = {
+            ...incomingConfig,
+            useAiDirect: incomingConfig.enableChatQuestions && incomingConfig.useAiDirect,
+        };
+        const configWithoutId = configToSave._id ? { ...configToSave, _id: undefined } : configToSave;
 
         const query = `
             mutation UpsertChatConfig($input: CloudDataDataSaveDataItemRequestInput!) {
@@ -136,7 +140,7 @@ export const createOrUpdateConfig = async (incomingConfig: ChatConfig, accessTok
             input: {
                 dataCollectionId: CollectionIds.CHAT_WIDGET_CONFIG,
                 dataItem: {
-                    id: incomingConfig._id ?? undefined,
+                    id: configToSave._id ?? undefined,
                     dataCollectionId: CollectionIds.CHAT_WIDGET_CONFIG,
                     data: configWithoutId
                 }

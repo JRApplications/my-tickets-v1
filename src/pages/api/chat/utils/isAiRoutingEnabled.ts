@@ -5,10 +5,11 @@ import { auth } from '@wix/essentials';
 const isAiRoutingEnabled = async () => {
     try {
         const elevatedQuery = auth.elevate(items.query);
-        const result = await elevatedQuery(CollectionIds.CHAT_WIDGET_CONFIG).fields('useAiDirect').find();
+        const result = await elevatedQuery(CollectionIds.CHAT_WIDGET_CONFIG)
+            .fields('useAiDirect', 'enableChatQuestions')
+            .find();
         if (result.items.length > 0) {
-            return result.items[0].useAiDirect;
-            // returns boolean
+            return result.items[0].useAiDirect === true && result.items[0].enableChatQuestions === true;
         }
         return false;
     } catch (error: any) {
