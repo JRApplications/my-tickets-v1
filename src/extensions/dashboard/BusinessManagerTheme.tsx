@@ -11,10 +11,7 @@ import '@wix/design-system/styles.global.css';
 import '@wix/design-system/themes/odeditor.global.css';
 
 const BUSINESS_MANAGER_DEFAULTS: WixDesignSystemDefaultProps = {
-    Button: { size: 'small'},
-    IconButton: { size: 'small', priority: 'tertiary' },
-    TextButton: { size: 'small', skin: 'standard' },
-    Input: { size: 'small' },
+    
 };
 
 export const BusinessManagerTheme: FC<{ children: ReactNode; locale?: string }> = ({

@@ -21,6 +21,8 @@ import NotificationProvider from './NotificationProvider';
 import type { LoginSuccessData } from './login';
 import { getAgentActivitySessionId } from './SidebarProvider/useTeamPresence';
 import { checkNeedsOnboarding, MainAdminOnboardingModal } from './Modals/MainAdminOnboardingModal';
+import type { OnboardingPlanStatus } from './Modals/MainAdminOnboardingModal';
+import { FreeTrialRequiredModal } from './Modals/FreeTrialRequiredModal';
 import { httpClient } from '@wix/essentials';
 
 const DashboardPage: FC = () => {
@@ -92,6 +94,9 @@ const DashboardPage: FC = () => {
   const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const [isAccessReady, setIsAccessReady] = useState(false);
   const [isEssentialsPlan, setIsEssentialsPlan] = useState(false);
+  const [isPlanRequired, setIsPlanRequired] = useState(false);
+  const [freeTrialAvailable, setFreeTrialAvailable] = useState(false);
+  const [planUpgradeUrl, setPlanUpgradeUrl] = useState<string>();
   const [planLimitsReached, setPlanLimitsReached] = useState({ tickets: false, agents: false, teams: false });
   const [userBetaFeatures, setUserBetaFeatures] = useState<string[]>([]);
   const subscriptionRef = useRef<string | null>(null);
@@ -150,6 +155,9 @@ const DashboardPage: FC = () => {
         const planResponse = await fetchCurrentAppPlan(`${currentUrl.origin}/api/my-tickets-auth/app-plan`);
         const plan = await planResponse.json();
         if (!planResponse.ok || !plan.success) throw new Error(plan.error || 'Could not check your My Tickets plan');
+        setIsPlanRequired(!needsSetup && plan.hasPlan !== true);
+        setFreeTrialAvailable(plan.freeTrialAvailable === true);
+        setPlanUpgradeUrl(typeof plan.upgradeUrl === 'string' ? plan.upgradeUrl : undefined);
         const hasEssentialsPlan = typeof plan.planName === 'string' && plan.planName.trim().toLowerCase().includes('essential');
         const isSystemAdmin = restoredAgentSession && restoredAgentId === 'system_admin';
         setIsEssentialsPlan(hasEssentialsPlan && !isSystemAdmin);
@@ -470,11 +478,15 @@ const DashboardPage: FC = () => {
         <LoginPage handleLoginSuccess={handleLoginSuccess} isGettingReady={!isAccessReady && !needsOnboarding} />
         <MainAdminOnboardingModal
           isOpen={needsOnboarding}
-          onComplete={(user) => {
+          onComplete={(user, planStatus: OnboardingPlanStatus) => {
             setNeedsOnboarding(false);
+            setIsPlanRequired(planStatus.requiresPlan);
+            setFreeTrialAvailable(planStatus.freeTrialAvailable);
+            setPlanUpgradeUrl(planStatus.upgradeUrl);
             handleLoginSuccess(user);
           }}
         />
+        <FreeTrialRequiredModal isOpen={isPlanRequired && !needsOnboarding} freeTrialAvailable={freeTrialAvailable} upgradeUrl={planUpgradeUrl} />
       </BusinessManagerTheme>
     );
   }
@@ -689,6 +701,7 @@ const DashboardPage: FC = () => {
           agentId: loggedInAgent.agentId
         }}
       />
+      <FreeTrialRequiredModal isOpen={isPlanRequired} freeTrialAvailable={freeTrialAvailable} upgradeUrl={planUpgradeUrl} />
     </BusinessManagerTheme>
   );
 };

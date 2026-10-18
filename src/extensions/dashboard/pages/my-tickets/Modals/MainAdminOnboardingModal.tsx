@@ -2,22 +2,45 @@ import { useState } from 'react';
 import { Box, CustomModalLayout, FormField, Input, Loader, Modal, Text } from '@wix/design-system';
 import { httpClient } from '@wix/essentials';
 import { storeMyTicketsAgentSession } from '../auth/myTicketsFetchWithAuth';
+import { fetchCurrentAppPlan } from '../auth/fetchCurrentAppPlan';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import type { LoginSuccessData } from '../login';
 
 const baseApiUrl = new URL(import.meta.url).origin;
 
-export function MainAdminOnboardingModal({ isOpen, onComplete }: { isOpen: boolean; onComplete: (user: LoginSuccessData) => void }) {
+export interface OnboardingPlanStatus {
+    requiresPlan: boolean;
+    freeTrialAvailable: boolean;
+    upgradeUrl?: string;
+}
+
+export function MainAdminOnboardingModal({ isOpen, onComplete }: { isOpen: boolean; onComplete: (user: LoginSuccessData, planStatus: OnboardingPlanStatus) => void }) {
     const [name, setName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [isSaving, setIsSaving] = useState(false);
+    const [createdUser, setCreatedUser] = useState<LoginSuccessData | null>(null);
+
+    const checkPlanAndComplete = async (user: LoginSuccessData) => {
+        const planResponse = await fetchCurrentAppPlan(`${baseApiUrl}/api/my-tickets-auth/app-plan`);
+        const plan = await planResponse.json();
+        if (!planResponse.ok || !plan.success) throw new Error(plan.error || 'Could not check the site plan. Please try again.');
+        onComplete(user, {
+            requiresPlan: plan.hasPlan !== true,
+            freeTrialAvailable: plan.freeTrialAvailable === true,
+            upgradeUrl: typeof plan.upgradeUrl === 'string' ? plan.upgradeUrl : undefined,
+        });
+    };
 
     const createAccount = async () => {
         setError('');
         setIsSaving(true);
         try {
+            if (createdUser) {
+                await checkPlanAndComplete(createdUser);
+                return;
+            }
             const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/onboarding/create-main-admin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -27,7 +50,9 @@ export function MainAdminOnboardingModal({ isOpen, onComplete }: { isOpen: boole
             if (!response.ok || !result.success) throw new Error(result.error || 'Setup failed. Please try again.');
 
             storeMyTicketsAgentSession(result.authToken, result.authTokenExpiresAt, false);
-            onComplete({ ...result.user, authToken: result.authToken });
+            const user = { ...result.user, authToken: result.authToken } as LoginSuccessData;
+            setCreatedUser(user);
+            await checkPlanAndComplete(user);
         } catch (cause) {
             setError(cause instanceof Error ? cause.message : 'Setup failed. Please try again.');
         } finally {
@@ -39,23 +64,25 @@ export function MainAdminOnboardingModal({ isOpen, onComplete }: { isOpen: boole
         <Modal isOpen={isOpen}>
             <CustomModalLayout
                 title={<CustomModalLayout.Title>Set up My Tickets</CustomModalLayout.Title>}
-                subtitle="Create your main administrator account to get started. This account will have access to every feature."
-                primaryButtonText={isSaving ? <Loader size="tiny" /> : 'Create administrator'}
-                primaryButtonProps={{ onClick: createAccount, disabled: isSaving || !name.trim() || !email.trim() || password.length < 8 }}
+                subtitle={createdUser
+                    ? 'Your administrator account is ready. Checking the site plan before finishing setup.'
+                    : 'Create your main administrator account to get started. This account will have access to every feature.'}
+                primaryButtonText={isSaving ? <Loader size="tiny" /> : createdUser ? 'Retry plan check' : 'Create administrator'}
+                primaryButtonProps={{ onClick: createAccount, disabled: isSaving || (!createdUser && (!name.trim() || !email.trim() || password.length < 8)) }}
                 showHeaderDivider
                 showFooterDivider
             >
                 <Box direction="vertical" gap={2}>
                     <FormField label="Your name" required>
-                        <Input value={name} onChange={(event) => setName(event.target.value)} disabled={isSaving} autoFocus />
+                        <Input value={name} onChange={(event) => setName(event.target.value)} disabled={isSaving || !!createdUser} autoFocus />
                     </FormField>
                     <FormField label="Email" required>
-                        <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={isSaving} />
+                        <Input type="email" value={email} onChange={(event) => setEmail(event.target.value)} disabled={isSaving || !!createdUser} />
                     </FormField>
                     <FormField label="Password" required>
-                        <Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} disabled={isSaving} />
+                        <Input type="password" value={password} onChange={(event) => setPassword(event.target.value)} disabled={isSaving || !!createdUser} />
                     </FormField>
-                    <Text size="small">Use at least 8 characters. We'll also create the administrator role and your default team.</Text>
+                    <Text size="small">{createdUser ? 'Your account, administrator role, and default team have been created.' : "Use at least 8 characters. We'll also create the administrator role and your default team."}</Text>
                     {error && <Text skin="error">{error}</Text>}
                 </Box>
             </CustomModalLayout>
