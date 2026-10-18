@@ -11,11 +11,11 @@ export interface GraphQLDataItemsPage {
 }
 
 /** Fetches one CMS page through Wix's GraphQL data items API. */
-export async function fetchTicketItemsPage<TFilter = Record<string, unknown>>(args: {
+export async function fetchTicketItemsPage(args: {
     accessToken: string;
     dataCollectionId: string;
     fields: readonly string[];
-    filter?: TFilter;
+    filter?: Record<string, unknown>;
     limit: number;
     cursor?: string | null;
     offset?: number;
@@ -75,7 +75,7 @@ export async function fetchTicketItemsPage<TFilter = Record<string, unknown>>(ar
     return page as GraphQLDataItemsPage;
 }
 
-export const mapGraphQLDataItem = <T extends Record<string, unknown>>(item: GraphQLDataItem): T => ({
+export const mapGraphQLDataItem = <T>(item: GraphQLDataItem): T => ({
     ...item.data,
     _id: item.id,
-}) as T;
+}) as unknown as T;
