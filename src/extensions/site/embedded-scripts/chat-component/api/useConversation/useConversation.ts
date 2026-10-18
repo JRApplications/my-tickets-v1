@@ -143,6 +143,7 @@ export const useConversation = (conversationId: string) => {
 
     return {
         messages,
+        clearMessages: () => setMessages([]),
         handleCreateConversation: createConversation,
         endConversation,
         refetchConversation: fetchUpdatedConversation,

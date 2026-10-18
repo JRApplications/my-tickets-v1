@@ -80,7 +80,7 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
 }, ref) => {
   const [conversationId, setConversationId] = React.useState<string>('');
   const { open = true, openWidget, closeWidget } = useSiteChatComponentNew(defaultOpen);
-  const { messages, handleCreateConversation, endConversation } = useConversation(conversationId ?? '');
+  const { messages, clearMessages, handleCreateConversation, endConversation, refetchConversation } = useConversation(conversationId ?? '');
   const { config, loading: isChatConfigLoading, sendQuestionMessage, sendWaitingForAgentMessage } = useChatConfig();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const launcherRef = React.useRef<HTMLButtonElement>(null);
@@ -129,6 +129,9 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
   const [locallyEnded, setLocallyEnded] = React.useState(false);
   const [isEndingChat, setIsEndingChat] = React.useState(false);
   const [endChatError, setEndChatError] = React.useState<string | null>(null);
+  const [isStartingOver, setIsStartingOver] = React.useState(false);
+  const [startOverError, setStartOverError] = React.useState<string | null>(null);
+  const [hasStartedOver, setHasStartedOver] = React.useState(false);
 
   const addPending = (text: string, senderType: MessageProps['senderType']) => {
     const pendingMessage: MessageProps = {
@@ -175,7 +178,7 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
     }
     return msg;
   });
-  const conversationHasEnded = chatEnded || locallyEnded || displayMessages.some(
+  const conversationHasEnded = (chatEnded && !hasStartedOver) || locallyEnded || displayMessages.some(
     (message) => message.senderType === 'system' && message.message === 'CHAT_ENDED'
   );
 
@@ -262,6 +265,64 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
       setEndChatError('Could not end chat. Please try again.');
     } finally {
       setIsEndingChat(false);
+    }
+  };
+
+  const handleStartOver = async () => {
+    if (!conversationHasEnded || isStartingOver) return;
+    const previousConversationId = conversationId;
+    const wasLocallyEnded = locallyEnded;
+    let newChatStarted = false;
+    setIsStartingOver(true);
+    setStartOverError(null);
+    try {
+      await wixLocalStorage.removeItem('myTicketsConversationId');
+      setConversationId('');
+      clearMessages();
+      setPendingMessages([]);
+      setAskingQuestions(false);
+      questionFlowStartedRef.current = false;
+      questionIndexRef.current = 0;
+      answersRef.current = [];
+      setEndChatError(null);
+
+      if (hasQuestions && config?.chatQuestions?.length) {
+        setLocallyEnded(false);
+        setHasStartedOver(true);
+        setAskingQuestions(true);
+        addPending(config.chatQuestions[0], QUESTION_SENDER_TYPE);
+        newChatStarted = true;
+        return;
+      }
+
+      const newConversationId = await handleCreateConversation(null);
+      if (!newConversationId) throw new Error('Could not create a new chat');
+      await wixLocalStorage.setItem('myTicketsConversationId', newConversationId);
+      setLocallyEnded(false);
+      setHasStartedOver(true);
+      setConversationId(newConversationId);
+      newChatStarted = true;
+      await startWaitingForAgent(newConversationId);
+    } catch (error) {
+      console.error('Failed to start a new chat:', error);
+      if (!newChatStarted) {
+        setHasStartedOver(false);
+        setLocallyEnded(wasLocallyEnded);
+        if (previousConversationId) {
+          setConversationId(previousConversationId);
+          try {
+            await wixLocalStorage.setItem('myTicketsConversationId', previousConversationId);
+            await refetchConversation(previousConversationId);
+          } catch (restoreError) {
+            console.error('Failed to restore the previous chat after starting over failed:', restoreError);
+          }
+        }
+        setStartOverError('Could not start a new chat. Please try again.');
+      } else {
+        setStartOverError('Your new chat started, but we could not connect it to support. Please try sending a message.');
+      }
+    } finally {
+      setIsStartingOver(false);
     }
   };
 
@@ -492,8 +553,11 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
             subtitle={subtitle}
             onClose={handleClose}
             onEndChat={!isOfflineState && conversationId && !conversationHasEnded ? handleEndChat : undefined}
+            onStartOver={!isOfflineState && conversationHasEnded ? handleStartOver : undefined}
             endingChat={isEndingChat}
+            startingOver={isStartingOver}
             endChatError={isOfflineState ? null : endChatError}
+            startOverError={isOfflineState ? null : startOverError}
           />
           <div className={classNames("cw__widget__body", styles.cw__widget__body)}>{renderBody()}</div>
         </div>

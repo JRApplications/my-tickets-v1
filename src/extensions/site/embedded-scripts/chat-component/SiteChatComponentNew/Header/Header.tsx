@@ -3,7 +3,7 @@ import React from 'react';
 import type { HeaderProps } from '../SiteChatComponentNew.types';
 import styles from './Header.module.css';
 
-const Header: React.FC<HeaderProps> = ({ image, title, subtitle, onClose, onEndChat, endingChat, endChatError }) => {
+const Header: React.FC<HeaderProps> = ({ image, title, subtitle, onClose, onEndChat, onStartOver, endingChat, startingOver, endChatError, startOverError }) => {
   return (
     <header className={classNames("cw__header", styles.cw__header)} role="banner" data-element="cw__header" >
       <div className={classNames("cw__header__identity", styles.cw__header__identity)} data-element="cw__header__identity__container">
@@ -22,12 +22,21 @@ const Header: React.FC<HeaderProps> = ({ image, title, subtitle, onClose, onEndC
         </div>
       </div>
       <div className={classNames("cw__header__actions", styles.cw__header__actions)}>
-        {endChatError && (
+        {(endChatError || startOverError) && (
           <span className={classNames("cw__header__end__error", styles.cw__header__end__error)} role="alert">
-            Could not end chat
+            {startOverError || endChatError}
           </span>
         )}
-        {onEndChat && (
+        {onStartOver ? (
+          <button
+            className={classNames("cw__header__end", styles.cw__header__end)}
+            onClick={onStartOver}
+            type="button"
+            disabled={startingOver}
+          >
+            {startingOver ? 'Starting…' : 'Start over'}
+          </button>
+        ) : onEndChat ? (
           <button
             className={classNames("cw__header__end", styles.cw__header__end)}
             onClick={onEndChat}
@@ -36,7 +45,7 @@ const Header: React.FC<HeaderProps> = ({ image, title, subtitle, onClose, onEndC
           >
             {endingChat ? 'Ending…' : 'End chat'}
           </button>
-        )}
+        ) : null}
         <button
           className={classNames("cw__header__close", styles.cw__header__close)}
           data-element="cw__header__closeButton"

@@ -25,9 +25,10 @@ export const POST: APIRoute = async ({ request, locals }) => {
         ]);
         if (isAiEnabled) {
             const team = await getTeamByAiRouting(availableTeams, generalTeamId, conversation);
-            if (team && team._id) {
-                await sendConversationToTeam(conversationId, team._id);
-            }
+            const selectedTeamId = availableTeams.some((availableTeam: any) => availableTeam._id === team?._id)
+                ? team._id
+                : generalTeamId;
+            await sendConversationToTeam(conversationId, selectedTeamId);
         } else {
             await sendConversationToTeam(conversationId, generalTeamId);
         }
@@ -59,7 +60,12 @@ const sendConversationToTeam = async (conversationId: string, teamId: string) =>
 
 const getTeamByAiRouting = async (availableTeams: any[], generalTeamId: string, conversation: any) => {
     try {
-        const { messages } = conversation?.data;
+        const messages = Array.isArray(conversation?.messages)
+            ? conversation.messages
+            : Array.isArray(conversation?.data?.messages)
+                ? conversation.data.messages
+                : [];
+        if (messages.length === 0) return { _id: generalTeamId };
         // Routing only needs each message's role and text. Conversation IDs,
         // timestamps, sender names, and attachment URLs add prompt tokens but
         // don't help choose a team.
@@ -67,6 +73,9 @@ const getTeamByAiRouting = async (availableTeams: any[], generalTeamId: string, 
             senderType: message.senderType,
             message: message.message ?? (message.attachment?.length ? '[attachment]' : ''),
         }));
+        console.log("Routing messages for AI", routingMessages);
+        console.log("Available teams for AI routing", availableTeams);
+        console.log("General team ID for AI routing", generalTeamId);
         const { text } = await generateText({
             model: await openAiClient("gpt-4.1-nano"),
             maxOutputTokens: 50,
@@ -80,7 +89,9 @@ const getTeamByAiRouting = async (availableTeams: any[], generalTeamId: string, 
                 Message: ${JSON.stringify(routingMessages)}
             `,
         });
-        return typeof text === 'string' ? JSON.parse(text) : text;
+        const toReturn = typeof text === 'string' ? JSON.parse(text) : text;
+        console.log("AI routing result", toReturn);
+        return toReturn;
     } catch (error) {
         console.error("Failed to get team by AI routing", error);
     }

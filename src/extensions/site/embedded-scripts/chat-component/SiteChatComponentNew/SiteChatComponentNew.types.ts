@@ -141,8 +141,11 @@ export interface HeaderProps {
   subtitle?: string;
   onClose?(): void;
   onEndChat?(): void;
+  onStartOver?(): void;
   endingChat?: boolean;
+  startingOver?: boolean;
   endChatError?: string | null;
+  startOverError?: string | null;
   className: string;
 }
 

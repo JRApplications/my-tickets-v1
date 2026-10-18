@@ -15,7 +15,6 @@ const ActionsButtonWrapper: FC<ChatActionsButtonWrapperProps> = ({ memberId, onV
     if (joinedChat && memberId && onViewMemberClicked) options.push(listItemActionBuilder({
         id: 4,
         title: 'View Member',
-        prefixIcon: <Visible />,
         onClick: () => onViewMemberClicked(memberId),
     }));
     options.push(listItemActionBuilder({ id: 6, title: 'Transfer Chat', onClick: onTransferChat }));
