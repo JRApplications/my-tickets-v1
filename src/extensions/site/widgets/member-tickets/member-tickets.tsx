@@ -91,9 +91,9 @@ const MemberTickets: FC<MemberTicketsProps> = ({
       )}
 
       {state === 'error' && (
-        <div className={styles.TicketsLoadError} role="alert">
+        <div className={classNames(styles.TicketsLoadError, styles.TicketsErrorState)} role="alert">
           <p>{ticketListError}</p>
-          <button type="button" onClick={retryTickets}>Try again</button>
+          <button type="button" className={styles.RetryButton} onClick={retryTickets}>Try again</button>
         </div>
       )}
 
@@ -151,7 +151,7 @@ const MemberTickets: FC<MemberTicketsProps> = ({
           <div className={classNames('__Content', styles.__Content)}>
             <div className={styles.TicketsLoadError} role="alert">
               <p>{selectedTicketError}</p>
-              <button type="button" onClick={retrySelectedTicket}>Try again</button>
+              <button type="button" className={styles.RetryButton} onClick={retrySelectedTicket}>Try again</button>
             </div>
           </div>
         </div>

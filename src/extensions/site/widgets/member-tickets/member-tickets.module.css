@@ -198,6 +198,44 @@
   text-align: center;
 }
 
+.TicketsErrorState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  box-sizing: border-box;
+  border: 1px solid var(--MemberTickets-color-border, #d9d9d9);
+  border-radius: var(--MemberTicketsBorderRadiusTopLeft, 4px);
+}
+
+.TicketsErrorState p {
+  margin: 0;
+}
+
+.RetryButton {
+  height: 34px;
+  padding: 0 14px;
+  background: var(--MemberTickets-color-primary, #2563eb);
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.RetryButton:hover {
+  background: color-mix(in srgb, var(--MemberTickets-color-primary, #2563eb) 50%, transparent);
+  color: color-mix(in srgb, #ffffff 50%, transparent);
+}
+
 .MessageSendError {
   margin: 0 0 8px;
   color: #b00020;
