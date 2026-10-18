@@ -10,6 +10,7 @@ const StateProvider = ({
     stateId,
     appPlan,
     onCreateTicket,
+    onUpgrade,
     isTicketLimitReached = false,
     isAgentLimitReached = false,
     isTeamLimitReached = false,
@@ -29,6 +30,7 @@ const StateProvider = ({
     stateId: StateId,
     appPlan: CurrentAppPlan | null,
     onCreateTicket: () => void,
+    onUpgrade: () => void,
     isTicketLimitReached?: boolean,
     isAgentLimitReached?: boolean,
     isTeamLimitReached?: boolean,
@@ -77,7 +79,7 @@ const StateProvider = ({
         case StateId.TicketsList:
             return <TicketsList teamId={teamId} permissions={permissions} onTicketClick={onTicketClick} onCreateTicket={onCreateTicket} isTicketLimitReached={isTicketLimitReached} onVisibleTicketsChange={onVisibleTicketsChange} onGetTicketUpdateFn={onGetTicketUpdateFn} />;
         case StateId.Home:
-            return <HomeDashboard appPlan={appPlan} teamId={teamId} onCreateTicket={onCreateTicket} isTicketLimitReached={isTicketLimitReached} onNavigate={onNavigate} onTicketClick={onTicketClick} />;
+            return <HomeDashboard appPlan={appPlan} teamId={teamId} onCreateTicket={onCreateTicket} onUpgrade={onUpgrade} isTicketLimitReached={isTicketLimitReached} onNavigate={onNavigate} onTicketClick={onTicketClick} />;
         case StateId.ViewTickets:
             return <ViewTicket
                 permissions={permissions}

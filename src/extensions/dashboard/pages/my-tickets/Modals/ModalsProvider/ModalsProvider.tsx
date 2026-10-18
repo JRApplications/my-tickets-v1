@@ -8,8 +8,12 @@ import { TransferModal } from '../TransferModal';
 import { ViewMemberModal } from '../ViewMemberModal';
 import { AssignTicketConfirmModal } from '../AssignTicketConfirmModal';
 import { MergeTicketModal } from '../MergeTicketModal';
+import { UpgradeRefreshModal } from '../UpgradeRefreshModal';
 
 interface ModalsProviderProps {
+    upgradeRefreshProps: {
+        isOpen: boolean;
+    };
     createTicketProps: {
         isOpen: boolean;
         onClose: () => void;
@@ -77,6 +81,7 @@ interface ModalsProviderProps {
 const ModalsProvider = (props: ModalsProviderProps) => {
     return (
         <>
+            <UpgradeRefreshModal isOpen={props.upgradeRefreshProps.isOpen} />
             <CreateTicketModal isOpen={props.createTicketProps.isOpen} onClose={props.createTicketProps.onClose} agentId={props.createTicketProps.agentId} userBetaFeatures={props.createTicketProps.userBetaFeatures} initialMemberId={props.createTicketProps.initialMemberId} chatConversationId={props.createTicketProps.chatConversationId} />
             <TeamModal isOpen={props.teamProps.isOpen} onClose={props.teamProps.onClose} state={props.teamProps.state} teamId={props.teamProps.teamId} />
             <AgentModal isOpen={props.agentProps.isOpen} onClose={props.agentProps.onClose} state={props.agentProps.state} agentId={props.agentProps.agentId} />

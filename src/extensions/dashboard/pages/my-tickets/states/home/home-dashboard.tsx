@@ -72,6 +72,7 @@ interface HomeDashboardProps {
     appPlan: CurrentAppPlan | null;
     teamId: string;
     onCreateTicket: () => void;
+    onUpgrade: () => void;
     isTicketLimitReached?: boolean;
     onNavigate: (stateId: StateId) => void;
     onTicketClick: (ticketId: string) => void;
@@ -86,7 +87,7 @@ interface HomeDashboardCacheEntry {
 
 const homeDashboardCache = new Map<string, HomeDashboardCacheEntry>();
 
-const HomeDashboard = ({ appPlan, teamId, onCreateTicket, isTicketLimitReached = false, onNavigate, onTicketClick }: HomeDashboardProps) => {
+const HomeDashboard = ({ appPlan, teamId, onCreateTicket, onUpgrade, isTicketLimitReached = false, onNavigate, onTicketClick }: HomeDashboardProps) => {
     const upgradeUrl = appPlan?.upgradeUrl ?? null;
     const planName = appPlan?.planName ?? null;
     const hasLoadedPlan = appPlan !== null;
@@ -191,7 +192,7 @@ const HomeDashboard = ({ appPlan, teamId, onCreateTicket, isTicketLimitReached =
             <Page.Header
                 title="Home"
                 subtitle="A clear view of your team's ticket workload."
-                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.TicketsList)}>View tickets</Button><Tooltip disabled={!isTicketLimitReached} content="Upgrade required to create more tickets this month"><Button prefixIcon={<Add />} onClick={onCreateTicket} disabled={isTicketLimitReached}>Create ticket</Button></Tooltip>{hasLoadedPlan && normalize(planName ?? '') !== 'advanced' && upgradeUrl && <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>Upgrade</Button>}</Box>}
+                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.TicketsList)}>View tickets</Button><Tooltip disabled={!isTicketLimitReached} content="Upgrade required to create more tickets this month"><Button prefixIcon={<Add />} onClick={onCreateTicket} disabled={isTicketLimitReached}>Create ticket</Button></Tooltip>{hasLoadedPlan && normalize(planName ?? '') !== 'advanced' && upgradeUrl && <Button skin="premium" priority="primary" onClick={() => { window.open(upgradeUrl, '_blank', 'noopener,noreferrer'); onUpgrade(); }}>Upgrade</Button>}</Box>}
             />
             <Page.Content>
                 <Box direction="vertical" gap="SP4">

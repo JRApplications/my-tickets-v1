@@ -28,6 +28,7 @@ import { httpClient } from '@wix/essentials';
 const DashboardPage: FC = () => {
   const [state, setState] = useState<StateId>(StateId.Home);
   const [isCreateTicketModalOpen, setIsCreateTicketModalOpen] = useState<boolean>(false);
+  const [isUpgradeRefreshModalOpen, setIsUpgradeRefreshModalOpen] = useState(false);
   const [createTicketFromChat, setCreateTicketFromChat] = useState<{ memberId: string; conversationId: string } | null>(null);
   const [loggedInAgent, setLoggedInAgent] = useState<{
     agentId: string;
@@ -535,6 +536,7 @@ const DashboardPage: FC = () => {
                   <StateProvider
                   appPlan={appPlan}
                   onCreateTicket={() => { if (!planLimitsReached.tickets) setIsCreateTicketModalOpen(true); }}
+                  onUpgrade={() => setIsUpgradeRefreshModalOpen(true)}
                   isTicketLimitReached={planLimitsReached.tickets}
                   isAgentLimitReached={planLimitsReached.agents}
                   isTeamLimitReached={planLimitsReached.teams}
@@ -631,6 +633,7 @@ const DashboardPage: FC = () => {
         </DevTestOverrideProvider>
       </StateOverrideProvider>
       <ModalsProvider
+        upgradeRefreshProps={{ isOpen: isUpgradeRefreshModalOpen }}
         createTicketProps={{
           isOpen: isCreateTicketModalOpen,
           onClose: () => { setIsCreateTicketModalOpen(false); setCreateTicketFromChat(null); },
