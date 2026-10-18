@@ -1,5 +1,6 @@
 import type { APIRoute } from 'astro';
 import { BASE_44_MY_TICKETS_BACKEND_MANAGER } from "astro:env/server";
+import { MY_TICKETS_ACCOUNT_AI_API_KEY } from 'astro:env/server';
 import { captureError } from '../reportError';
 
 const base44Endpoint = 'https://app.base44.com/api/apps/6ab30e3df51d30247532f059/entities/SupportSubmission';
@@ -104,6 +105,17 @@ export const POST: APIRoute = async ({ request, locals }) => {
             );
         }
 
+        try {
+            await sendNotificationToAppOwner();
+        } catch (error) {
+            // The support request is already saved; notification delivery is best-effort.
+            await captureError(error, {
+                requestId: locals.myTicketsRequestId,
+                request,
+            });
+            console.error('[get-support] Failed to send Wix owner notification', error);
+        }
+
         console.info('[get-support] Submission forwarded to Base44', { type: base44Payload.type });
         return jsonResponse({ success: true }, 200);
     } catch (error) {
@@ -119,3 +131,36 @@ export const POST: APIRoute = async ({ request, locals }) => {
         );
     }
 };
+
+const sendNotificationToAppOwner = async () => {
+    const notification = {
+        notificationTemplateId: '7cad84e9-f24a-4503-84bb-81a671595266',
+        dynamicValues: {
+            title: {
+                text: 'New Support Submission',
+            },
+            message: {
+                text: 'A new support submission has been received. Please check the support dashboard for details.',
+            },
+        },
+    };
+
+    if (!MY_TICKETS_ACCOUNT_AI_API_KEY) {
+        throw new Error('MY_TICKETS_ACCOUNT_AI_API_KEY is not configured.');
+    }
+
+    const response = await fetch('https://www.wixapis.com/notifications/v3/notify', {
+        method: 'POST',
+        headers: {
+            Authorization: MY_TICKETS_ACCOUNT_AI_API_KEY,
+            'Content-Type': 'application/json',
+            'wix-site-id': 'a309b26b-b488-4417-a8e6-56ed6a4e45af',
+        },
+        body: JSON.stringify(notification),
+    });
+
+    if (!response.ok) {
+        const details = await response.text();
+        throw new Error(`Wix Notifications API rejected the request (${response.status}): ${details}`);
+    }
+}
