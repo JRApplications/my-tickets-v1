@@ -1,5 +1,6 @@
 // sendMessage.ts
 import { myWixClient } from './../../wixClient';
+import { httpClient } from '@wix/essentials';
 
 interface ChatAttachment {
   id: string;
@@ -15,7 +16,7 @@ export const sendMessage = async (
 ) => {
   try {
     const baseApiUrl = new URL(import.meta.url).origin;
-    const response = await myWixClient.fetchWithAuth(`${baseApiUrl}/api/chat/sendMessage`, {
+    const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/sendMessage`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

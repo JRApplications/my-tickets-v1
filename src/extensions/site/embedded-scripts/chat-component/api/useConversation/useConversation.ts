@@ -2,8 +2,10 @@
 // site embedded chat component
 import { useEffect, useState } from 'react';
 import { sendMessage } from '../sendMessage';
-import { myWixClient } from '../../wixClient';
-import { RealtimeSubscriptionClient } from '../../realtimeWixClient';
+// import { myWixClient } from '../../wixClient';
+// import { RealtimeSubscriptionClient } from '../../realtimeWixClient';
+import { httpClient } from '@wix/essentials';
+import { subscriber } from '@wix/realtime';
 
 const MESSAGE_TYPES_THAT_UPDATE_CONVERSATION = ['message', 'system', 'questionMessage'];
 
@@ -20,7 +22,7 @@ export const useConversation = (conversationId: string) => {
         try {
             const baseApiUrl = new URL(import.meta.url).origin;
             if (!isConversationId(id)) return;
-            const response = await myWixClient.fetchWithAuth(`${baseApiUrl}/api/chat/getUpdatedConversation?conversationId=${encodeURIComponent(id)}`);
+            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/getUpdatedConversation?conversationId=${encodeURIComponent(id)}`);
             const data = await response.json();
             if (data.success) {
                 setMessages(data.data?.messages ?? []);
@@ -36,7 +38,7 @@ export const useConversation = (conversationId: string) => {
     const sendConnectionMessage = async () => {
         try {
             const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myWixClient.fetchWithAuth(`${baseApiUrl}/api/chat/sendConnectionMessage`, {
+            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/sendConnectionMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conversationId }),
@@ -52,7 +54,7 @@ export const useConversation = (conversationId: string) => {
 
     const endConversation = async (id: string) => {
         const baseApiUrl = new URL(import.meta.url).origin;
-        const response = await myWixClient.fetchWithAuth(`${baseApiUrl}/api/chat/endConversation`, {
+        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/endConversation`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ conversationId: id }),
@@ -73,7 +75,7 @@ export const useConversation = (conversationId: string) => {
         const channel = { name: 'SITE_LIVE_CHAT', resourceId: conversationId };
         const channel1 = { name: 'SITE_LIVE_CHAT_CONNECTION_CHECKER', resourceId: conversationId };
 
-        RealtimeSubscriptionClient.subscriber.subscribe(
+        subscriber.subscribe(
             channel,
             async (message, channel) => {
                 const channelName = channel.name;
@@ -91,7 +93,7 @@ export const useConversation = (conversationId: string) => {
             }
         );
 
-        RealtimeSubscriptionClient.subscriber.subscribe(
+        subscriber.subscribe(
             channel1,
             async (message, channel) => {
                 const channelName = channel.name;
@@ -110,8 +112,8 @@ export const useConversation = (conversationId: string) => {
         );
 
         return () => {
-            RealtimeSubscriptionClient.subscriber.unsubscribe({ channel });
-            RealtimeSubscriptionClient.subscriber.unsubscribe({ channel: channel1 });
+            subscriber.unsubscribe({ channel });
+            subscriber.unsubscribe({ channel: channel1 });
         };
     }, [conversationId]);
 
@@ -125,7 +127,7 @@ export const useConversation = (conversationId: string) => {
                 return currentId;
             }
             const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myWixClient.fetchWithAuth(`${baseApiUrl}/api/chat/createConversation`, {
+            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/createConversation`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });

@@ -2,6 +2,7 @@ import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { SiteChatComponentNew } from './SiteChatComponentNew';
 import { myWixClient, injectAccessTokenFunction, wixRecaptchaVisibleSiteKey } from './wixClient';
+import { httpClient } from '@wix/essentials';
 import { sendMessage } from './api/sendMessage/sendMessage';
 import { uploadChatAttachment } from './api/uploadAttachment';
 export { injectAccessTokenFunction };
@@ -103,7 +104,7 @@ function initChatEmbed() {
       onOfflineSubmit: async (values: Record<string, unknown>, captchaToken: string) => {
         const fields = Array.isArray(parsedOfflineForm?.fields) ? parsedOfflineForm.fields : [];
         const baseApiUrl = new URL(import.meta.url).origin;
-        const response = await myWixClient.fetchWithAuth(`${baseApiUrl}/api/offline-form/submit`, {
+        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/offline-form/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
