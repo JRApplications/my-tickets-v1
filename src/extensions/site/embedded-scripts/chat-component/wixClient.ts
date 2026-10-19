@@ -3,7 +3,7 @@ import { createClient, OAuthStrategy } from "@wix/sdk";
 import { site } from "@wix/site";
 import { subscriber } from "@wix/realtime";
 
-const applicationId = "90136a5c-0752-4121-8520-78063fefafc6";
+const applicationId = "bbc0bfe8-5b30-405a-b400-71cfe51f8ad5";
 const recaptchaAuth = OAuthStrategy({ clientId: applicationId });
 
 export const wixRecaptchaVisibleSiteKey = recaptchaAuth.captchaVisibleSiteKey;
