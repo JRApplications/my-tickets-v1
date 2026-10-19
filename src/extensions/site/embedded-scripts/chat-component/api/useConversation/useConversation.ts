@@ -115,7 +115,7 @@ export const useConversation = (conversationId: string) => {
         };
     }, [conversationId]);
 
-    const createConversation = async (currentId: string | null) => {
+    const createConversation = async (currentId: string | null): Promise<string> => {
         try {
             if (isConversationId(currentId)) {
                 // Already have a conversation (e.g. resumed from local
@@ -130,14 +130,17 @@ export const useConversation = (conversationId: string) => {
                 headers: { 'Content-Type': 'application/json' }
             });
             const result = await response.json();
-            if (result.success) {
+            if (response.ok && result.success && isConversationId(result.conversationId)) {
                 await fetchUpdatedConversation(result.conversationId);
                 return result.conversationId;
-            } else {
-                console.error('Failed to create conversation:', result.message);
             }
+
+            const requestId = response.headers.get('x-mytickets-request-id');
+            const details = result.error ?? result.message ?? `HTTP ${response.status}`;
+            throw new Error(requestId ? `${details} (request ${requestId})` : details);
         } catch (error) {
             console.error('Failed to create conversation:', error);
+            throw error;
         }
     };
 

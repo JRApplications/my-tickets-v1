@@ -129,6 +129,8 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
   const [locallyEnded, setLocallyEnded] = React.useState(false);
   const [isEndingChat, setIsEndingChat] = React.useState(false);
   const [endChatError, setEndChatError] = React.useState<string | null>(null);
+  const [isStartingChat, setIsStartingChat] = React.useState(false);
+  const [startChatError, setStartChatError] = React.useState<string | null>(null);
   const [isStartingOver, setIsStartingOver] = React.useState(false);
   const [startOverError, setStartOverError] = React.useState<string | null>(null);
   const [hasStartedOver, setHasStartedOver] = React.useState(false);
@@ -364,6 +366,11 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
   };
 
   const handleStartChat = async () => {
+    if (isStartingChat) return;
+    setIsStartingChat(true);
+    setStartChatError(null);
+
+    try {
     // Already have (or just resumed) an existing conversation — keep using
     // it and carry on the question flow / normal chat inside it.
     let id = conversationId;
@@ -398,6 +405,12 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
     await wixLocalStorage.setItem('myTicketsConversationId', newId);
     setConversationId(newId);
     await startWaitingForAgent(newId);
+    } catch (error) {
+      console.error('Failed to start chat:', error);
+      setStartChatError(error instanceof Error ? error.message : 'Could not start chat. Please try again.');
+    } finally {
+      setIsStartingChat(false);
+    }
   };
 
   const handleFooterSend = async (message: string) => {
@@ -500,6 +513,8 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
           title={title}
           description={subtitle}
           onStart={handleStartChat}
+          loading={isStartingChat}
+          error={startChatError}
         />
       );
     }

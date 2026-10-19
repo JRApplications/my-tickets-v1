@@ -6,6 +6,8 @@ interface StartChatStateProps {
   title: string;
   description?: string;
   onStart: () => void;
+  loading?: boolean;
+  error?: string | null;
 }
 
 const StartChatState: React.FC<StartChatStateProps> = ({
@@ -13,6 +15,8 @@ const StartChatState: React.FC<StartChatStateProps> = ({
   title,
   description,
   onStart,
+  loading = false,
+  error,
 }) => {
   return (
     <div
@@ -31,8 +35,9 @@ const StartChatState: React.FC<StartChatStateProps> = ({
       {description && (
         <p className="cw-start-chat-state__description">{description}</p>
       )}
-      <Button onClick={onStart} ariaLabel="Start chat">
-        Start Chat
+      {error && <p role="alert">{error}</p>}
+      <Button onClick={onStart} ariaLabel="Start chat" disabled={loading}>
+        {loading ? 'Starting…' : 'Start Chat'}
       </Button>
     </div>
   );
