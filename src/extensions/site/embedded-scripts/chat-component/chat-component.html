@@ -5,4 +5,7 @@
   data-theme-b64="{{themeB64}}"
   data-offline-form-b64="{{offlineFormB64}}"
 ></div>
+<script>
+  globalThis.process = globalThis.process || { env: { NODE_ENV: "production" } };
+</script>
 <script type="module" accesstoken="true" src="./chat-embed.ts"></script>
