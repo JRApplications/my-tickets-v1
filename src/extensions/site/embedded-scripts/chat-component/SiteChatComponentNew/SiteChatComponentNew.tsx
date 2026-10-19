@@ -5,7 +5,7 @@ import { useConversation } from '../api/useConversation/useConversation';
 import Footer from './Footer/Footer';
 import Header from './Header/Header';
 import { MessageList } from './Messages';
-import styles from './SiteChatComponentNew.module.css';
+import { styles } from './cssModuleClasses';
 import type { ChatWidgetProps, MessageProps } from './SiteChatComponentNew.types';
 import { ChatEndedState, LoadingState, OfflineState, StartChatState } from './States';
 import { useSiteChatComponentNew } from './useSiteChatComponentNew';

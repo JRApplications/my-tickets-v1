@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { useOfflineForm } from '../hooks';
 import { Button } from '../Shared';
 import type { OfflineField, OfflineFormSchema } from '../SiteChatComponentNew.types';
-import './OfflineForm.css';
 
 interface OfflineFormProps {
   schema: OfflineFormSchema;

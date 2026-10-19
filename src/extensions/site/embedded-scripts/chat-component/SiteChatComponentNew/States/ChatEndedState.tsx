@@ -1,5 +1,4 @@
 import React from 'react';
-import './ChatEndedState.css';
 
 const ChatEndedState: React.FC = () => {
   return (

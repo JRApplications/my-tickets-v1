@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { MAX_ATTACHMENT_BYTES, MAX_ATTACHMENTS_PER_MESSAGE, resolveAttachmentMimeType } from '@jrapps/my_tickets_common_types';
 import type { FooterProps } from '../SiteChatComponentNew.types';
-import styles from './Footer.module.css';
+import { styles } from '../cssModuleClasses';
 
 const TYPING_STOP_DELAY = 3000; // ms of inactivity before "stopped typing"
 

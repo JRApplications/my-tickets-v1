@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React from 'react';
 import type { MessageProps } from '../SiteChatComponentNew.types';
 import { formatTime } from '../utils';
-import styles from './UserMessage.module.css';
+import { styles } from '../cssModuleClasses';
 
 interface UserMessageProps {
   message: MessageProps;

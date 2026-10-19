@@ -1,7 +1,7 @@
 import React from 'react';
 import type { MessageProps } from '../SiteChatComponentNew.types';
 import { formatTime } from '../utils';
-import styles from './AgentMessage.module.css';
+import { styles } from '../cssModuleClasses';
 import classNames from 'classnames';
 
 interface AgentMessageProps {

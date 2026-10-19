@@ -1,5 +1,4 @@
 import React from 'react';
-import './TypingIndicator.css';
 
 const TypingIndicator: React.FC = () => {
   return (

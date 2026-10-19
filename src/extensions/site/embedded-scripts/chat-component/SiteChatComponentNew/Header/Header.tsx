@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import type { HeaderProps } from '../SiteChatComponentNew.types';
-import styles from './Header.module.css';
+import { styles } from '../cssModuleClasses';
 
 const Header: React.FC<HeaderProps> = ({ image, title, subtitle, onClose, onEndChat, onStartOver, endingChat, startingOver, endChatError, startOverError }) => {
   return (

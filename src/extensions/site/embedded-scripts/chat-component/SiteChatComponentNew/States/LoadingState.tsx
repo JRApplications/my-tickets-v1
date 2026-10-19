@@ -1,5 +1,4 @@
 import React from 'react';
-import './LoadingState.css';
 
 const LoadingState: React.FC = () => {
   return (

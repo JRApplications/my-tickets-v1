@@ -1,6 +1,5 @@
 import React from 'react';
 import { Button } from '../Shared';
-import './StartChatState.css';
 
 interface StartChatStateProps {
   image?: string;

@@ -1,7 +1,6 @@
 import React from 'react';
 import OfflineForm from '../OfflineForm/OfflineForm';
 import type { OfflineFormSchema } from '../SiteChatComponentNew.types';
-import './OfflineState.css';
 
 interface OfflineStateProps {
   form?: OfflineFormSchema;
