@@ -81,7 +81,7 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
   const [conversationId, setConversationId] = React.useState<string>('');
   const { open = true, openWidget, closeWidget } = useSiteChatComponentNew(defaultOpen);
   const { messages, clearMessages, handleCreateConversation, endConversation, refetchConversation } = useConversation(conversationId ?? '');
-  const { config, loading: isChatConfigLoading, sendQuestionMessage, sendWaitingForAgentMessage } = useChatConfig();
+  const { config, sendQuestionMessage, sendWaitingForAgentMessage } = useChatConfig();
   const dialogRef = React.useRef<HTMLDivElement>(null);
   const launcherRef = React.useRef<HTMLButtonElement>(null);
   const wasOpenRef = React.useRef(open);
@@ -486,10 +486,6 @@ export const SiteChatComponentNew = React.forwardRef<HTMLDivElement, ChatWidgetP
     // Resolve business hours before choosing between the offline form and
     // the initial Start Chat screen.
     if (loading) {
-      return <LoadingState />;
-    }
-
-    if (offlineForm && isChatConfigLoading) {
       return <LoadingState />;
     }
 
