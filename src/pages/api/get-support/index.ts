@@ -1,6 +1,6 @@
 import type { APIRoute } from 'astro';
 import { BASE_44_MY_TICKETS_BACKEND_MANAGER } from "astro:env/server";
-import { MY_TICKETS_ACCOUNT_AI_API_KEY } from 'astro:env/server';
+import { MY_APPS_STUDIO_CLIENT_SECRET } from 'astro:env/server';
 import { captureError } from '../reportError';
 
 const base44Endpoint = 'https://app.base44.com/api/apps/6ab30e3df51d30247532f059/entities/SupportSubmission';
@@ -116,7 +116,6 @@ export const POST: APIRoute = async ({ request, locals }) => {
             console.error('[get-support] Failed to send Wix owner notification', error);
         }
 
-        console.info('[get-support] Submission forwarded to Base44', { type: base44Payload.type });
         return jsonResponse({ success: true }, 200);
     } catch (error) {
         console.error('[get-support] Failed to reach Base44', error);
@@ -145,16 +144,40 @@ const sendNotificationToAppOwner = async () => {
         },
     };
 
-    if (!MY_TICKETS_ACCOUNT_AI_API_KEY) {
-        throw new Error('MY_TICKETS_ACCOUNT_AI_API_KEY is not configured.');
+    const createAuthToken = async () => {
+        const body = {
+            "client_id": "0bd1bda4-74db-4614-8339-8307c9e047dd",
+            "client_secret": MY_APPS_STUDIO_CLIENT_SECRET,
+            "grant_type": "client_credentials",
+            "instance_id": "424512aa-ac87-4454-bd08-298acfb0b416"
+        }
+
+        const response = await fetch('https://www.wixapis.com/oauth2/token', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            const details = await response.text();
+            throw new Error(`Wix OAuth2 API rejected the request (${response.status}): ${details}`);
+        }
+
+        const data = await response.json();
+        return data.access_token;
     }
 
+    const authToken = await createAuthToken();
+    if (!authToken) {
+        throw new Error('Failed to obtain Wix OAuth2 access token to send notification.');
+    }
     const response = await fetch('https://www.wixapis.com/notifications/v3/notify', {
         method: 'POST',
         headers: {
-            Authorization: MY_TICKETS_ACCOUNT_AI_API_KEY,
+            Authorization: `Bearer ${authToken}`,
             'Content-Type': 'application/json',
-            'wix-site-id': 'a309b26b-b488-4417-a8e6-56ed6a4e45af',
         },
         body: JSON.stringify(notification),
     });
