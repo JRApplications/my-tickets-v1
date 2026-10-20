@@ -133,23 +133,23 @@ export const POST: APIRoute = async ({ request, locals }) => {
 
 const sendNotificationToAppOwner = async () => {
     const notification = {
-        notificationTemplateId: '7cad84e9-f24a-4503-84bb-81a671595266',
-        dynamicValues: {
-            title: {
-                text: 'New Support Submission',
+        "notificationTemplateId": "6377d9ca-c41e-4fb8-9441-90d7d06536fb",
+        "dynamicValues": {
+            "title": {
+                "text": "New Support Submission"
             },
-            message: {
-                text: 'A new support submission has been received. Please check the support dashboard for details.',
-            },
-        },
+            "message": {
+                "text": "A new support submission has been received. Please check the support dashboard for details."
+            }
+        }
     };
 
     const createAuthToken = async () => {
         const body = {
-            "client_id": "0bd1bda4-74db-4614-8339-8307c9e047dd",
+            "client_id": "af53aa77-9c2b-41c7-9de2-72d494ad8dac",
             "client_secret": MY_APPS_STUDIO_CLIENT_SECRET,
             "grant_type": "client_credentials",
-            "instance_id": "424512aa-ac87-4454-bd08-298acfb0b416"
+            "instance_id": "c09ebd12-b3b4-4a11-a573-be2ced0fd409"
         }
 
         const response = await fetch('https://www.wixapis.com/oauth2/token', {
