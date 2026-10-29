@@ -12,7 +12,8 @@
     "release": "wix release",
     "generate": "wix generate",
     "skills": "wix skills",
-    "typecheck": "astro check"
+    "typecheck": "astro check",
+    "test": "vitest run"
   },
   "dependencies": {
     "@jrapps/my_tickets_common_types": "^2.3.0",
@@ -59,6 +60,7 @@
     "@wix/cli": "^1.1.258",
     "@wix/sdk-types": "^1.0.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "vitest": "^3.2.7"
   }
 }

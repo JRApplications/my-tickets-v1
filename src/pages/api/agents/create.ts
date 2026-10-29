@@ -36,7 +36,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
         status = 500;
         const elevatedInsert = auth.elevate(items.insert);
         const createdUser = await elevatedInsert(CollectionIds.AGENTS, newUser as Agent);
-        const result = { success: true, user: createdUser };
+        // Explicit whitelist: never return the password hash (stored in `userId`) or internal fields.
+        const { _id, email, name, phoneNumber, team, role, profilePictureUrl } = createdUser as Agent & { _id: string };
+        const result = { success: true, user: { _id, email, name, phoneNumber, team, role, profilePictureUrl } };
         return new Response(JSON.stringify(result), {
             status: 201,
             headers: { "Content-Type": "application/json" },

@@ -5,7 +5,8 @@ import { CollectionIds, type Agent } from '@jrapps/my_tickets_common_types';
 import { captureError } from '../reportError';
 import { issueToken } from '../my-tickets-auth/token';
 import { ADMIN_PERMISSIONS } from './admin-permissions';
-import { verifyPassword } from './password-utils';
+import { generateSalt, hashPassword, isLegacyHash, verifyPassword } from './password-utils';
+import { REJECT_LEGACY_PASSWORD_HASHES } from './legacy-hash-policy';
 import { SYSTEM_ADMIN_EMAIL, SYSTEM_ADMIN_ID } from './system-admin';
 import { BASE_44_MY_TICKETS_BACKEND_MANAGER } from 'astro:env/server';
 
@@ -87,7 +88,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             throw new Error('Invalid email or User ID');
         }
 
-        if (!user.userId || (!user.userId.includes(':') && !user.userId.startsWith('$2'))) {
+        if (!user.userId || (!user.userId.includes(':') && !user.userId.startsWith('$2')) || (REJECT_LEGACY_PASSWORD_HASHES && isLegacyHash(user.userId))) {
             status = 400;
             throw new Error('Account required password reset.');
         }
@@ -100,6 +101,9 @@ export const POST: APIRoute = async ({ request, locals }) => {
         }
 
         await clearFailedLogins(user._id);
+        if (isLegacyHash(user.userId)) {
+            await upgradeLegacyHash(user._id, userId);
+        }
 
         const teamId = user.team?._id;
         const roleId = user.role?._id;
@@ -234,4 +238,17 @@ async function clearFailedLogins(agentId: string): Promise<void> {
         .setField('loginFailureWindow', 0)
         .setField('loginLockedUntil', 0)
         .run();
+}
+
+// Rehash a legacy SHA-256 password with bcrypt after a correct login. Only the hash field (`userId`) is
+// patched, so no other agent field changes. A failure here must never block the login.
+async function upgradeLegacyHash(agentId: string, password: string): Promise<void> {
+    try {
+        const newHash = await hashPassword(password, await generateSalt());
+        await auth.elevate(items.patch)(CollectionIds.AGENTS, agentId)
+            .setField('userId', newHash)
+            .run();
+    } catch {
+        console.warn('Could not upgrade a legacy password hash; login continues.');
+    }
 }
