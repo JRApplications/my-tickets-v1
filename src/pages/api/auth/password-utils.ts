@@ -10,6 +10,10 @@ export async function hashPassword(password: string, salt: string): Promise<stri
     return bcrypt.hashSync(password, salt);
 }
 
+export function isLegacyHash(storedValue: string): boolean {
+    return storedValue.includes(':') && !storedValue.startsWith('$2');
+}
+
 export async function verifyPassword(password: string, storedValue: string): Promise<boolean> {
     // Support legacy SHA-256 format (salt:hash) for existing accounts
     if (storedValue.includes(':') && !storedValue.startsWith('$2')) {
