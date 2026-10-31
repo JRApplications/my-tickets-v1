@@ -7,6 +7,7 @@ import { generateElevatedAuthToken } from '../auth/generateElevatedAuthToken';
 import { isSystemAdmin } from '../auth/system-admin';
 import { HEADER_NAME, verifyToken } from './token';
 import wixConfig from '../../../../wix.config.json';
+import { getCalendarMonth, getPlanLimits, resolvePlanTier } from '../utils/plan-config';
 
 interface PlanLimits {
     agents: number | null;
@@ -156,24 +157,21 @@ export const GET: APIRoute = async ({ request }) => {
                 // invalid optional agent token must not grant elevated plan access.
             }
         }
-        const effectivePlanName = systemAdmin ? 'Advanced' : packageName;
-        const normalizedPlanName = effectivePlanName?.toLowerCase() ?? '';
+        const tier = systemAdmin ? 'advanced' : resolvePlanTier(packageName, instance?.isFree);
+        const isFreePlan = tier === 'free';
+        const effectivePlanName = systemAdmin ? 'Advanced' : isFreePlan ? 'Free' : packageName;
         const freeTrialStatus = billing?.freeTrialInfo?.status ?? null;
         const freeTrialActive = freeTrialStatus === 'IN_PROGRESS';
         const freeTrialAvailable = instance?.freeTrialAvailable === true;
-        const hasPlan = systemAdmin || instance?.isFree === false;
-        const billingPeriod = getCurrentBillingPeriod(billing?.timeStamp, new Date());
+        const hasPlan = systemAdmin || instance?.isFree === false || isFreePlan;
+        const billingPeriod = isFreePlan
+            ? getCalendarMonth(new Date())
+            : getCurrentBillingPeriod(billing?.timeStamp, new Date());
         const accessToken = await generateElevatedAuthToken(authorization);
         const { agentCount, teamCount, chatConversationCount, ticketCount } =
             await fetchAppPlanCounts(accessToken, billingPeriod);
 
-        const limits: PlanLimits | undefined = normalizedPlanName.includes('essential')
-            ? { agents: 1, teams: 1, chatConversations: 100, tickets: 50 }
-            : normalizedPlanName.includes('team')
-                ? { agents: 5, teams: 5, chatConversations: 250, tickets: 150 }
-                : normalizedPlanName.includes('advanced')
-                    ? { agents: null, teams: null, chatConversations: null, tickets: null }
-                    : undefined;
+        const limits: PlanLimits | undefined = getPlanLimits(tier);
         const hasMaxAgents = limits?.agents !== null && limits?.agents !== undefined && agentCount >= limits.agents;
         const hasMaxTeams = limits?.teams !== null && limits?.teams !== undefined && teamCount >= limits.teams;
         const hasMaxChatConversations = limits?.chatConversations !== null
@@ -194,6 +192,7 @@ export const GET: APIRoute = async ({ request }) => {
             freeTrialActive,
             freeTrialAvailable,
             hasPlan,
+            isFreePlan,
             planName: effectivePlanName ?? undefined,
             upgradeUrl,
             counts: {
