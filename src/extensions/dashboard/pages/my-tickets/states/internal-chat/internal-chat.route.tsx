@@ -6,6 +6,7 @@ import { dashboard } from '@wix/dashboard';
 import { subscriber } from '@wix/realtime';
 import type { CurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import { Box, Button, EmptyState, Page } from '@wix/design-system';
+import { getUpgradeButton } from '../../auth/upgradeButton';
 
 interface InternalChatProps {
     appPlan: CurrentAppPlan | null;
@@ -360,9 +361,9 @@ const InternalChat = ({ appPlan, ...props }: InternalChatProps) => {
         <Page maxWidth={9999} className="internal-chat-upgrade-page">
             <Page.Header
                 title="Internal Mail"
-                actionsBar={planAccess === 'restricted' && upgradeUrl ? (
+                actionsBar={planAccess === 'restricted' && upgradeUrl && getUpgradeButton(appPlan).show ? (
                     <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>
-                        Upgrade plan
+                        {getUpgradeButton(appPlan).label}
                     </Button>
                 ) : undefined}
             />
@@ -375,9 +376,9 @@ const InternalChat = ({ appPlan, ...props }: InternalChatProps) => {
                             ? 'Upgrade your plan to use Internal Mail.'
                             : 'Refresh the page and try again.'}
                     >
-                        {planAccess === 'restricted' && upgradeUrl && (
+                        {planAccess === 'restricted' && upgradeUrl && getUpgradeButton(appPlan).show && (
                             <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>
-                                Upgrade plan
+                                {getUpgradeButton(appPlan).label}
                             </Button>
                         )}
                     </EmptyState>
