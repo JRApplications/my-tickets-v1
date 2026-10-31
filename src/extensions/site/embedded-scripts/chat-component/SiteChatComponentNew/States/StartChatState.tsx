@@ -1,5 +1,6 @@
 import React from 'react';
 import { Button } from '../Shared';
+import { checkChatAvailable } from '../../api/checkChatAvailable';
 
 interface StartChatStateProps {
   image?: string;
@@ -18,6 +19,25 @@ const StartChatState: React.FC<StartChatStateProps> = ({
   loading = false,
   error,
 }) => {
+  const [checking, setChecking] = React.useState(false);
+  const [limitMessage, setLimitMessage] = React.useState<string | null>(null);
+
+  // The monthly chat limit is checked on the click, before the visitor joins a conversation.
+  const handleClick = async () => {
+    if (checking) return;
+    setChecking(true);
+    setLimitMessage(null);
+    try {
+      await checkChatAvailable();
+    } catch (limitError) {
+      setLimitMessage(limitError instanceof Error ? limitError.message : 'Live chat is unavailable right now.');
+      setChecking(false);
+      return;
+    }
+    setChecking(false);
+    onStart();
+  };
+
   return (
     <div
       className="cw-start-chat-state"
@@ -35,9 +55,9 @@ const StartChatState: React.FC<StartChatStateProps> = ({
       {description && (
         <p className="cw-start-chat-state__description">{description}</p>
       )}
-      {error && <p role="alert">{error}</p>}
-      <Button onClick={onStart} ariaLabel="Start chat" disabled={loading}>
-        {loading ? 'Starting…' : 'Start Chat'}
+      {(limitMessage || error) && <p role="alert">{limitMessage ?? error}</p>}
+      <Button onClick={handleClick} ariaLabel="Start chat" disabled={loading || checking}>
+        {loading || checking ? 'Starting…' : 'Start Chat'}
       </Button>
     </div>
   );
