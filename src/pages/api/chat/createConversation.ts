@@ -6,6 +6,7 @@ import { auth } from '@wix/essentials';
 import { captureError } from '../reportError';
 import { insertConversation } from './conversation-auth';
 import { getPlanLimitStatus } from '../utils/plan-limits';
+import { VISITOR_CHAT_LIMIT_MESSAGE } from './checkChatAvailability';
 
 export const POST: APIRoute = async ({ request, locals }) => {
     try {
@@ -19,7 +20,7 @@ export const POST: APIRoute = async ({ request, locals }) => {
             return null;
         });
         if (chatLimit?.reached) {
-            return new Response(JSON.stringify({ success: false, limitReached: true, error: 'Live chat is unavailable right now. Please try again later or contact us another way.' }), {
+            return new Response(JSON.stringify({ success: false, limitReached: true, error: VISITOR_CHAT_LIMIT_MESSAGE }), {
                 status: 409, headers: { 'Content-Type': 'application/json' },
             });
         }
