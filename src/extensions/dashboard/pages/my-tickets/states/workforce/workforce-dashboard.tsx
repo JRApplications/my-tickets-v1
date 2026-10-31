@@ -4,6 +4,7 @@ import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { AreaChart, Badge, Box, Button, Card, Cell, EmptyState, Heading, Layout, LinearProgressBar, Page, SkeletonRectangle, Text } from '@wix/design-system';
 import { PermissionDeniedState } from '@jrapps/my_tickets_dashboard_ui';
 import './workforce-dashboard.css';
+import { getUpgradeButton } from '../../auth/upgradeButton';
 
 interface WorkforceAgent {
     id: string;
@@ -170,9 +171,9 @@ const WorkforceDashboard = ({ appPlan, ...props }: WorkforceDashboardProps) => {
                             ? 'Upgrade your plan to view workforce capacity and ticket demand.'
                             : 'Refresh the page to try checking your plan again.'}
                     >
-                        {planAccess === 'restricted' && upgradeUrl && (
+                        {planAccess === 'restricted' && upgradeUrl && getUpgradeButton(appPlan).show && (
                             <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>
-                                Upgrade plan
+                                {getUpgradeButton(appPlan).label}
                             </Button>
                         )}
                     </EmptyState>
