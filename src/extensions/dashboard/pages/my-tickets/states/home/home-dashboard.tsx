@@ -13,6 +13,7 @@ import {
     StateId
 } from '@jrapps/my_tickets_common_types';
 import './home-dashboard.css';
+import { getUpgradeButton } from '../../auth/upgradeButton';
 
 interface DashboardTicket {
     _id: string;
@@ -192,7 +193,7 @@ const HomeDashboard = ({ appPlan, teamId, onCreateTicket, onUpgrade, isTicketLim
             <Page.Header
                 title="Home"
                 subtitle="A clear view of your team's ticket workload."
-                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.TicketsList)}>View tickets</Button><Tooltip disabled={!isTicketLimitReached} content="Upgrade required to create more tickets this month"><Button prefixIcon={<Add />} onClick={onCreateTicket} disabled={isTicketLimitReached}>Create ticket</Button></Tooltip>{hasLoadedPlan && normalize(planName ?? '') !== 'advanced' && upgradeUrl && <Button skin="premium" priority="primary" onClick={() => { window.open(upgradeUrl, '_blank', 'noopener,noreferrer'); onUpgrade(); }}>Upgrade</Button>}</Box>}
+                actionsBar={<Box gap="SP2"><Button priority="secondary" prefixIcon={<Inbox />} onClick={() => onNavigate(StateId.TicketsList)}>View tickets</Button><Tooltip disabled={!isTicketLimitReached} content="Upgrade required to create more tickets this month"><Button prefixIcon={<Add />} onClick={onCreateTicket} disabled={isTicketLimitReached}>Create ticket</Button></Tooltip>{hasLoadedPlan && getUpgradeButton(appPlan).show && upgradeUrl && <Button skin="premium" priority="primary" onClick={() => { window.open(upgradeUrl, '_blank', 'noopener,noreferrer'); onUpgrade(); }}>{getUpgradeButton(appPlan).label}</Button>}</Box>}
             />
             <Page.Content>
                 <Box direction="vertical" gap="SP4">
