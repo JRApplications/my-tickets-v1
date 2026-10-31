@@ -5,12 +5,23 @@ import { randomUUID } from 'node:crypto';
 import { auth } from '@wix/essentials';
 import { captureError } from '../reportError';
 import { insertConversation } from './conversation-auth';
+import { getPlanLimitStatus } from '../utils/plan-limits';
 
 export const POST: APIRoute = async ({ request, locals }) => {
     try {
         const tokenInfo = await auth.getTokenInfo();
         if (!tokenInfo?.subjectId || !tokenInfo?.subjectType) {
             throw new Error('Site identity is required to create a conversation');
+        }
+        // Free plan: a visitor-safe refusal (no pricing or upgrade wording). Fails open if the plan cannot be read.
+        const chatLimit = await getPlanLimitStatus('chatConversations').catch((error) => {
+            console.error('Could not check the chat conversation limit', error);
+            return null;
+        });
+        if (chatLimit?.reached) {
+            return new Response(JSON.stringify({ success: false, limitReached: true, error: 'Live chat is unavailable right now. Please try again later or contact us another way.' }), {
+                status: 409, headers: { 'Content-Type': 'application/json' },
+            });
         }
         const user = await getUser(tokenInfo);
 

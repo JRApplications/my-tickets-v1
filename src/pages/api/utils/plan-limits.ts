@@ -3,8 +3,9 @@ import { auth } from '@wix/essentials';
 import { items } from '@wix/data';
 import { CollectionIds } from '@jrapps/my_tickets_common_types';
 import { isSystemAdmin } from '../auth/system-admin';
+import { getCalendarMonth, getPlanLimit, resolvePlanTier, type PlanLimitedResource } from './plan-config';
 
-export type PlanLimitedResource = 'tickets' | 'agents' | 'teams';
+export type { PlanLimitedResource } from './plan-config';
 
 const getCurrentBillingPeriodStart = (planStartedAt: string | undefined, now: Date): Date | null => {
     if (!planStartedAt) return null;
@@ -24,40 +25,40 @@ const getCurrentBillingPeriodStart = (planStartedAt: string | undefined, now: Da
     return monthOffset < 0 ? null : anniversary(monthOffset);
 };
 
-const getLimit = (packageName: string, resource: PlanLimitedResource): number | null | undefined => {
-    const plan = packageName.toLowerCase();
-    if (plan.includes('essential')) return resource === 'agents' || resource === 'teams' ? 1 : 50;
-    if (plan.includes('team')) return resource === 'agents' || resource === 'teams' ? 5 : 150;
-    if (plan.includes('advanced')) return null;
-    return undefined;
+const COLLECTIONS: Record<PlanLimitedResource, string> = {
+    tickets: CollectionIds.TICKETS,
+    agents: CollectionIds.AGENTS,
+    teams: CollectionIds.TEAMS,
+    chatConversations: CollectionIds.CHAT_CONVERSATIONS,
 };
 
 export async function getPlanLimitStatus(resource: PlanLimitedResource, agentId?: string): Promise<{
     limit: number | null | undefined;
     count: number | null;
     reached: boolean;
+    isFreePlan: boolean;
 }> {
-    if (isSystemAdmin(agentId)) return { limit: null, count: null, reached: false };
+    if (isSystemAdmin(agentId)) return { limit: null, count: null, reached: false, isFreePlan: false };
 
     const getAppInstance = auth.elevate(appInstances.getAppInstance);
     const { instance } = await getAppInstance();
-    const packageName = instance?.billing?.packageName?.trim() ?? '';
-    const limit = getLimit(packageName, resource);
-    if (limit === undefined || limit === null) return { limit, count: null, reached: false };
+    const tier = resolvePlanTier(instance?.billing?.packageName, instance?.isFree);
+    const isFreePlan = tier === 'free';
+    // Chat conversations are only enforced on the free plan, so paid sites behave exactly as before.
+    const limit = resource === 'chatConversations' && !isFreePlan ? undefined : getPlanLimit(tier, resource);
+    if (limit === undefined || limit === null) return { limit, count: null, reached: false, isFreePlan };
 
     const queryItems = auth.elevate(items.query);
-    const collection = resource === 'tickets'
-        ? CollectionIds.TICKETS
-        : resource === 'agents'
-            ? CollectionIds.AGENTS
-            : CollectionIds.TEAMS;
-    let query = queryItems(collection);
-    if (resource === 'tickets') {
-        const periodStart = getCurrentBillingPeriodStart(instance?.billing?.timeStamp, new Date());
+    let query = queryItems(COLLECTIONS[resource]);
+    if (resource === 'tickets' || resource === 'chatConversations') {
+        const now = new Date();
+        const periodStart = isFreePlan
+            ? getCalendarMonth(now).start
+            : getCurrentBillingPeriodStart(instance?.billing?.timeStamp, now);
         if (!periodStart) throw new Error('The current billing period could not be determined');
         query = query.ge('_createdDate', periodStart);
     }
 
     const count = await query.count({ consistentRead: true });
-    return { limit, count, reached: count >= limit };
+    return { limit, count, reached: count >= limit, isFreePlan };
 }

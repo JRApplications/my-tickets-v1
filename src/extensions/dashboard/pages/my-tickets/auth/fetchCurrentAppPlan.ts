@@ -7,6 +7,7 @@ export interface CurrentAppPlan {
     freeTrialActive?: boolean;
     freeTrialAvailable?: boolean;
     hasPlan?: boolean;
+    isFreePlan?: boolean;
     planName?: string;
     upgradeUrl?: string;
     counts?: { agents: number; teams: number; chatConversations: number | null; tickets: number | null };
