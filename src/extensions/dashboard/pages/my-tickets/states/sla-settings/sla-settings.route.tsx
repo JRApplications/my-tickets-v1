@@ -5,6 +5,7 @@ import { PermissionDeniedState, ShowToast } from '@jrapps/my_tickets_dashboard_u
 import type { SlaSettings } from '@jrapps/my_tickets_common_types';
 import SlaSettingsWrapper from './sla-settings.wrapper';
 import { fetchSlaSettings, saveSlaSettings } from './sla-settings';
+import { getUpgradeButton } from '../../auth/upgradeButton';
 
 let cachedSettings: SlaSettings | undefined;
 
@@ -28,9 +29,9 @@ const SlaSettingsRoute = ({ permissions, appPlan }: SlaSettingsProps) => {
             <Page maxWidth={9999} className="sla-settings-page">
                 <Page.Header
                     title="SLA Settings"
-                    actionsBar={planAccess === 'restricted' && upgradeUrl ? (
+                    actionsBar={planAccess === 'restricted' && upgradeUrl && getUpgradeButton(appPlan).show ? (
                         <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>
-                            Upgrade plan
+                            {getUpgradeButton(appPlan).label}
                         </Button>
                     ) : undefined}
                 />
@@ -43,9 +44,9 @@ const SlaSettingsRoute = ({ permissions, appPlan }: SlaSettingsProps) => {
                                 ? 'Upgrade your plan to configure service level targets.'
                                 : 'Refresh the page and try again.'}
                         >
-                            {planAccess === 'restricted' && upgradeUrl && (
+                            {planAccess === 'restricted' && upgradeUrl && getUpgradeButton(appPlan).show && (
                                 <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>
-                                    Upgrade plan
+                                    {getUpgradeButton(appPlan).label}
                                 </Button>
                             )}
                         </EmptyState>

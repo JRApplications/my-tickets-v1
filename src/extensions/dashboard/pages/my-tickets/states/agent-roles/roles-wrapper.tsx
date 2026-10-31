@@ -15,6 +15,7 @@ import CreateManageRole from './states/create-manage-role';
 import type { CurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import { useRoles } from './useRoles';
 import { LoadingState, PermissionDeniedState } from '@jrapps/my_tickets_dashboard_ui';
+import { getUpgradeButton } from '../../auth/upgradeButton';
 
 interface Props {
     permissions: string[];
@@ -79,8 +80,8 @@ const RolesWrapper = ({
     if (planAccess === 'allowed' && isLoading) {
         actionsBar = <SkeletonRectangle width="140px" height="40px" />;
     } else if (planAccess === 'restricted') {
-        actionsBar = upgradeUrl
-            ? <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>Upgrade plan</Button>
+        actionsBar = upgradeUrl && getUpgradeButton(appPlan).show
+            ? <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>{getUpgradeButton(appPlan).label}</Button>
             : undefined;
     } else if (planAccess === 'allowed') {
         actionsBar = (
@@ -132,7 +133,7 @@ const RolesWrapper = ({
                             subtitle="Upgrade your plan to create and manage custom roles."
                             skin="page"
                         >
-                            {upgradeUrl && <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>Upgrade plan</Button>}
+                            {upgradeUrl && getUpgradeButton(appPlan).show && <Button skin="premium" priority="primary" onClick={() => window.open(upgradeUrl, '_blank', 'noopener,noreferrer')}>{getUpgradeButton(appPlan).label}</Button>}
                         </EmptyState>
                     )}
                     {planAccess === 'allowed' && !isError && state === 'create-manage-role' && (
