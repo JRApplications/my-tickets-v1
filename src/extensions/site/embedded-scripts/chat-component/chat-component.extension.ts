@@ -1,4 +1,4 @@
-import{ extensions } from '@wix/astro/builders'
+import{ extensions } from '@wix/custom-extensions'
 
 export default extensions.embeddedScript({
   id: '3332aca5-c9b9-404a-a15c-ad45c4d0e523',

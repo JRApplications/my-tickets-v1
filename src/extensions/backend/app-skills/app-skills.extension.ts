@@ -1,4 +1,4 @@
-import { extensions } from '@wix/astro/builders/trusted';
+import { extensions } from '@wix/custom-extensions';
 
 const skills = [
   {

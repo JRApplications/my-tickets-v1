@@ -1,5 +1,4 @@
 import { MAX_ATTACHMENT_BYTES, resolveAttachmentMimeType } from '@jrapps/my_tickets_common_types';
-import { myWixClient } from '../wixClient';
 import { httpClient } from '@wix/essentials';
 
 export interface ChatAttachment {

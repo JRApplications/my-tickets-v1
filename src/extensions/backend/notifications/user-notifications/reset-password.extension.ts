@@ -1,4 +1,4 @@
-import { extensions } from '@wix/astro/builders';
+import { extensions } from '@wix/custom-extensions';
 
 export default extensions.genericExtension({
     compId: '3822a493-cb3d-4933-aa79-c516026d5867',

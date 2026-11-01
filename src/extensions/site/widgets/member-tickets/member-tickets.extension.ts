@@ -1,4 +1,4 @@
-import{ extensions } from '@wix/astro/builders';
+import{ extensions } from '@wix/custom-extensions';
 
 export default extensions.customElement({
   id: '2d9049f6-5299-4694-a95f-3ed475879af1',

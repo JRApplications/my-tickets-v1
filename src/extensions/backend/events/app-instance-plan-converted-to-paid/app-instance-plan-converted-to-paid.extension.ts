@@ -1,4 +1,4 @@
-import { extensions } from '@wix/astro/builders'
+import { extensions } from '@wix/custom-extensions';
 
 export default extensions.event({
   id: 'c6b0190a-481f-4f0b-ab62-cc58957f83d6',

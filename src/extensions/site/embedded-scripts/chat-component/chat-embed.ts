@@ -1,7 +1,7 @@
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { SiteChatComponentNew } from './SiteChatComponentNew';
-import { myWixClient, injectAccessTokenFunction, wixRecaptchaVisibleSiteKey } from './wixClient';
+import { injectAccessTokenFunction, wixRecaptchaVisibleSiteKey } from './wixClient';
 import { httpClient } from '@wix/essentials';
 import { sendMessage } from './api/sendMessage/sendMessage';
 import { uploadChatAttachment } from './api/uploadAttachment';

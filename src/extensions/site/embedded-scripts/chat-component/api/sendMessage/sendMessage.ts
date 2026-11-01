@@ -1,5 +1,4 @@
 // sendMessage.ts
-import { myWixClient } from './../../wixClient';
 import { httpClient } from '@wix/essentials';
 
 interface ChatAttachment {

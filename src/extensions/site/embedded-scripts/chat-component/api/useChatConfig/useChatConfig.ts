@@ -1,6 +1,5 @@
 // src/component/api/useChatConfig/useChatConfig.ts
 import { useEffect, useState } from 'react';
-import { myWixClient } from '../../wixClient';
 import { httpClient } from '@wix/essentials';
 
 export interface ChatTeam {

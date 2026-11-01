@@ -1,4 +1,4 @@
-import { extensions } from '@wix/astro/builders'
+import { extensions } from '@wix/custom-extensions';
 import ticketsCollection from './Tickets';
 import teamsCollection from './Teams';
 import agentsCollection from './Agents';
