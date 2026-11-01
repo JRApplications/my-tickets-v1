@@ -1,16 +1,16 @@
 {
   "name": "my-tickets-v1",
   "type": "module",
-  "version": "1.0.0",
+  "private": true,
   "scripts": {
     "astro": "astro",
     "wix": "wix",
-    "env": "wix env",
-    "dev": "wix dev",
-    "build": "wix build",
-    "preview": "wix preview",
-    "release": "wix release",
-    "generate": "wix generate",
+    "env": "wix app env",
+    "dev": "wix app dev",
+    "build": "wix app build",
+    "preview": "wix app preview",
+    "release": "wix app release",
+    "generate": "wix app generate",
     "skills": "wix skills",
     "typecheck": "astro check",
     "test": "vitest run"

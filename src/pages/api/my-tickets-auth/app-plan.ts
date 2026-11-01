@@ -6,7 +6,6 @@ import { checkPermission } from '../auth/checkPermission';
 import { generateElevatedAuthToken } from '../auth/generateElevatedAuthToken';
 import { isSystemAdmin } from '../auth/system-admin';
 import { HEADER_NAME, verifyToken } from './token';
-import wixConfig from '../../../../wix.config.json';
 import { getCalendarMonth, getPlanLimits, resolvePlanTier } from '../utils/plan-config';
 
 interface PlanLimits {
@@ -182,8 +181,8 @@ export const GET: APIRoute = async ({ request }) => {
             && limits?.tickets !== undefined
             && ticketCount !== null
             && ticketCount >= limits.tickets;
-        const upgradeUrl = instance?.instanceId && wixConfig.appId
-            ? `https://www.wix.com/apps/upgrade/${encodeURIComponent(wixConfig.appId)}?appInstanceId=${encodeURIComponent(instance.instanceId)}`
+        const upgradeUrl = instance?.instanceId
+            ? `https://www.wix.com/apps/upgrade/bbc0bfe8-5b30-405a-b400-71cfe51f8ad5?appInstanceId=${encodeURIComponent(instance.instanceId)}`
             : undefined;
 
         return jsonResponse({
