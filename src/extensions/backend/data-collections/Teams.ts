@@ -1,4 +1,4 @@
-import type { DataCollection } from '@wix/astro/builders'
+import type { DataCollection } from '@wix/custom-extensions'
 
 export const collectionIdSuffix = 'teams';
 

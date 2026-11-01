@@ -1,4 +1,4 @@
-import { extensions } from '@wix/astro/builders'
+import { extensions } from '@wix/custom-extensions'
 
 export default extensions.realtimePermissionsProvider({
   id: '125dfbdd-5c13-4e97-ac00-1f433c84db8c',

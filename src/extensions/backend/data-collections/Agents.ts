@@ -1,4 +1,4 @@
-import type { DataCollection } from '@wix/astro/builders'
+import type { DataCollection } from '@wix/custom-extensions'
 import { CollectionIds } from '@jrapps/my_tickets_common_types';
 
 export const collectionIdSuffix = 'agents';
