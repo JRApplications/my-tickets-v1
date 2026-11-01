@@ -24,7 +24,7 @@
     "@wix/ai": "^1.13.0",
     "@wix/app-components": "^1.0.191",
     "@wix/app-management": "^1.0.165",
-    "@wix/astro": "^2.75.0",
+    "@wix/astro": "^3.1.0",
     "@wix/captcha": "^1.0.44",
     "@wix/crm": "^1.0.125",
     "@wix/custom-extensions": "^1.0.6",

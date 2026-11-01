@@ -1,4 +1,4 @@
-import { app } from '@wix/astro/builders';
+import { app } from '@wix/custom-extensions';
 
 import myTickets from './extensions/dashboard/pages/my-tickets/my-tickets.extension.ts';
 
