@@ -26,7 +26,7 @@ env: {
 }
 ```
 
-Set `SENTRY_DSN` to the project DSN in the local server environment and in the hosting provider's production secrets. Do not commit the value or expose it through a public/client-prefixed variable. In this app the Wix CLI can manage environment values (`wix app env set --key SENTRY_DSN --value <dsn>`); use the equivalent secret manager for another host. The DSN is not included in this document.
+Set `SENTRY_DSN` to the project DSN in the local server environment and in the hosting provider's production secrets. Do not commit the value or expose it through a public/client-prefixed variable. In this app the Wix CLI can manage environment values (`wix env set --key SENTRY_DSN --value <dsn>`); use the equivalent secret manager for another host. The DSN is not included in this document.
 
 If `SENTRY_DSN` is missing, initialization is skipped and one configuration warning is logged. `captureError()` returns `captured: false` and the generated request ID remains available to the caller.
 
