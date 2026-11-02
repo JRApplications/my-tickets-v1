@@ -3,6 +3,7 @@
 
 # skill integration
 .claude/
+.agents/
 
 # build output
 dist/

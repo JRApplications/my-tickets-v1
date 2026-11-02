@@ -7,9 +7,9 @@
       "computedHash": "94951fff481b1ba218560c962d790adf36377c9cda6d9c92781dab21f80ae54f"
     },
     "wix-app": {
-      "source": "./node_modules/@wix/agent-skills",
+      "source": "C:/Users/New User/AppData/Roaming/npm/node_modules/@wix/cli/node_modules/@wix/agent-skills",
       "sourceType": "local",
-      "computedHash": "b83bc7e39f6107c85ee49e05d280e1ecbfd7bd4a5960b60bbaafba9e684ad327"
+      "computedHash": "9074e77e836fb365471ac8160776df89da883748228ef5d5ddda2e3c24a73750"
     },
     "wix-base44-connector": {
       "source": "./node_modules/@wix/agent-skills",
@@ -17,14 +17,14 @@
       "computedHash": "2cc2301192a2191096a836eccfe2b83c7497f3794b3a608ecd5a144253912e40"
     },
     "wix-design-system": {
-      "source": "./node_modules/@wix/agent-skills",
+      "source": "C:/Users/New User/AppData/Roaming/npm/node_modules/@wix/cli/node_modules/@wix/agent-skills",
       "sourceType": "local",
       "computedHash": "47da8b5791959362c730a630c9893473a7e7fa645bbe93b63b306df2ddccbbaf"
     },
     "wix-docs": {
-      "source": "./node_modules/@wix/agent-skills",
+      "source": "C:/Users/New User/AppData/Roaming/npm/node_modules/@wix/cli/node_modules/@wix/agent-skills",
       "sourceType": "local",
-      "computedHash": "707412d644d9c0828d30e03649d4a44addeef244b9c2fee65f1f8d9184f53b96"
+      "computedHash": "dbb896c27633806aba7632e0c944784d2f4437c7d94aa12f14ae0ef401011e8f"
     },
     "wix-headless": {
       "source": "./node_modules/@wix/agent-skills",
@@ -32,14 +32,24 @@
       "computedHash": "aa260e44be2a83fbce90c28dff675303a6bc94282584e29b295421f642e19d8b"
     },
     "wix-headless-kit": {
-      "source": "./node_modules/@wix/agent-skills",
+      "source": "C:/Users/New User/AppData/Roaming/npm/node_modules/@wix/cli/node_modules/@wix/agent-skills",
       "sourceType": "local",
-      "computedHash": "d9b0fdd5e2c4d72be6b8ff85cfbaf682a030c30cfa02d6ac07f876b7af295400"
+      "computedHash": "b2b00181813daf12f477e7031a7e6b855622ebfa484c1e7af3b7b7e3b9379526"
+    },
+    "wix-headless-templates": {
+      "source": "C:/Users/New User/AppData/Roaming/npm/node_modules/@wix/cli/node_modules/@wix/agent-skills",
+      "sourceType": "local",
+      "computedHash": "1889ae01d646e0e98f1a152dc3322236d21c9cf3c7535849569f176d64818c3a"
     },
     "wix-manage": {
-      "source": "./node_modules/@wix/agent-skills",
+      "source": "C:/Users/New User/AppData/Roaming/npm/node_modules/@wix/cli/node_modules/@wix/agent-skills",
       "sourceType": "local",
-      "computedHash": "25e00ad4e50013d7f49451413766f82b5bdb2bc35c600354bd2ea48ba9fe6c9e"
+      "computedHash": "241155b59fc0af14e8f96ed2e1ab574a0e5b914f8cca4e3d79c717eebd195bbe"
+    },
+    "wix-readme": {
+      "source": "C:/Users/New User/AppData/Roaming/npm/node_modules/@wix/cli/node_modules/@wix/agent-skills",
+      "sourceType": "local",
+      "computedHash": "ec2b6c46f8f3494e23d17279e55d5eb33adf4b5b892f0e2d154d94d488046258"
     },
     "wix-vibe-headless": {
       "source": "./node_modules/@wix/agent-skills",
