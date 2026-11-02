@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../api-url';
 import { httpClient } from '@wix/essentials';
 
 // Called when the visitor clicks Start chat, before they join anything.
@@ -6,8 +7,8 @@ import { httpClient } from '@wix/essentials';
 export async function checkChatAvailable(): Promise<void> {
     let result: any = null;
     try {
-        const baseApiUrl = new URL(import.meta.url).origin;
-        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/checkChatAvailability`);
+        const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/checkChatAvailability`);
         if (response.ok) result = await response.json();
     } catch (error) {
         console.error('Could not check chat availability', error);

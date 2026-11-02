@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 // admin / agent
 import { useState, useEffect, useRef } from 'react';
 import { subscriber } from '@wix/realtime';
@@ -40,8 +41,8 @@ export const useMessages = (
 
     const getUpdatedMessages = async () => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-admin/getUpdatedMessages?conversationId=${conversationId}`);
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-admin/getUpdatedMessages?conversationId=${conversationId}`);
             if (!response.ok) {
                 throw new Error(`Failed to load chat (${response.status})`);
             }
@@ -80,8 +81,8 @@ export const useMessages = (
 
     const sendMessage = async (message: string, attachments: Array<{ id: string; name: string; url: string }>): Promise<boolean> => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-admin/sendMessage`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-admin/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conversationId, message, agentId, attachments }),
@@ -102,8 +103,8 @@ export const useMessages = (
     // Publishes { checkingConnection: true } on channel1 (this is the "ping").
     const sendConnectionMessage = async () => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-admin/sendConnectionMessage`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-admin/sendConnectionMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conversationId }),
@@ -201,8 +202,8 @@ export const useMessages = (
         isJoiningRef.current = true;
         setIsJoining(true);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-admin/joinChat`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-admin/joinChat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -227,8 +228,8 @@ export const useMessages = (
         isLeavingRef.current = true;
         setIsLeaving(true);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-admin/leaveChat`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-admin/leaveChat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -255,8 +256,8 @@ export const useMessages = (
         isEndingRef.current = true;
         setIsEnding(true);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-admin/endChat`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-admin/endChat`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

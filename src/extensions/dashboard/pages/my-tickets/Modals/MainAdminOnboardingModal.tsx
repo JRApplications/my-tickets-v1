@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../api-url';
 import { useState } from 'react';
 import { Box, CustomModalLayout, FormField, Input, Loader, Modal, Text } from '@wix/design-system';
 import { httpClient } from '@wix/essentials';
@@ -6,7 +7,7 @@ import type { CurrentAppPlan } from '../auth/fetchCurrentAppPlan';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import type { LoginSuccessData } from '../login';
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
 export interface OnboardingPlanStatus {
     requiresPlan: boolean;
@@ -39,7 +40,7 @@ export function MainAdminOnboardingModal({ isOpen, appPlan, onComplete }: { isOp
                 await checkPlanAndComplete(createdUser);
                 return;
             }
-            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/onboarding/create-main-admin`, {
+            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/onboarding/create-main-admin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password }),
@@ -90,7 +91,7 @@ export function MainAdminOnboardingModal({ isOpen, appPlan, onComplete }: { isOp
 
 export async function checkNeedsOnboarding(): Promise<boolean> {
     try {
-        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/onboarding/status`);
+        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/onboarding/status`);
         const result = await response.json();
         if (!response.ok || !result.success) throw new Error(result.error || 'Could not check onboarding status');
         return result.needsSetup === true;

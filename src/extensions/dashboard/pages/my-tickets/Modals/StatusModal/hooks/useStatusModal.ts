@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../../api-url';
 import { useState, useEffect } from 'react';
 import { myTicketsFetchWithAuth } from '../../../auth/myTicketsFetchWithAuth';
 
@@ -16,8 +17,8 @@ export const useStatusModal = (ticketId: string, isOpen: boolean) => {
             setIsLoading(true);
             setIsError(false);
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/getStatus?id=${ticketId}`);
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/getStatus?id=${ticketId}`);
                 const result = await response.json();
                 if (result.success) {
                     setCurrentStatus(result.status);
@@ -38,8 +39,8 @@ export const useStatusModal = (ticketId: string, isOpen: boolean) => {
         setIsSaving(true);
         setIsError(false);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/updateStatus?id=${ticketId}&status=${dropdownStatus}`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/updateStatus?id=${ticketId}&status=${dropdownStatus}`, {
                 method: 'PUT',
             });
             const result = await response.json();

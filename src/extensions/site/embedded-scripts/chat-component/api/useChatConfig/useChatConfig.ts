@@ -1,4 +1,5 @@
-// src/component/api/useChatConfig/useChatConfig.ts
+import { getWixServerBaseUrl } from '../../../../../api-url';
+// src/component/useChatConfig/useChatConfig.ts
 import { useEffect, useState } from 'react';
 import { httpClient } from '@wix/essentials';
 
@@ -29,11 +30,11 @@ export const useChatConfig = () => {
 
     const fetchConfig = async () => {
       try {
-        const baseApiUrl = new URL(import.meta.url).origin;
+        const baseApiUrl = getWixServerBaseUrl(import.meta.url);
         let chatConfig: any = null;
 
         try {
-          const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/getChatConfig`);
+          const response = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/getChatConfig`);
           const result = await response.json();
           if (result.success) chatConfig = result.data ?? result;
         } catch (error) {
@@ -42,7 +43,7 @@ export const useChatConfig = () => {
 
         if (!Array.isArray(chatConfig?.businessSupportHours)) {
           try {
-            const fallbackResponse = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat-settings/get`);
+            const fallbackResponse = await httpClient.fetchWithAuth(`${baseApiUrl}/chat-settings/get`);
             const fallbackResult = await fallbackResponse.json();
             const fallbackConfig = fallbackResult.data?.businessSupportHours !== undefined ? fallbackResult.data : fallbackResult;
             if (fallbackResult.success) chatConfig = { ...chatConfig, ...fallbackConfig };
@@ -77,8 +78,8 @@ export const useChatConfig = () => {
 
   const sendQuestionMessage = async (conversationId: string, question: string) => {
     try {
-      const baseApiUrl = new URL(import.meta.url).origin;
-      const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/sendMessage`, {
+      const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+      const response = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/sendMessage`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -94,8 +95,8 @@ export const useChatConfig = () => {
   };
   const sendWaitingForAgentMessage = async (conversationId: string) => {
     try {
-      const baseApiUrl = new URL(import.meta.url).origin;
-      const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/setWaitingForAgent`, {
+      const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+      const response = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/setWaitingForAgent`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

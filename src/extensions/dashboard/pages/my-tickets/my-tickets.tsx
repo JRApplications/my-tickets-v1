@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../api-url';
 import { Box } from '@wix/design-system';
 import { WixPatternsProvider } from '@wix/patterns/provider';
 import { BusinessManagerTheme } from '../../BusinessManagerTheme';
@@ -24,6 +25,7 @@ import { checkNeedsOnboarding, MainAdminOnboardingModal } from './Modals/MainAdm
 import type { OnboardingPlanStatus } from './Modals/MainAdminOnboardingModal';
 import { FreeTrialRequiredModal } from './Modals/FreeTrialRequiredModal';
 import { httpClient } from '@wix/essentials';
+import { getWixServerApiUrl } from '../../../api-url';
 
 const DashboardPage: FC = () => {
   const [state, setState] = useState<StateId>(StateId.Home);
@@ -127,7 +129,7 @@ const DashboardPage: FC = () => {
       let restoredAgentId = '';
       try {
         if (localStorage.getItem('my-tickets-auth-token')) {
-          const response = await myTicketsFetchWithAuth(`${currentUrl.origin}/api/agents/logged-in-agent`);
+          const response = await myTicketsFetchWithAuth(`${currentUrl.origin}/agents/logged-in-agent`);
           const result = await response.json();
           if (!response.ok || !result.success || !result.user) {
             throw new Error(result.error || 'Could not restore agent session');
@@ -154,7 +156,7 @@ const DashboardPage: FC = () => {
       try {
         const needsSetup = await checkNeedsOnboarding();
         setNeedsOnboarding(needsSetup);
-        const planResponse = await fetchCurrentAppPlan(`${currentUrl.origin}/api/my-tickets-auth/app-plan`);
+        const planResponse = await fetchCurrentAppPlan(getWixServerApiUrl('my-tickets-auth/app-plan', import.meta.url));
         const plan = await planResponse.json();
         if (!planResponse.ok || !plan.success) throw new Error(plan.error || 'Could not check your My Tickets plan');
         setAppPlan(plan as CurrentAppPlan);
@@ -172,7 +174,7 @@ const DashboardPage: FC = () => {
 
         if (!restoredAgentSession && !needsSetup) {
           if (hasEssentialsPlan) {
-            const sessionResponse = await httpClient.fetchWithAuth(`${currentUrl.origin}/api/my-tickets-auth/essentials-session`, { method: 'POST' });
+            const sessionResponse = await httpClient.fetchWithAuth(getWixServerApiUrl('my-tickets-auth/essentials-session', import.meta.url), { method: 'POST' });
             const session = await sessionResponse.json();
             if (sessionResponse.ok && session.success && session.user && session.authToken && session.authTokenExpiresAt) {
               storeMyTicketsAgentSession(session.authToken, session.authTokenExpiresAt, false);
@@ -258,9 +260,9 @@ const DashboardPage: FC = () => {
 
   const handleAssignAgent = async (ticketId: string, agentId: string, type: 'assign' | 'unassign') => {
     try {
-      const baseApiUrl = new URL(import.meta.url).origin;
+      const baseApiUrl = getWixServerBaseUrl(import.meta.url);
       if (type === 'unassign') {
-        const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/unassignAgent`, {
+        const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/unassignAgent`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -273,7 +275,7 @@ const DashboardPage: FC = () => {
         handleTicketUpdate(ticketId, updates);
         setTicketAssignmentUpdate({ ticketId, ...updates });
       } else if (type === 'assign') {
-        const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/assignAgent`, {
+        const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/assignAgent`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -297,7 +299,7 @@ const DashboardPage: FC = () => {
 
   const handleNotificationRemove = async (id: string) => {
     try {
-      const response = await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/notifications/removeNotification`, {
+      const response = await myTicketsFetchWithAuth(`${getWixServerBaseUrl(import.meta.url)}/notifications/removeNotification`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -348,8 +350,8 @@ const DashboardPage: FC = () => {
         isError: false
       }));
       try {
-        const baseApiUrl = new URL(import.meta.url).origin;
-        const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/notifications/getNotifications?id=${loggedInAgent.agentId}`, {
+        const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+        const response = await myTicketsFetchWithAuth(`${baseApiUrl}/notifications/getNotifications?id=${loggedInAgent.agentId}`, {
           method: 'GET',
           headers: {
             'Content-Type': 'application/json'
@@ -413,9 +415,9 @@ const DashboardPage: FC = () => {
   const canRunSlaSweep = loggedInAgent.permissions.includes('my-tickets-view-all-tickets');
   useEffect(() => {
     if (!loggedInAgent.agentId || !canRunSlaSweep) return;
-    const baseApiUrl = new URL(import.meta.url).origin;
+    const baseApiUrl = getWixServerBaseUrl(import.meta.url);
     const runSweep = () => {
-      myTicketsFetchWithAuth(`${baseApiUrl}/api/sla/sweep`, { method: 'POST' }).catch(() => undefined);
+      myTicketsFetchWithAuth(`${baseApiUrl}/sla/sweep`, { method: 'POST' }).catch(() => undefined);
     };
     runSweep();
     const interval = setInterval(runSweep, 5 * 60 * 1000);
@@ -431,8 +433,8 @@ const DashboardPage: FC = () => {
 
   const fetchBetaUserStatus = async () => {
     try {
-      const baseApiUrl = new URL(import.meta.url).origin;
-      const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/using-my-tickets/isBetaUser`);
+      const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+      const response = await myTicketsFetchWithAuth(`${baseApiUrl}/using-my-tickets/isBetaUser`);
       const data = await response.json();
       setUserBetaFeatures(data?.betaFeatures ?? []);
     } catch (error) {
@@ -465,7 +467,7 @@ const DashboardPage: FC = () => {
   const handleLogout = async () => {
     if (loggedInAgent.agentId) {
       try {
-        await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/agents/activity-status`, {
+        await myTicketsFetchWithAuth(`${getWixServerBaseUrl(import.meta.url)}/agents/activity-status`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ action: 'offline', sessionId: getAgentActivitySessionId() }),

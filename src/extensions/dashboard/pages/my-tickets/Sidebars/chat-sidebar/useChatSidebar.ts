@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { useState, useEffect } from "react";
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { subscriber } from '@wix/realtime';
@@ -22,8 +23,8 @@ export const useChatSidebar = (teamId: string) => {
             return;
         }
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-admin/getSidebarItems?teamId=${teamId}`);
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-admin/getSidebarItems?teamId=${teamId}`);
             const data = await response.json();
             if (!response.ok || !data.success) {
                 throw new Error(data.error || `Failed to load chats (${response.status})`);
@@ -45,8 +46,8 @@ export const useChatSidebar = (teamId: string) => {
                 return;
             }
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-admin/getSidebarItems?teamId=${teamId}`);
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-admin/getSidebarItems?teamId=${teamId}`);
                 const data = await response.json();
                 if (!response.ok || !data.success) {
                     throw new Error(data.error || `Failed to load chats (${response.status})`);

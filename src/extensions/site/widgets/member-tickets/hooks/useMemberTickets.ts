@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../api-url';
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { httpClient } from '@wix/essentials';
 import type { Communication } from '@jrapps/my_tickets_common_types';
@@ -35,9 +36,9 @@ export const useMemberTickets = () => {
             setSelectedTicketError(null);
 
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
                 const response = await httpClient.fetchWithAuth(
-                    `${baseApiUrl}/api/memberTickets/get?ticketId=${encodeURIComponent(selectedTicketId)}`
+                    `${baseApiUrl}/memberTickets/get?ticketId=${encodeURIComponent(selectedTicketId)}`
                 );
                 const data: { ticket?: any; error?: string } = await response.json();
                 if (!response.ok || !data.ticket) {
@@ -75,11 +76,11 @@ export const useMemberTickets = () => {
         }
 
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
             const params = new URLSearchParams({ page: String(page) });
             if (filters.search) params.set('search', filters.search);
             if (filters.status) params.set('status', filters.status);
-            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/memberTickets/get?${params}`);
+            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/memberTickets/get?${params}`);
             const data = await response.json();
             if (!response.ok || !data.success || !Array.isArray(data.tickets)) {
                 throw new Error(data.error || 'Unable to load tickets');
@@ -144,8 +145,8 @@ export const useMemberTickets = () => {
         if (!selectedTicketId) {
             throw new Error('No ticket is selected');
         }
-        const baseApiUrl = new URL(import.meta.url).origin;
-        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/memberTickets/sendMessage`, {
+        const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/memberTickets/sendMessage`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ ticketId: selectedTicketId, message }),

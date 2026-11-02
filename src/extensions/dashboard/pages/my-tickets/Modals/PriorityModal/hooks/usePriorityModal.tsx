@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../../api-url';
 import { useState, useEffect } from 'react';
 import { myTicketsFetchWithAuth } from '../../../auth/myTicketsFetchWithAuth';
 
@@ -16,8 +17,8 @@ export const usePriorityModal = (ticketId: string, isOpen: boolean) => {
             setIsLoading(true);
             setIsError(false);
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/getPriority?id=${ticketId}`);
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/getPriority?id=${ticketId}`);
                 const result = await response.json();
                 if (result.success) {
                     setCurrentPriority(result.priority);
@@ -38,8 +39,8 @@ export const usePriorityModal = (ticketId: string, isOpen: boolean) => {
         setIsSaving(true);
         setIsError(false);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/updatePriority?id=${ticketId}&priority=${dropdownPriority}`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/updatePriority?id=${ticketId}&priority=${dropdownPriority}`, {
                 method: 'PUT',
             });
             const result = await response.json();

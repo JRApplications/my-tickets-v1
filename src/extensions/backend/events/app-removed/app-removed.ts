@@ -1,7 +1,6 @@
 import { appInstances } from '@wix/app-management';
 
-// Wix bundles backend events separately from Astro, so Astro's virtual env
-// module is not available here. Read the configured server secret at runtime.
+// Read the configured server secret at runtime in the backend event handler.
 const MY_APPS_STUDIO_CLIENT_SECRET = process.env.MY_APPS_STUDIO_CLIENT_SECRET;
 
 export default appInstances.onAppInstanceRemoved((event) => {

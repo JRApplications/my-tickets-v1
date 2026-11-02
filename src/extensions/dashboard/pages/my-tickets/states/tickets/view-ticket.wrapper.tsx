@@ -1,3 +1,4 @@
+import { getWixServerApiUrl } from '../../../../../api-url';
 import { useState, useEffect, type FC } from 'react';
 import {
     Box,
@@ -294,7 +295,7 @@ const ViewTicketWrapper: FC<ViewTicketWrapperProps> = ({
                                         setAttachments={handleAttachmentsChange}
                                         placeholder={conversationState === 2 ? 'Start typing your message... Type @ to mention someone' : 'Start typing your message...'}
                                         allowMentions={conversationState === 2}
-                                        getMentionApiUrl="/api/agents/getMentionList"
+                                        getMentionApiUrl={getWixServerApiUrl('agents/getMentionList', import.meta.url)}
                                         isLoading={isLoading}
                                     />
                                 </Box>

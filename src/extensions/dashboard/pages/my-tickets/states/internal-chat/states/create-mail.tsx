@@ -1,3 +1,4 @@
+import { getWixServerApiUrl } from '../../../../../../api-url';
 import { useState } from 'react';
 import { Box, Button, Input, MultiSelect, Text, listItemSelectBuilder, Avatar, Card, Badge } from '@wix/design-system';
 import MessageInput from '../../../common-components/message-input/message-input.route';
@@ -111,7 +112,7 @@ const CreateMail: React.FC<CreateMailProps> = ({
                         handleSendMessage={handleSendButtonClick}
                         placeholder="Start typing your message... Type @ to mention someone"
                         allowMentions={true}
-                        getMentionApiUrl="/api/agents/getMentionList"
+                        getMentionApiUrl={getWixServerApiUrl('agents/getMentionList', import.meta.url)}
                     />
                 </Card.Content>
             </Card>

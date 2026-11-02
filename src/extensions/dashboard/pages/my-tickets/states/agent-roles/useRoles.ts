@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { useState, useEffect } from 'react';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
@@ -32,8 +33,8 @@ export const useRoles = () => {
         const fetchRoles = async () => {
             setIsLoading(true);
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/roles/get`);
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/roles/get`);
                 if (!response.ok) {
                     throw new Error(`Error fetching roles: ${response.statusText}`);
                 }
@@ -75,8 +76,8 @@ export const useRoles = () => {
         setIsLoadingRole(true);
         setState('create-manage-role');
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/roles/get?id=${role}`);
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/roles/get?id=${role}`);
             if (!response.ok) {
                 throw new Error(`Error fetching role: ${response.statusText}`);
             }
@@ -113,8 +114,8 @@ export const useRoles = () => {
 
         setIsSaving(true);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/roles/${selectedRole.id ? `update?id=${selectedRole.id}` : 'create'}`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/roles/${selectedRole.id ? `update?id=${selectedRole.id}` : 'create'}`, {
                 method: selectedRole.id ? 'PUT' : 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -151,8 +152,8 @@ export const useRoles = () => {
 
     const onDeleteRole = async (roleId: string) => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/roles/delete?id=${roleId}`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/roles/delete?id=${roleId}`, {
                 method: 'DELETE'
             });
             if (!response.ok) {
@@ -174,8 +175,8 @@ export const useRoles = () => {
 
     const onDuplicateRole = async (roleId: string) => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/roles/duplicate`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/roles/duplicate`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

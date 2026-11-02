@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../../api-url';
 import { useState, useEffect } from 'react';
 import { myTicketsFetchWithAuth } from '../../../auth/myTicketsFetchWithAuth';
 
@@ -18,8 +19,8 @@ export const useTransferModal = (ticketId: string, isOpen: boolean) => {
 
         const fetchCurrentPrimaryTeam = async () => {
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/getPrimaryTeam?id=${ticketId}`);
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/getPrimaryTeam?id=${ticketId}`);
                 const result = await response.json();
                 if (result.success) {
                     setCurrentPrimaryTeam(result.team.name);
@@ -34,8 +35,8 @@ export const useTransferModal = (ticketId: string, isOpen: boolean) => {
 
         const fetchTeamOptions = async () => {
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/teams/get`);
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/teams/get`);
                 const result = await response.json();
                 if (result.success) {
                     const formattedTeams = result.teams.map((team: any) => ({ id: team._id, value: team.name }));
@@ -61,8 +62,8 @@ export const useTransferModal = (ticketId: string, isOpen: boolean) => {
         setIsSaving(true);
         setIsError(false);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/transfer?id=${ticketId}&teamId=${dropdownPrimaryTeam.id}`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/transfer?id=${ticketId}&teamId=${dropdownPrimaryTeam.id}`, {
                 method: 'PUT',
             });
             const result = await response.json();

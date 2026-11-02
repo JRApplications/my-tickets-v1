@@ -1,32 +1,26 @@
 # Sentry monitoring setup
 
-This document describes the Sentry setup currently used by this app and how to adapt the pattern for another server-rendered app. The implementation uses `@sentry/browser` 11.x from a server-only Astro module and the Wix hosting adapter.
+This document describes the Sentry setup currently used by this app and how to adapt the pattern for another server runtime. The implementation uses `@sentry/browser` 11.x from the custom extensions endpoint runtime.
 
 ## What is monitored
 
 - API route exceptions explicitly passed to `captureError()`.
-- Exceptions that escape request handling and reach the global Astro middleware.
+- Exceptions that escape request handling and reach the shared endpoint wrapper.
 - Sentry delivery failures and initialization failures are logged to the application console.
-- Middleware assigns a request ID to each request and returns it in `x-mytickets-request-id`, including on handled 500 responses.
+- The endpoint wrapper assigns a request ID to each request and returns it in `x-mytickets-request-id`, including on handled 500 responses.
 
-An ordinary HTTP response with status 4xx/5xx is not itself captured as a Sentry exception by the middleware. The middleware flushes already-captured events for responses with status 400 or higher. Route code must call `captureError()` when it catches an error it wants recorded.
+An ordinary HTTP response with status 4xx/5xx is not itself captured as a Sentry exception by the wrapper. The wrapper flushes already-captured events for responses with status 400 or higher. Route code must call `captureError()` when it catches an error it wants recorded.
 
 ## Dependencies and configuration
 
-The app depends on `@sentry/browser` (currently `^11.6.0`). Astro declares the DSN as a server-only secret:
+The app depends on `@sentry/browser` (currently `^11.6.0`). The custom extensions runtime reads server environment variables from `process.env`:
 
-```js
-// astro.config.mjs
-import { envField } from 'astro/config';
-
-env: {
-  schema: {
-    SENTRY_DSN: envField.string({ context: 'server', access: 'secret' }),
-  },
-}
+```ts
+// src/monitoring/sentry.ts
+const SENTRY_DSN = process.env.SENTRY_DSN ?? '';
 ```
 
-Set `SENTRY_DSN` to the project DSN in the local server environment and in the hosting provider's production secrets. Do not commit the value or expose it through a public/client-prefixed variable. In this app the Wix CLI can manage environment values (`wix env set --key SENTRY_DSN --value <dsn>`); use the equivalent secret manager for another host. The DSN is not included in this document.
+Set `SENTRY_DSN` to the project DSN in the local server environment and in the hosting provider's production secrets. Do not commit the value or expose it through a public/client-prefixed variable. In this app the Wix CLI can manage environment values (`wix app env set --key SENTRY_DSN --value <dsn>`); use the equivalent secret manager for another host. The DSN is not included in this document.
 
 If `SENTRY_DSN` is missing, initialization is skipped and one configuration warning is logged. `captureError()` returns `captured: false` and the generated request ID remains available to the caller.
 
@@ -37,7 +31,7 @@ The shared module initializes Sentry on the first capture and caches the initial
 ```ts
 Sentry.init({
   dsn: SENTRY_DSN,
-  environment: import.meta.env.DEV ? 'development' : 'production',
+  environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
   tracesSampleRate: 0.1,
   sendDefaultPii: false,
   integrations: (integrations) =>
@@ -59,7 +53,7 @@ The custom fetch transport logs and rethrows network failures to Sentry's ingest
 
 ## Capturing errors from routes
 
-The reusable helper accepts an unknown error plus optional request context. In this app it is re-exported from `src/pages/api/reportError.ts` so API handlers can import it consistently.
+The reusable helper accepts an unknown error plus optional request context. In this app it is re-exported from `src/endpoints/api/reportError.ts` so API handlers can import it consistently.
 
 ```ts
 import { captureError } from './reportError';
@@ -78,16 +72,16 @@ try {
 
 When a caller does not supply a request ID, the helper generates one. It extracts a Wix request ID from supported error shapes or the `x-wix-request-id` response header, and attaches both IDs as searchable Sentry tags/context. When a `Request` is provided, it adds the HTTP method and URL path, but not query parameters. The helper returns `{ requestId, eventId, captured }` so the API response/logging can correlate with the Sentry event.
 
-## Global request middleware and delivery
+## Global endpoint handling and delivery
 
-The Astro middleware creates or accepts `x-mytickets-request-id`, stores the value in `context.locals`, and sets it on the response. For an uncaught exception it:
+The shared endpoint wrapper creates or accepts `x-mytickets-request-id`, stores the value in `context.locals`, and sets it on the response. For an uncaught exception it:
 
 1. Calls `captureError(error, { requestId, request })`.
 2. Flushes Sentry with a 2-second timeout so a serverless request can deliver the event before the process exits.
 3. Logs if flush did not confirm delivery.
 4. Returns a generic JSON 500 response with the request ID header.
 
-After a normal handler response with status 400 or above, middleware flushes any pending events, but does not create a Sentry event just because the status is an error.
+After a normal handler response with status 400 or above, the wrapper flushes any pending events, but does not create a Sentry event just because the status is an error.
 
 ## Security note before reusing
 
@@ -111,7 +105,6 @@ Also keep API responses generic: return a request ID for support correlation, no
 ## Source files in this app
 
 - `src/monitoring/sentry.ts` — initialization, sanitization, error capture, and flush.
-- `src/middleware.ts` — request IDs, global exception handling, and response-time flush.
-- `src/pages/api/reportError.ts` — API-facing re-export of `captureError`.
-- `astro.config.mjs` — server-only `SENTRY_DSN` declaration.
+- `src/endpoints/api/runtime.ts` — request IDs, agent authorization, global exception handling, and response-time flush.
+- `src/endpoints/api/reportError.ts` — API-facing re-export of `captureError`.
 - `package.json` — Sentry SDK dependency.

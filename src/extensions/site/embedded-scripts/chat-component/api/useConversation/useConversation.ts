@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 // useConversation.ts
 // site embedded chat component
 import { useEffect, useState } from 'react';
@@ -20,9 +21,9 @@ export const useConversation = (conversationId: string) => {
 
     const fetchUpdatedConversation = async (id = conversationId) => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
             if (!isConversationId(id)) return;
-            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/getUpdatedConversation?conversationId=${encodeURIComponent(id)}`);
+            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/getUpdatedConversation?conversationId=${encodeURIComponent(id)}`);
             const data = await response.json();
             if (data.success) {
                 setMessages(data.data?.messages ?? []);
@@ -37,8 +38,8 @@ export const useConversation = (conversationId: string) => {
     // Publishes { connection: true } on channel1 (this is the "pong").
     const sendConnectionMessage = async () => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/sendConnectionMessage`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/sendConnectionMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conversationId }),
@@ -53,8 +54,8 @@ export const useConversation = (conversationId: string) => {
     };
 
     const endConversation = async (id: string) => {
-        const baseApiUrl = new URL(import.meta.url).origin;
-        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/endConversation`, {
+        const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/endConversation`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ conversationId: id }),
@@ -126,8 +127,8 @@ export const useConversation = (conversationId: string) => {
                 await fetchUpdatedConversation(currentId);
                 return currentId;
             }
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/createConversation`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/createConversation`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' }
             });

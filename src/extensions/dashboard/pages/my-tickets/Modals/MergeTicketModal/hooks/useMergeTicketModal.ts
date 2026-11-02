@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../../api-url';
 import { useState, useEffect } from 'react';
 import { myTicketsFetchWithAuth } from '../../../auth/myTicketsFetchWithAuth';
 import type { TicketStatus, TicketPriority, Ticket } from '@jrapps/my_tickets_common_types';
@@ -50,13 +51,13 @@ export const useMergeTicketModal = (
         const loadAndValidate = async () => {
             setState(prev => ({ ...prev, isLoading: true, isError: null }));
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
                 // Fetch both tickets
                 const [primaryRes, secondaryRes, validateRes] = await Promise.all([
-                    myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/getTicketById?id=${primaryTicketId}`),
-                    myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/getTicketById?id=${secondaryTicketId}`),
-                    myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/validateMerge?ticketId1=${primaryTicketId}&ticketId2=${secondaryTicketId}`)
+                    myTicketsFetchWithAuth(`${baseApiUrl}/tickets/getTicketById?id=${primaryTicketId}`),
+                    myTicketsFetchWithAuth(`${baseApiUrl}/tickets/getTicketById?id=${secondaryTicketId}`),
+                    myTicketsFetchWithAuth(`${baseApiUrl}/tickets/validateMerge?ticketId1=${primaryTicketId}&ticketId2=${secondaryTicketId}`)
                 ]);
 
                 const primaryData = await primaryRes.json();
@@ -96,7 +97,7 @@ export const useMergeTicketModal = (
     const handleMerge = async () => {
         setState(prev => ({ ...prev, isSaving: true, isError: null }));
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
             const payload = {
                 primaryTicketId,
@@ -109,7 +110,7 @@ export const useMergeTicketModal = (
                 agentId
             };
 
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/merge`, {
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/merge`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

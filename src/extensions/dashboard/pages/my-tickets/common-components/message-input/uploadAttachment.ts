@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { resolveAttachmentMimeType } from '@jrapps/my_tickets_common_types';
 
@@ -7,9 +8,9 @@ export async function uploadAttachment(file: File): Promise<{ id: string; name: 
         throw new Error('Unsupported file type');
     }
 
-    const baseApiUrl = new URL(import.meta.url).origin;
+    const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
-    const urlResponse = await myTicketsFetchWithAuth(`${baseApiUrl}/api/attachments/getUploadUrl`, {
+    const urlResponse = await myTicketsFetchWithAuth(`${baseApiUrl}/attachments/getUploadUrl`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ mimeType, fileName: file.name }),

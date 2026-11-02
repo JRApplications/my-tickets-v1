@@ -1,7 +1,6 @@
 // sentry.ts
 import * as Sentry from '@sentry/browser';
-import { SENTRY_DSN } from 'astro:env/server';
-
+const SENTRY_DSN = process.env.SENTRY_DSN ?? '';
 let initialized = false;
 let configurationWarningLogged = false;
 
@@ -76,7 +75,7 @@ const initializeSentry = () => {
     try {
         Sentry.init({
             dsn: SENTRY_DSN,
-            environment: import.meta.env.DEV ? 'development' : 'production',
+            environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
             tracesSampleRate: 0.1,
             sendDefaultPii: false,
             // The default Dedupe integration silently drops consecutive events
@@ -111,7 +110,7 @@ const initializeSentry = () => {
         initialized = Sentry.isInitialized();
         if (initialized) {
             console.info('Sentry initialized:', {
-                environment: import.meta.env.DEV ? 'development' : 'production',
+                environment: process.env.NODE_ENV === 'production' ? 'production' : 'development',
                 projectId: sentryProjectId(),
             });
         }

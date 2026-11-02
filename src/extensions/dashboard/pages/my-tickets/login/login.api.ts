@@ -1,7 +1,8 @@
+import { getWixServerBaseUrl } from '../../../../api-url';
 import { httpClient } from '@wix/essentials';
 import { storeMyTicketsAgentSession } from '../auth/myTicketsFetchWithAuth';
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
 export interface LoginRequest {
     email: string;
@@ -56,7 +57,7 @@ export const loginUser = async (
     rememberMe = false,
 ): Promise<LoginResponse> => {
     const response = await httpClient.fetchWithAuth(
-        `${baseApiUrl}/api/auth/loginv1`,
+        `${baseApiUrl}/auth/loginv1`,
         {
             method: 'POST',
             headers: {
@@ -84,7 +85,7 @@ export const requestPasswordReset = async (
     request: ForgotPasswordRequest
 ): Promise<ForgotPasswordResponse> => {
     const response = await httpClient.fetchWithAuth(
-        `${baseApiUrl}/api/auth/forgot-password`,
+        `${baseApiUrl}/auth/forgot-password`,
         {
             method: 'POST',
             headers: {
@@ -107,7 +108,7 @@ export const verifyResetCode = async (
     request: VerifyResetCodeRequest
 ): Promise<VerifyResetCodeResponse> => {
     const response = await httpClient.fetchWithAuth(
-        `${baseApiUrl}/api/auth/verify-reset-code`,
+        `${baseApiUrl}/auth/verify-reset-code`,
         {
             method: 'POST',
             headers: {
@@ -130,7 +131,7 @@ export const resetPassword = async (
     request: ResetPasswordRequest
 ): Promise<VerifyResetCodeResponse> => {
     const response = await httpClient.fetchWithAuth(
-        `${baseApiUrl}/api/auth/reset-password`,
+        `${baseApiUrl}/auth/reset-password`,
         {
             method: 'POST',
             headers: {

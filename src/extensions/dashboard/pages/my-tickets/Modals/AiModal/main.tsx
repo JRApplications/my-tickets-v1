@@ -305,7 +305,7 @@ export const AiModal = ({
                     .origin;
 
             await myTicketsFetchWithAuth(
-                `${baseApiUrl}/api/sidebar-ai/sendMessageToConversationHistoryEndpoint`,
+                `${baseApiUrl}/sidebar-ai/sendMessageToConversationHistoryEndpoint`,
                 {
                     method: 'POST',
                     headers: {
@@ -398,7 +398,7 @@ export const AiModal = ({
 
             const response =
                 await myTicketsFetchWithAuth(
-                    `${baseApiUrl}/api/sidebar-ai/generate`,
+                    `${baseApiUrl}/sidebar-ai/generate`,
                     {
                         method: 'POST',
                         headers: {
@@ -674,7 +674,7 @@ export const AiModal = ({
 
             const executeResponse =
                 await myTicketsFetchWithAuth(
-                    `${baseApiUrl}/api/sidebar-ai/tools/execute`,
+                    `${baseApiUrl}/sidebar-ai/tools/execute`,
                     {
                         method: 'POST',
                         headers: {
@@ -700,7 +700,7 @@ export const AiModal = ({
 
             const resultResponse =
                 await myTicketsFetchWithAuth(
-                    `${baseApiUrl}/api/sidebar-ai/generate`,
+                    `${baseApiUrl}/sidebar-ai/generate`,
                     {
                         method: 'POST',
                         headers: {

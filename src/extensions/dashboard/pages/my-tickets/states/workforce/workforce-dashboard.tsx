@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { CurrentAppPlan } from '../../auth/fetchCurrentAppPlan';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
@@ -49,10 +50,10 @@ const WorkforceDashboardContent = ({ teamId, agentId, permissions }: WorkforceDa
         setIsLoading(true);
         setError(false);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
             const [overviewResponse, analyticsResponse] = await Promise.all([
-                myTicketsFetchWithAuth(`${baseApiUrl}/api/workforce/overview?teamId=${encodeURIComponent(teamId)}&agentId=${encodeURIComponent(agentId)}`),
-                myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/analytics?teamId=${encodeURIComponent(teamId)}`),
+                myTicketsFetchWithAuth(`${baseApiUrl}/workforce/overview?teamId=${encodeURIComponent(teamId)}&agentId=${encodeURIComponent(agentId)}`),
+                myTicketsFetchWithAuth(`${baseApiUrl}/tickets/analytics?teamId=${encodeURIComponent(teamId)}`),
             ]);
             const [overviewResult, analyticsResult] = await Promise.all([overviewResponse.json(), analyticsResponse.json()]);
             if (!overviewResponse.ok || !overviewResult.success) throw new Error(overviewResult.error || 'Unable to load workforce data');

@@ -1,10 +1,11 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { useEffect, useState } from 'react';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import type { TicketAssigneeOption } from './tickets-list';
 import TicketsListWrapper from './tickets-list.wrapper';
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
 interface TicketsAssigneesResponse {
     success?: unknown;
@@ -39,7 +40,7 @@ const TicketsList = ({ teamId, permissions, onTicketClick, onCreateTicket, isTic
 
         const loadAssignees = async () => {
             try {
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/sidebar/assignees`);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/sidebar/assignees`);
                 const payload: TicketsAssigneesResponse = await response.json();
                 if (
                     !response.ok ||

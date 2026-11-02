@@ -1,8 +1,9 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import type { Ticket } from '@jrapps/my_tickets_common_types';
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
 export interface TicketDetails {
     memberName: string;
@@ -37,7 +38,7 @@ export interface SendMessagePayload {
 
 
 export const fetchTicketTimeline = async (ticketId: string): Promise<any[]> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/timeline/getTicketTimeline?id=${ticketId}`);
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/timeline/getTicketTimeline?id=${ticketId}`);
     const { timeline, error } = await response.json();
     if (!response.ok) {
         console.error(error)
@@ -47,7 +48,7 @@ export const fetchTicketTimeline = async (ticketId: string): Promise<any[]> => {
 };
 
 export const fetchTicketDetails = async (ticketId: string): Promise<Ticket> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/getTicketById?id=${ticketId}`);
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/getTicketById?id=${ticketId}`);
     const { ticket, error } = await response.json();
     if (!ticket) {
         console.error(error)
@@ -57,7 +58,7 @@ export const fetchTicketDetails = async (ticketId: string): Promise<Ticket> => {
 };
 
 export const fetchAgentName = async (agentId: string): Promise<string> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/agents/getAgentName?id=${agentId}`, {
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/agents/getAgentName?id=${agentId}`, {
         method: 'GET',
     });
     const data: AgentNameResponse = await response.json();
@@ -69,7 +70,7 @@ export const fetchAgentName = async (agentId: string): Promise<string> => {
 };
 
 export const sendTicketMessage = async (payload: SendMessagePayload): Promise<any> => {
-    const res = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/sendMessage`, {
+    const res = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/sendMessage`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -83,7 +84,7 @@ export const sendTicketMessage = async (payload: SendMessagePayload): Promise<an
 };
 
 export const sendInternalNote = async (payload: SendMessagePayload): Promise<any> => {
-    const res = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/internal-note/send-message`, {
+    const res = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/internal-note/send-message`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -97,7 +98,7 @@ export const sendInternalNote = async (payload: SendMessagePayload): Promise<any
 };
 
 export const updateTicketTags = async (ticketId: string, tags: string[], agentId: string, agentName: string): Promise<string[]> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/updateTags`, {
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/updateTags`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticketId, tags, agentId, agentName }),
@@ -108,7 +109,7 @@ export const updateTicketTags = async (ticketId: string, tags: string[], agentId
 };
 
 export const updateTicketDisposition = async (ticketId: string, action: 'spam' | 'delete' | 'restore', agentId: string, agentName: string): Promise<{ isSpam: boolean; isDeleted: boolean }> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/updateDisposition`, {
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/updateDisposition`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ticketId, action, agentId, agentName }),

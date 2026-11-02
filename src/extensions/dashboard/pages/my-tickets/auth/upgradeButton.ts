@@ -1,4 +1,4 @@
-import { resolvePlanTier } from '../../../../../pages/api/utils/plan-config';
+import { resolvePlanTier } from '../../../../../endpoints/utils/plan-config';
 
 interface PlanLike {
     planName?: string | null;

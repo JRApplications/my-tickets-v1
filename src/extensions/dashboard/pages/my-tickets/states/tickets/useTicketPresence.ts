@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { subscriber } from '@wix/realtime';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
@@ -30,7 +31,7 @@ export function useTicketPresence(ticketId: string, agentId: string) {
     const publish = useCallback(async (action: PresenceAction) => {
         if (!ticketId || !agentId || (action !== 'left' && document.visibilityState !== 'visible')) return;
         try {
-            await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/tickets/presence`, {
+            await myTicketsFetchWithAuth(`${getWixServerBaseUrl(import.meta.url)}/tickets/presence`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ ticketId, action, sessionId: sessionIdRef.current }),

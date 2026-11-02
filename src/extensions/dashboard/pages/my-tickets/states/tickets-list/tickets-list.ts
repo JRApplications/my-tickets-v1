@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import type { TicketSla } from '@jrapps/my_tickets_common_types';
 
@@ -45,7 +46,7 @@ interface TicketPageResponse {
     error?: unknown;
 }
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 const ALL = 'all';
 
 const isRecord = (value: unknown): value is Record<string, unknown> =>
@@ -84,7 +85,7 @@ export const fetchTicketPage = async (query: TicketPageQuery): Promise<{
     }
 
     const response = await myTicketsFetchWithAuth(
-        `${baseApiUrl}/api/tickets/sidebar/${endpoint}?${params.toString()}`,
+        `${baseApiUrl}/tickets/sidebar/${endpoint}?${params.toString()}`,
     );
     const payload: TicketPageResponse = await response.json();
     if (

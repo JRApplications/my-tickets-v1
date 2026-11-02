@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../api-url';
 import React from 'react';
 import { createRoot } from 'react-dom/client';
 import { SiteChatComponentNew } from './SiteChatComponentNew';
@@ -103,8 +104,8 @@ function initChatEmbed() {
       },
       onOfflineSubmit: async (values: Record<string, unknown>, captchaToken: string) => {
         const fields = Array.isArray(parsedOfflineForm?.fields) ? parsedOfflineForm.fields : [];
-        const baseApiUrl = new URL(import.meta.url).origin;
-        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/offline-form/submit`, {
+        const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+        const response = await httpClient.fetchWithAuth(`${baseApiUrl}/offline-form/submit`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

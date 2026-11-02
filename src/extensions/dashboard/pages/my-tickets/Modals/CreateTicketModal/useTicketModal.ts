@@ -1,8 +1,9 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { dashboard } from '@wix/dashboard';
 import { ExtensionIds, type CreateTicketPayload } from '@jrapps/my_tickets_common_types';
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
 
 export interface Team {
@@ -16,14 +17,14 @@ export interface CreateTicketResponse {
 }
 
 export const teams = async (): Promise<Team[]> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/teams/get`);
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/teams/get`);
     const data = await response.json();
     return data.teams || [];
 };
 
 export const createTicket = async (ticketData: CreateTicketPayload): Promise<CreateTicketResponse> => {
 
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/createTicket`, {
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/createTicket`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
@@ -35,7 +36,7 @@ export const createTicket = async (ticketData: CreateTicketPayload): Promise<Cre
 };
 
 export const getRelatedTickets = async (tags: string[]): Promise<any> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/getRelatedTickets`, {
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/getRelatedTickets`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'

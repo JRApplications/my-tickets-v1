@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../api-url';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { subscriber } from '@wix/realtime';
 import { myTicketsFetchWithAuth } from '../auth/myTicketsFetchWithAuth';
@@ -42,7 +43,7 @@ export function useTeamPresence(teamId: string, agentId: string): { onlineCount:
             });
         }
         try {
-            await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/agents/activity-status`, {
+            await myTicketsFetchWithAuth(`${getWixServerBaseUrl(import.meta.url)}/agents/activity-status`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action, sessionId: sessionIdRef.current }),

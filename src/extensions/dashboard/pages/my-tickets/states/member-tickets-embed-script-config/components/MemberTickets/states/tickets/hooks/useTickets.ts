@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../../../../../../api-url';
 import { useState, useEffect } from 'react';
 import { myTicketsFetchWithAuth } from '../../../../../../../auth/myTicketsFetchWithAuth';
 
@@ -11,9 +12,9 @@ export const useTickets = () => {
         const fetchTickets = async () => {
             setIsTicketsLoading(true);
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
                 const response = await myTicketsFetchWithAuth(
-                    `${baseApiUrl}/api/widget/tickets/get`,
+                    `${baseApiUrl}/widget/tickets/get`,
                     { signal: controller.signal }
                 );
                 if (response.ok) {

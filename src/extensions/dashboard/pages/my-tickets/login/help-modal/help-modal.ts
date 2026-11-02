@@ -1,9 +1,10 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { httpClient } from '@wix/essentials';
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
 export const getAppInstance = async () => {
-    const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/help-modal/get-instance`, {
+    const response = await httpClient.fetchWithAuth(`${baseApiUrl}/help-modal/get-instance`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

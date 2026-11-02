@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../../auth/myTicketsFetchWithAuth';
 import { useEffect, useState } from 'react';
 
@@ -8,12 +9,12 @@ const useAgents = () => {
     const [roles, setRoles] = useState<{ value: string; id: string }[]>([]);
     const [teams, setTeams] = useState<{ value: string; id: string }[]>([]);
 
-    const baseApiUrl = new URL(import.meta.url).origin;
+    const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
     const getAgentData = async (agentId: string) => {
         setIsLoading(true);
         try {
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/agents/get?id=${encodeURIComponent(agentId)}`);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/agents/get?id=${encodeURIComponent(agentId)}`);
             const data = await response.json();
             if (!response.ok || !data?.success || !data.user) throw new Error('Failed to load agent');
             setIsError(false);
@@ -29,7 +30,7 @@ const useAgents = () => {
     const updateAgentData = async (agentId: string, agentData: Record<string, any>): Promise<{ success: boolean; error?: string }> => {
         setIsLoading(true);
         try {
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/agents/update?id=${encodeURIComponent(agentId)}`, {
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/agents/update?id=${encodeURIComponent(agentId)}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -52,7 +53,7 @@ const useAgents = () => {
     const createAgent = async (agentData: any): Promise<{ success: boolean; error?: string }> => {
         setIsLoading(true);
         try {
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/agents/create`, {
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/agents/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -74,7 +75,7 @@ const useAgents = () => {
     useEffect(() => {
         const loadRoles = async () => {
             try {
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/roles/get`);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/roles/get`);
                 const data = await response.json();
                 const result = data.roles;
                 if (response.ok && data.success && Array.isArray(result)) {
@@ -90,7 +91,7 @@ const useAgents = () => {
 
         const loadTeams = async () => {
             try {
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/teams/get`);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/teams/get`);
                 const data = await response.json();
                 const result = data.teams;
                 if (response.ok && data.success && Array.isArray(result)) {

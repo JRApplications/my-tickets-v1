@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { AreaChart, Badge, Box, Button, Card, Cell, Heading, Layout, LinearProgressBar, Page, SkeletonRectangle, TableListItem, Text, Tooltip } from '@wix/design-system';
@@ -116,11 +117,11 @@ const HomeDashboard = ({ appPlan, teamId, onCreateTicket, onUpgrade, isTicketLim
         setIsLoading(cached?.tickets === undefined);
         setIsAnalyticsLoading(cached?.analytics === undefined);
         setHasError(false);
-        const baseApiUrl = new URL(import.meta.url).origin;
+        const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
         const refreshTickets = async () => {
             try {
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/sidebar/get?teamId=${encodeURIComponent(teamId)}`);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/sidebar/get?teamId=${encodeURIComponent(teamId)}`);
                 const result = await response.json();
                 if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load ticket overview');
                 if (requestId !== loadRequestId.current) return;
@@ -137,7 +138,7 @@ const HomeDashboard = ({ appPlan, teamId, onCreateTicket, onUpgrade, isTicketLim
 
         const refreshAnalytics = async () => {
             try {
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/analytics?teamId=${encodeURIComponent(teamId)}`);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/analytics?teamId=${encodeURIComponent(teamId)}`);
                 const result = await response.json();
                 if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load ticket analytics');
                 if (requestId !== loadRequestId.current) return;

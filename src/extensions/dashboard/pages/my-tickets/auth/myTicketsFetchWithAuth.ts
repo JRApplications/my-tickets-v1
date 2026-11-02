@@ -1,9 +1,10 @@
+import { getWixServerApiUrl, getWixServerBaseUrl } from '../../../../api-url';
 import { httpClient } from '@wix/essentials';
 
 const TOKEN_KEY = 'my-tickets-auth-token';
 const EXPIRY_KEY = 'my-tickets-auth-token-expires-at';
 const AUTH_HEADER = 'x-my-tickets-auth';
-const BASE_API_URL = new URL(import.meta.url).origin;
+const BASE_API_URL = getWixServerBaseUrl(import.meta.url);
 let inMemoryToken: string | null = null;
 let inMemoryExpiresAt = 0;
 
@@ -52,7 +53,7 @@ async function getAgentAuthToken(): Promise<string> {
     }
     if (expiresAt > now + 60) return token;
 
-    const response = await httpClient.fetchWithAuth(new URL('/api/my-tickets-auth/refresh', BASE_API_URL).toString(), {
+    const response = await httpClient.fetchWithAuth(getWixServerApiUrl('my-tickets-auth/refresh', import.meta.url), {
         method: 'POST',
         headers: { [AUTH_HEADER]: token },
     });
@@ -83,7 +84,18 @@ export const myTicketsFetchWithAuth = async (
 ): Promise<Response> => {
     const token = await getAgentAuthToken();
     const requestUrl = input instanceof Request ? input.url : String(input);
-    const url = new URL(requestUrl, BASE_API_URL).toString();
+    const url = new URL(requestUrl, BASE_API_URL);
+    const basePath = import.meta.env.WIX_SERVER_BASE_PATH || '/';
+    const basePrefix = basePath === '/' ? '' : basePath.replace(/\/$/, '');
+    const appOrigin = new URL(import.meta.url).origin;
+    if (
+        basePrefix
+        && url.origin === appOrigin
+        && url.pathname !== basePrefix
+        && !url.pathname.startsWith(`${basePrefix}/`)
+    ) {
+        url.pathname = `${basePrefix}${url.pathname.startsWith('/') ? '' : '/'}${url.pathname}`;
+    }
     // Wix's fetchWithAuth spreads requestInit.headers into a plain object.
     // A Headers instance is not enumerable, so convert it before passing it in
     // or the custom agent token header gets silently dropped by the SDK.
@@ -98,5 +110,5 @@ export const myTicketsFetchWithAuth = async (
         ? { method: input.method, body: input.body, ...init, headers }
         : { ...init, headers };
 
-    return httpClient.fetchWithAuth(url, requestInit);
+    return httpClient.fetchWithAuth(url.toString(), requestInit);
 };

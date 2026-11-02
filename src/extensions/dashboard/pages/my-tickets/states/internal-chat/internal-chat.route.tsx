@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import InternalChatWrapper from './internal-chat-wrapper';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import { useEffect, useState } from 'react';
@@ -73,7 +74,7 @@ const InternalChatExperience = ({
                 if (channelName === 'INTERNAL_MAIL' && channelResourceId === teamId) {
                     let payload = message.payload;
                     const mailId = payload.mailId;
-                    const response = await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/internal-mail/getMailSidebarMetaData?mailId=${mailId}&agentId=${agentId}`);
+                    const response = await myTicketsFetchWithAuth(`${getWixServerBaseUrl(import.meta.url)}/internal-mail/getMailSidebarMetaData?mailId=${mailId}&agentId=${agentId}`);
                     if (!response.ok) {
                         console.error('Failed to fetch updated mail item:', response.statusText);
                         ShowToast({ message: 'Failed to fetch updated mail item. Please try again.', type: 'error' });
@@ -99,7 +100,7 @@ const InternalChatExperience = ({
                 if (channelName === 'INTERNAL_MAIL' && channelResourceId === agentId) {
                     let payload = message.payload;
                     const mailId = payload.mailId;
-                    const response = await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/internal-mail/getMailSidebarMetaData?mailId=${mailId}&agentId=${agentId}`);
+                    const response = await myTicketsFetchWithAuth(`${getWixServerBaseUrl(import.meta.url)}/internal-mail/getMailSidebarMetaData?mailId=${mailId}&agentId=${agentId}`);
                     const data = await response.json();
                     if (!response.ok) {
                         console.error(data.error);
@@ -128,8 +129,8 @@ const InternalChatExperience = ({
 
     const handleSendMessage = async (item: any): Promise<{ success: boolean; updatedConversation?: any }> => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/internal-mail/sendMessage`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/internal-mail/sendMessage`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(item)
@@ -160,8 +161,8 @@ const InternalChatExperience = ({
 
     const fetchAddressBook = async () => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/internal-mail/getAddressBook`);
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/internal-mail/getAddressBook`);
             if (!response.ok) {
                 throw new Error(`Error fetching address book: ${response.statusText}`);
             }
@@ -178,8 +179,8 @@ const InternalChatExperience = ({
             const updatedSidebar = sidebarItems.map(item => item._id === mailId ? { ...item, isFlagged: isAdding } : item);
             setSidebarItems(updatedSidebar);
             setFlaggedMailNumber(prev => isAdding ? prev + 1 : prev - 1);
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/internal-mail/updateFlaggedStatus`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/internal-mail/updateFlaggedStatus`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ isRemoving, isAdding, agentId, mailId })
@@ -200,8 +201,8 @@ const InternalChatExperience = ({
 
     const fetchSidebarItems = async () => {
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/internal-mail/getAllMail?agentId=${agentId}&teamId=${teamId}`);
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/internal-mail/getAllMail?agentId=${agentId}&teamId=${teamId}`);
             if (!response.ok) {
                 throw new Error(`Error fetching sidebar items: ${response.statusText}`);
             }
@@ -237,8 +238,8 @@ const InternalChatExperience = ({
                 agentId
             }
 
-            const baseApiUrl = new URL(import.meta.url).origin
-            const request = await myTicketsFetchWithAuth(`${baseApiUrl}/api/internal-mail/createMail`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url)
+            const request = await myTicketsFetchWithAuth(`${baseApiUrl}/internal-mail/createMail`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(bodyToSend)
@@ -266,8 +267,8 @@ const InternalChatExperience = ({
 
     const handleOnSelectItem = async (item: any) => {
         if (item.hasRead === false) {
-            const baseApiUrl = new URL(import.meta.url).origin
-            await myTicketsFetchWithAuth(`${baseApiUrl}/api/internal-mail/markAsRead`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url)
+            await myTicketsFetchWithAuth(`${baseApiUrl}/internal-mail/markAsRead`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mailId: item._id, agentId })
@@ -295,9 +296,9 @@ const InternalChatExperience = ({
     }
 
     const handleDeleteMail = async (mailId: string) => {
-        const baseApiUrl = new URL(import.meta.url).origin;
+        const baseApiUrl = getWixServerBaseUrl(import.meta.url);
         try {
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/internal-mail/deleteMail`, {
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/internal-mail/deleteMail`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ mailId, agentId })

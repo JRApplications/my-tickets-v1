@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { useCallback, useEffect, useState } from 'react';
 import { Badge, Box, Button, Card, Text } from '@wix/design-system';
 import {
@@ -60,7 +61,7 @@ const OfflineFormSubmissions = ({ permissions }: Props) => {
         setIsLoading(true);
         setIsError(false);
         try {
-            const response = await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/offline-form-submissions/get`);
+            const response = await myTicketsFetchWithAuth(`${getWixServerBaseUrl(import.meta.url)}/offline-form-submissions/get`);
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load submissions');
             setSubmissions(Array.isArray(result.submissions) ? result.submissions : []);
@@ -90,7 +91,7 @@ const OfflineFormSubmissions = ({ permissions }: Props) => {
 
     const updateStatus = async (submissionId: string, status: 'seen' | 'resolved') => {
         try {
-            const response = await myTicketsFetchWithAuth(`${new URL(import.meta.url).origin}/api/offline-form-submissions/update-status`, {
+            const response = await myTicketsFetchWithAuth(`${getWixServerBaseUrl(import.meta.url)}/offline-form-submissions/update-status`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ submissionId, status }),

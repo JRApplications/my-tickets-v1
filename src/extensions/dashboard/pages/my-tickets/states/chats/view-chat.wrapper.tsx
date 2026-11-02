@@ -1,3 +1,4 @@
+import { getWixServerApiUrl } from '../../../../../api-url';
 import { useState, type FC } from 'react';
 import {
     Box,
@@ -159,7 +160,7 @@ const ViewChatWrapper: FC<ViewChatWrapperProps> = ({
                                         setAttachments={setAttachments}
                                         placeholder={'Start typing your message...'}
                                         allowMentions={false}
-                                        getMentionApiUrl="/api/agents/getMentionList"
+                                        getMentionApiUrl={getWixServerApiUrl('agents/getMentionList', import.meta.url)}
                                         disabled={!currentAgentJoined || isSending}
                                         isLoading={isLoading}
                                     />

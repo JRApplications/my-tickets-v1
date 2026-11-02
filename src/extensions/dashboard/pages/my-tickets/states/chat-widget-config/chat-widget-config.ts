@@ -1,10 +1,11 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import type { TeamOption, Config } from './chat-widget-config.types';
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
 export const fetchTeams = async (): Promise<TeamOption[]> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/teams/get`);
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/teams/get`);
     const data = await response.json();
     if (response.ok && data.success && Array.isArray(data.teams)) {
         return data.teams.map((team: TeamOption) => ({
@@ -16,7 +17,7 @@ export const fetchTeams = async (): Promise<TeamOption[]> => {
 };
 
 export const fetchChatWidgetConfig = async (): Promise<Config> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-settings/get?dashboard=true`, {
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-settings/get?dashboard=true`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json'
@@ -31,7 +32,7 @@ export const fetchChatWidgetConfig = async (): Promise<Config> => {
 };
 
 export const saveChatWidgetConfig = async (config: Config): Promise<{ _id: string; config: Config; success: boolean }> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-settings/config`, {
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-settings/config`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

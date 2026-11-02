@@ -1,11 +1,12 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import type { Agent } from '@jrapps/my_tickets_common_types';
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
 
 export const fetchAgents = async (): Promise<Agent[]> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/agents/get`, {
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/agents/get`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

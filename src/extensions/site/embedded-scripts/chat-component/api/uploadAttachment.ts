@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../api-url';
 import { MAX_ATTACHMENT_BYTES, resolveAttachmentMimeType } from '@jrapps/my_tickets_common_types';
 import { httpClient } from '@wix/essentials';
 
@@ -16,8 +17,8 @@ export async function uploadChatAttachment(file: File, conversationId: string): 
   }
   if (file.name.length > 100) throw new Error('File names must be 100 characters or fewer.');
 
-  const baseApiUrl = new URL(import.meta.url).origin;
-  const urlResponse = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/getUploadUrl`, {
+  const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+  const urlResponse = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/getUploadUrl`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ conversationId, fileName: file.name, mimeType }),

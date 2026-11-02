@@ -168,8 +168,7 @@ const MessageInputWrapper: FC<MessageInputWrapperProps> = ({
 
         const fetchAgents = async () => {
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}${getMentionApiUrl}`);
+                const response = await myTicketsFetchWithAuth(getMentionApiUrl);
                 const data = await response.json();
                 if (data.success) {
                     setAgents(data.agents ?? []);

@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { type FC, useState } from 'react';
 import { DropdownBase, Button, listItemActionBuilder } from '@wix/design-system';
 import { ChevronDown, Replace, Redo, Badge, Visible, Add } from '@wix/wix-ui-icons-common/lazy';
@@ -18,9 +19,9 @@ const ActionsButtonWrapper: FC<ActionsButtonWrapperProps> = ({ ticketStatus, per
     const handleFollowButtonClick = async () => {
         setIsFollowActionLoading(true);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
             if (isFollowingTicket) {
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/unfollowTicket`, {
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/unfollowTicket`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -36,7 +37,7 @@ const ActionsButtonWrapper: FC<ActionsButtonWrapperProps> = ({ ticketStatus, per
                 }
 
             } else {
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/followTicket`, {
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/followTicket`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'

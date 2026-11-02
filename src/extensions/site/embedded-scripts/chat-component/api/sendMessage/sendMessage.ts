@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 // sendMessage.ts
 import { httpClient } from '@wix/essentials';
 
@@ -14,8 +15,8 @@ export const sendMessage = async (
   attachments?: ChatAttachment[],
 ) => {
   try {
-    const baseApiUrl = new URL(import.meta.url).origin;
-    const response = await httpClient.fetchWithAuth(`${baseApiUrl}/api/chat/sendMessage`, {
+    const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+    const response = await httpClient.fetchWithAuth(`${baseApiUrl}/chat/sendMessage`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

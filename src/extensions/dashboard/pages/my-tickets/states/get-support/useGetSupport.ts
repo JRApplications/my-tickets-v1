@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 
 export type SupportRequestType = 'support' | 'bug' | 'feature' | 'feedback';
@@ -13,9 +14,9 @@ export interface SupportRequestDetails {
 
 export const useGetSupport = () => {
     const submit = async (details: SupportRequestDetails) => {
-        const baseApiUrl = new URL(import.meta.url).origin;
+        const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
-        const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/get-support`, {
+        const response = await myTicketsFetchWithAuth(`${baseApiUrl}/get-support`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(details),

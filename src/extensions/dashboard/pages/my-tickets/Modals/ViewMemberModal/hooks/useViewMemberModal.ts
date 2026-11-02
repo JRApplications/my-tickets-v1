@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../../api-url';
 import { useEffect, useState } from "react";
 import { myTicketsFetchWithAuth } from '../../../auth/myTicketsFetchWithAuth';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
@@ -27,8 +28,8 @@ export const useViewMemberModal = (memberId: string, isOpen: boolean) => {
             try {
                 setIsLoading(true);
                 setIsError(false);
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/members/viewMember?id=${memberId}`);
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/members/viewMember?id=${memberId}`);
                 const result = await response.json();
                 if (!isCurrentRequest) return;
                 if (result.success) {
@@ -62,8 +63,8 @@ export const useViewMemberModal = (memberId: string, isOpen: boolean) => {
     const handleBlockMember = async () => {
         try {
             setIsBlockingOrUnblocking(true);
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/members/blockMember?id=${memberId}`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/members/blockMember?id=${memberId}`, {
                 method: 'POST',
             });
             const result = await response.json();
@@ -80,8 +81,8 @@ export const useViewMemberModal = (memberId: string, isOpen: boolean) => {
     const handleUnblockMember = async () => {
         try {
             setIsBlockingOrUnblocking(true);
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/members/unblockMember?id=${memberId}`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/members/unblockMember?id=${memberId}`, {
                 method: 'POST',
             });
             const result = await response.json();

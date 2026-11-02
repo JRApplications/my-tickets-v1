@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../../auth/myTicketsFetchWithAuth';
 import { useState } from 'react';
 
@@ -12,8 +13,8 @@ const useTeams = () => {
             if (!teamId) {
                 throw new Error('Team ID is required to fetch team data.');
             }
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/teams/get?id=${encodeURIComponent(teamId)}`);
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/teams/get?id=${encodeURIComponent(teamId)}`);
             const data = await response.json();
             if (!response.ok || !data?.success || !data.team) throw new Error('Failed to load team');
             setIsError(false);
@@ -33,8 +34,8 @@ const useTeams = () => {
             if (!teamId) {
                 throw new Error('Team ID is required to update team data.');
             }
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/teams/update?id=${teamId}`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/teams/update?id=${teamId}`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
@@ -58,8 +59,8 @@ const useTeams = () => {
     const createTeam = async (teamData: Record<string, any>): Promise<{ success: boolean; error?: string }> => {
         setIsCreating(true);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/teams/create`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/teams/create`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

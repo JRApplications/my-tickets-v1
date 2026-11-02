@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../../api-url';
 import { useEffect, useState } from 'react';
 import { ShowToast } from '@jrapps/my_tickets_dashboard_ui';
 import { myTicketsFetchWithAuth } from '../../../auth/myTicketsFetchWithAuth';
@@ -38,8 +39,8 @@ export const useChatTransferModal = ({
 
         const fetchTeams = async () => {
             try {
-                const baseApiUrl = new URL(import.meta.url).origin;
-                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/teams/get`);
+                const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+                const response = await myTicketsFetchWithAuth(`${baseApiUrl}/teams/get`);
                 const result: { success?: boolean; error?: string; teams?: Team[] } = await response.json();
                 if (!response.ok || !result.success || !Array.isArray(result.teams)) {
                     throw new Error(result.error || `Failed to load teams (${response.status})`);
@@ -64,8 +65,8 @@ export const useChatTransferModal = ({
 
         setIsSaving(true);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/chat-admin/transferChat`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/chat-admin/transferChat`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ conversationId, teamId: selectedTeamId }),

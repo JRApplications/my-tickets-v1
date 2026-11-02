@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import {
     CustomModalLayout,
     Modal,
@@ -1254,8 +1255,8 @@ const CreateTicketModal = ({
     const handleMemberSelect = async (member: MemberSearchResult) => {
         const memberId = member._id;
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/members/get?id=${encodeURIComponent(memberId)}`);
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/members/get?id=${encodeURIComponent(memberId)}`);
             if (!response.ok) {
                 throw new Error('Unable to fetch member details');
             }
@@ -1304,8 +1305,8 @@ const CreateTicketModal = ({
         }
 
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/members/search?query=${encodeURIComponent(query)}`);
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/members/search?query=${encodeURIComponent(query)}`);
             if (!response.ok) {
                 throw new Error('Unable to search members');
             }

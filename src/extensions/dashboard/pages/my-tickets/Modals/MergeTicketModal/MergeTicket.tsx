@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { Modal, CustomModalLayout, Box, Loader, FormField, Input, InputArea, Dropdown, Text } from '@wix/design-system';
 import { useState, useEffect } from 'react';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
@@ -83,8 +84,8 @@ const MergeTicketModal = ({
 
         setIsSearching(true);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/tickets/queryTickets?query=${encodeURIComponent(searchQuery)}`, {
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/tickets/queryTickets?query=${encodeURIComponent(searchQuery)}`, {
                 method: 'GET',
                 headers: { 'Content-Type': 'application/json' }
             });

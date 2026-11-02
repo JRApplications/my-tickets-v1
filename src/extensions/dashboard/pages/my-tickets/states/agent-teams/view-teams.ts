@@ -1,10 +1,11 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
 import type { TeamData } from './teams.types';
 
-const baseApiUrl = new URL(import.meta.url).origin;
+const baseApiUrl = getWixServerBaseUrl(import.meta.url);
 
 export const fetchTeams = async (): Promise<TeamData[]> => {
-    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/teams/get`, {
+    const response = await myTicketsFetchWithAuth(`${baseApiUrl}/teams/get`, {
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',

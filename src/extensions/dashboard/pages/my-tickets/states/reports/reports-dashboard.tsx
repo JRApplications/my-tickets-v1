@@ -1,3 +1,4 @@
+import { getWixServerBaseUrl } from '../../../../../api-url';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AreaChart, Box, Button, Card, Cell, Checkbox, Dropdown, FormField, Heading, Input, Layout, Page, SectionHelper, SkeletonRectangle, Text } from '@wix/design-system';
 import { myTicketsFetchWithAuth } from '../../auth/myTicketsFetchWithAuth';
@@ -59,8 +60,8 @@ const ReportsDashboard = ({ teamId, permissions }: { teamId: string; permissions
         setLoading(true);
         setError(false);
         try {
-            const apiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${apiUrl}/api/reports/analytics?teamId=${encodeURIComponent(teamId)}&periodDays=${periodDays}`);
+            const apiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${apiUrl}/reports/analytics?teamId=${encodeURIComponent(teamId)}&periodDays=${periodDays}`);
             const result = await response.json();
             if (!response.ok || !result.success) throw new Error(result.error || 'Unable to load reports');
             setMetrics(result.metrics as ReportMetrics);

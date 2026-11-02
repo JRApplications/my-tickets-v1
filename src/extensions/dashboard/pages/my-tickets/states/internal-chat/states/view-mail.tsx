@@ -1,3 +1,5 @@
+import { getWixServerApiUrl } from '../../../../../../api-url';
+import { getWixServerBaseUrl } from '../../../../../../api-url';
 import { Avatar, Box, Heading, IconButton, Text, Card, SkeletonRectangle, SkeletonCircle, SkeletonLine } from '@wix/design-system';
 import { FlagFilled } from '@wix/wix-ui-icons-common/lazy';
 import { Delete, Flag } from '@wix/wix-ui-icons-common/lazy';
@@ -113,8 +115,8 @@ const ViewMail = ({
         if (!selectedItemId) return;
         setIsLoading(true);
         try {
-            const baseApiUrl = new URL(import.meta.url).origin;
-            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/api/internal-mail/getMail?mailId=${selectedItemId}&agentId=${agentId}`);
+            const baseApiUrl = getWixServerBaseUrl(import.meta.url);
+            const response = await myTicketsFetchWithAuth(`${baseApiUrl}/internal-mail/getMail?mailId=${selectedItemId}&agentId=${agentId}`);
             if (!response.ok) {
                 throw new Error(`Error fetching mail: ${response.statusText}`);
             }
@@ -184,7 +186,7 @@ const ViewMail = ({
                             setAttachments={setMessageAttachments}
                             placeholder="Start typing your message... Type @ to mention someone"
                             allowMentions={true}
-                            getMentionApiUrl="/api/agents/getMentionList"
+                            getMentionApiUrl={getWixServerApiUrl('agents/getMentionList', import.meta.url)}
                             isLoading={true}
 
                         />
@@ -266,7 +268,7 @@ const ViewMail = ({
                         setAttachments={handleAttachmentsChange}
                         placeholder="Start typing your message... Type @ to mention someone"
                         allowMentions={true}
-                        getMentionApiUrl="/api/agents/getMentionList"
+                        getMentionApiUrl={getWixServerApiUrl('agents/getMentionList', import.meta.url)}
 
                     />
                 </Card.Content>
