@@ -27,7 +27,7 @@ import appInstancePlanConvertedToPaid from './extensions/backend/events/app-inst
 import appInstancePlanReactivated from './extensions/backend/events/app-instance-plan-reactivated/app-instance-plan-reactivated.extension.ts';
 import appInstancePlanTransferred from './extensions/backend/events/app-instance-plan-transferred/app-instance-plan-transferred.extension.ts';
 
-export default app()
+export default app({ apiDir: 'endpoints' })
   .use(myTickets)
   // .use(myTicketsRtPro)
   .use(chatComponent)
