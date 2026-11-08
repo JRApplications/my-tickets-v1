@@ -6,4 +6,8 @@ export default extensions.dashboardPage({
   routePath: 'my-tickets',
   component: './extensions/dashboard/pages/my-tickets/my-tickets.tsx',
   fullPage: true,
+  metaData: {
+    searchable: true,
+    description: 'View and manage your tickets & chats',
+  }
 });
