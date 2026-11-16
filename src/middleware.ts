@@ -1,8 +1,8 @@
 // middleware.ts
 import { defineMiddleware } from 'astro:middleware';
 import { captureError, flushSentry } from './monitoring/sentry';
-import { HEADER_NAME, verifyToken } from './endpoints/my-tickets-auth/token';
-import { agentHasRequestPermission } from './endpoints/auth/agent-api-permissions';
+import { HEADER_NAME, verifyToken } from './api/my-tickets-auth/token';
+import { agentHasRequestPermission } from './api/auth/agent-api-permissions';
 import crypto from 'crypto';
 
 const agentDashboardApiPrefixes = [
@@ -24,7 +24,7 @@ const errorResponse = (requestId: string) => new Response(
     },
 );
 
-export const onRequest = defineMiddleware(async (context, next) => {
+export const onRequest = defineMiddleware(async (context: any, next: any) => {
     const requestId = context.request.headers.get('x-mytickets-request-id')
         ?? crypto.randomUUID().replace(/-/g, '');
     context.locals.myTicketsRequestId = requestId;

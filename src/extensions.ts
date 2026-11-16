@@ -2,7 +2,7 @@ import { app } from '@wix/custom-extensions';
 
 import myTickets from './extensions/dashboard/pages/my-tickets/my-tickets.extension.ts';
 
-// import myTicketsRtPro from './extensions/backend/service-plugins/my-tickets-rt-pro/my-tickets-rt-pro.extension.ts';
+import myTicketsRtPro from './extensions/backend/service-plugins/my-tickets-rt-pro/my-tickets-rt-pro.extension.ts';
 
 import chatComponent from './extensions/site/embedded-scripts/chat-component/chat-component.extension.ts';
 
@@ -29,7 +29,7 @@ import appInstancePlanTransferred from './extensions/backend/events/app-instance
 
 export default app({ apiDir: 'api' })
   .use(myTickets)
-  // .use(myTicketsRtPro)
+  .use(myTicketsRtPro)
   .use(chatComponent)
   .use(memberTicketsThemeComponent)
   .use(memberTickets)
